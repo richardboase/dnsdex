@@ -1,9 +1,17 @@
 {
     "version": 2,
+    "framework": null,
     "builds": [
         {
             "src": "api/index.php",
-            "use": "vercel-php@0.5.2"
+            "use": "vercel-php@0.5.2",
+            "config": {
+                "composerInstall": true
+            }
+        },
+        {
+            "src": "package.json",
+            "use": "@vercel/node"
         },
         {
             "src": "public/**",
@@ -12,12 +20,12 @@
     ],
     "routes": [
         {
-            "src": "/(css|js|images|fonts|assets)/(.*)",
-            "dest": "/public/$1/$2"
-        },
-        {
             "src": "/build/(.*)",
             "dest": "/public/build/$1"
+        },
+        {
+            "src": "/(css|js|images|fonts|assets)/(.*)",
+            "dest": "/public/$1/$2"
         },
         {
             "src": "/(.*)",
@@ -38,8 +46,5 @@
         "LOG_CHANNEL": "stderr",
         "SESSION_DRIVER": "array",
         "SSR_TEMP_PATH": "/tmp"
-    },
-    "buildCommand": "composer install --no-dev && npm install && npm run build",
-    "installCommand": "composer install --no-dev && npm install",
-    "outputDirectory": "public"
+    }
 } 
