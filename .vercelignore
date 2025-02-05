@@ -5,4 +5,10 @@
 *.log
 .git
 .gitignore
-.idea 
+.idea
+/storage/*.key
+/storage/framework/cache/**
+/storage/framework/sessions/**
+/storage/framework/views/**
+/storage/logs/**
+/bootstrap/cache/** 
