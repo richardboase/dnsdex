@@ -20,6 +20,7 @@ export default defineConfig({
             },
         }),
     ],
+<<<<<<< HEAD
     build: {
         outDir: 'public/build',
         manifest: true,
@@ -29,4 +30,6 @@ export default defineConfig({
             },
         },
     },
+=======
+>>>>>>> 6823bed81324d76cc4edf7148e752b8ca25cf012
 });

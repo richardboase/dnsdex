@@ -14,7 +14,11 @@ import "tippy.js/themes/light.css";
 import "v-calendar/dist/style.css";
 import { createI18n } from "vue-i18n";
 import VueTippy from "vue-tippy";
+<<<<<<< HEAD
 import { ZiggyVue } from 'ziggy-js/dist/vue.es';
+=======
+import { ZiggyVue } from '../../vendor/tightenco/ziggy';
+>>>>>>> 6823bed81324d76cc4edf7148e752b8ca25cf012
 import "../css/vcalendar-theme.css";
 import messages from "./vue-i18n-locales.generated.js";
 

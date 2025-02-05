@@ -4,7 +4,11 @@
         "Read more about it at https://getcomposer.org/doc/01-basic-usage.md#installing-dependencies",
         "This file is @generated automatically"
     ],
+<<<<<<< HEAD
     "content-hash": "454c194116257ecce0a62667f2795d31",
+=======
+    "content-hash": "98a02390bb1f7f43bed742b56743f7b8",
+>>>>>>> 6823bed81324d76cc4edf7148e752b8ca25cf012
     "packages": [
         {
             "name": "aws/aws-crt-php",
@@ -9133,6 +9137,7 @@
         },
         {
             "name": "tightenco/ziggy",
+<<<<<<< HEAD
             "version": "v2.5.1",
             "source": {
                 "type": "git",
@@ -9143,6 +9148,18 @@
                 "type": "zip",
                 "url": "https://api.github.com/repos/tighten/ziggy/zipball/40df446f6053787edb245381c3b3d80b031b5fc0",
                 "reference": "40df446f6053787edb245381c3b3d80b031b5fc0",
+=======
+            "version": "v2.4.1",
+            "source": {
+                "type": "git",
+                "url": "https://github.com/tighten/ziggy.git",
+                "reference": "8e002298678fd4d61155bb1d6e3837048235bff7"
+            },
+            "dist": {
+                "type": "zip",
+                "url": "https://api.github.com/repos/tighten/ziggy/zipball/8e002298678fd4d61155bb1d6e3837048235bff7",
+                "reference": "8e002298678fd4d61155bb1d6e3837048235bff7",
+>>>>>>> 6823bed81324d76cc4edf7148e752b8ca25cf012
                 "shasum": ""
             },
             "require": {
@@ -9197,9 +9214,15 @@
             ],
             "support": {
                 "issues": "https://github.com/tighten/ziggy/issues",
+<<<<<<< HEAD
                 "source": "https://github.com/tighten/ziggy/tree/v2.5.1"
             },
             "time": "2025-01-31T19:23:01+00:00"
+=======
+                "source": "https://github.com/tighten/ziggy/tree/v2.4.1"
+            },
+            "time": "2024-11-21T15:51:20+00:00"
+>>>>>>> 6823bed81324d76cc4edf7148e752b8ca25cf012
         },
         {
             "name": "tijsverkoyen/css-to-inline-styles",
@@ -11753,12 +11776,20 @@
     ],
     "aliases": [],
     "minimum-stability": "stable",
+<<<<<<< HEAD
     "stability-flags": {},
+=======
+    "stability-flags": [],
+>>>>>>> 6823bed81324d76cc4edf7148e752b8ca25cf012
     "prefer-stable": true,
     "prefer-lowest": false,
     "platform": {
         "php": "^8.2"
     },
+<<<<<<< HEAD
     "platform-dev": {},
+=======
+    "platform-dev": [],
+>>>>>>> 6823bed81324d76cc4edf7148e752b8ca25cf012
     "plugin-api-version": "2.6.0"
 }

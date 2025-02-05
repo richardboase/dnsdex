@@ -23,4 +23,7 @@ yarn-error.log
 /.zed
 .DS_Store
 **/.DS_Store
+<<<<<<< HEAD
 .vercel
+=======
+>>>>>>> 6823bed81324d76cc4edf7148e752b8ca25cf012

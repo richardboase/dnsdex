@@ -1,9 +1,16 @@
 import { computed, getCurrentInstance, ref, toRefs, watch } from 'vue';
 
+<<<<<<< HEAD
 import arraysEqual from '../utils/arraysEqual';
 import isNullish from '../utils/isNullish';
 import isObject from '../utils/isObject';
 import normalize from '../utils/normalize';
+=======
+import arraysEqual from './../utils/arraysEqual';
+import isNullish from './../utils/isNullish';
+import isObject from './../utils/isObject';
+import normalize from './../utils/normalize';
+>>>>>>> 6823bed81324d76cc4edf7148e752b8ca25cf012
 
 export default function useOptions (props, context, dep)
 {

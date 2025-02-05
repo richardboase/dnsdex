@@ -1,6 +1,10 @@
 import { getCurrentInstance, toRefs } from 'vue';
 
+<<<<<<< HEAD
 import isNullish from '../utils/isNullish';
+=======
+import isNullish from './../utils/isNullish';
+>>>>>>> 6823bed81324d76cc4edf7148e752b8ca25cf012
 
 export default function useData (props, context, dep)
 {
