@@ -13,9 +13,9 @@
             "src": "package.json",
             "use": "@vercel/static-build",
             "config": {
-                "buildCommand": "npm install && npm run build",
-                "outputDirectory": "public/build",
-                "distDir": "public/build"
+                "zeroConfig": true,
+                "buildCommand": "npm run build",
+                "outputDirectory": "public"
             }
         }
     ],
