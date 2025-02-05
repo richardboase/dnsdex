@@ -1,0 +1,3 @@
+# Vercel build environment
+platform=linux
+arch=x64 
