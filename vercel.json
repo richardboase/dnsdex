@@ -1,22 +1,26 @@
 {
     "version": 2,
-    "framework": "laravel",
-    "builds": [
-        {
-            "src": "public/**",
-            "use": "@vercel/static"
-        },
-        {
-            "src": "api/index.php",
-            "use": "@vercel/php"
+    "framework": null,
+    "functions": {
+        "api/*.php": {
+            "runtime": "vercel-php@0.6.0"
         }
-    ],
+    },
     "routes": [
-        {
-            "src": "/(.*)",
-            "dest": "/api/index.php"
-        }
+        { "src": "/(css|js|images|fonts|assets)/(.*)", "dest": "public/$1/$2" },
+        { "src": "/(.*)", "dest": "/api/index.php" }
     ],
+    "env": {
+        "APP_NAME": "Laravel",
+        "APP_ENV": "production",
+        "APP_DEBUG": "false",
+        "APP_URL": "https://your-domain.vercel.app",
+        "CACHE_DRIVER": "array",
+        "SESSION_DRIVER": "array",
+        "QUEUE_DRIVER": "sync",
+        "DB_CONNECTION": "sqlite"
+    },
     "buildCommand": "npm run build",
-    "outputDirectory": "public/build"
+    "outputDirectory": "public",
+    "public": true
 } 
