@@ -4,11 +4,7 @@
     "builds": [
         {
             "src": "api/index.php",
-            "use": "now-php@1.0.0",
-            "config": {
-                "composer": true,
-                "php.ini": "api/vercel.ini"
-            }
+            "use": "@vercel/php@0.6.0"
         },
         {
             "src": "package.json",
