@@ -4,17 +4,17 @@
     "builds": [
         {
             "src": "api/index.php",
-            "use": "vercel-php@0.5.2",
+            "use": "now-php@1.0.0",
             "config": {
-                "composerInstall": true
+                "composer": true,
+                "php.ini": "api/vercel.ini"
             }
         },
         {
             "src": "package.json",
             "use": "@vercel/static-build",
             "config": {
-                "zeroConfig": true,
-                "buildCommand": "npm run build",
+                "buildCommand": "npm ci && npm run build",
                 "outputDirectory": "public"
             }
         }

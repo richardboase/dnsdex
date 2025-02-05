@@ -10,6 +10,7 @@ export default defineConfig({
                 'resources/js/install.js'
             ],
             refresh: true,
+            buildDirectory: 'build'
         }),
         vue({
             template: {
@@ -29,4 +30,5 @@ export default defineConfig({
             },
         },
     },
+    base: process.env.VITE_APP_URL || '/',
 });
