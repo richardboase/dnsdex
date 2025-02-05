@@ -1,0 +1,523 @@
+	});
+	const save = () =>
+		form.put(window.route("admin.settings.update", props.setting.id));
+	const all = ref(false);
+	const showing = ref("site");
+</script>
+
+<template>
+	<form class="" @submit.prevent="save()">
+		<RadioSelect
+			v-model="showing"
+			:options="[
+				{ label: 'Site', value: 'site' },
+				{ label: 'Rpc', value: 'rpc' },
+				{ label: 'Links', value: 'social' },
+			]" />
+		<CollapseTransition>
+			<div v-show="showing == 'site'" class="card mt-6 card-border">
+				<div class="card-body">
+					<FormInput
+						label="Site Name"
+						class="mb-4"
+						v-model="form.name"
+						type="text"
+						:error="form.errors.name" />
+					<div class="border p-3 border-gray-650 bg-gray-750/50">
+						<h3 class="text-lg mb-4 !text-primary font-extralight">
+							Site Logo
+						</h3>
+						<div class="gap-x-3 grid gap-3">
+							<FormInput
+								v-model="form.logo_uri"
+								:disabled="form.logo_upload"
+								placeholder="https://"
+								:error="form.errors.logo_uri"
+								:help="$t('Supports png, jpeg or svg')">
+								<template #label>
+									<div class="flex mb-3">
+										<span class="mr-3">
+											{{ $t("Logo") }}
+										</span>
+										<label
+											class="inline-flex items-center space-x-2">
+											<input
+												v-model="form.logo_upload"
+												class="form-switch h-5 w-10 rounded-full bg-slate-300 before:rounded-full before:bg-slate-50 checked:!bg-emerald-600 checked:before:bg-white dark:bg-navy-900 dark:before:bg-navy-300 dark:checked:before:bg-white"
+												type="checkbox" />
+											<span>
+												{{ $t("Upload to server") }}
+											</span>
+										</label>
+									</div>
+								</template>
+							</FormInput>
+							<template v-if="form.logo_upload">
+								<LogoInput
+									v-if="$page.props.s3"
+									v-model="form.logo_uri"
+									v-model:file="form.logo_path"
+									auto />
+								<LogoInputLocal
+									v-else
+									v-model="form.logo_uri"
+									v-model:file="form.logo_path" />
+							</template>
+							<img
+								v-else
+								class="w-12 h-12 my-auto rounded-full b-0"
+								:src="form.logo_uri ?? form.logo ?? fakeLogo" />
+						</div>
+						<p v-if="form.errors.logo" class="text-red-500 mt-2">
+							{{ form.errors.logo }}
+						</p>
+						<p v-else class="text-xs mt-2">
+							{{ $t("") }}
+						</p>
+					</div>
+					<div class="grid mt-4 gap-4">
+						<FormSwitch v-model="form.chat">
+							{{ $t("Enable Chat") }}
+						</FormSwitch>
+						<FormSwitch v-model="form.featured">
+							{{ $t("Enable Featured Launchpads") }}
+						</FormSwitch>
+						<div class="pt-5">
+							<div class="flex items-center gap-3 justify-end">
+								<PrimaryButton
+									type="submit"
+									size="xs"
+									:disabled="form.processing">
+									<Loading
+										class="mr-2 -ml-1 inline-block w-5 h-5"
+										v-if="form.processing" />
+									{{ $t("Update Site Config") }}
+								</PrimaryButton>
+							</div>
+						</div>
+					</div>
+				</div>
+			</div>
+		</CollapseTransition>
+		<CollapseTransition>
+			<div v-show="showing == 'rpc'" class="card mt-6 card-border">
+				<div class="card-body">
+					<div class="flex items-center justify-between mb-4">
+						<h4>Choose RPC provider</h4>
+					</div>
+					<div class="grid">
+						<RadioSelect
+							v-model="form.rpc"
+							class="mb-5"
+							:options="$page.props.rpcs" />
+						<CollapseTransition>
+							<FormInput
+								label="Ankr Api key"
+								v-show="form.rpc === 'ankr'"
+								v-model="form.ankr"
+								type="text"
+								:error="form.errors.ankr" />
+						</CollapseTransition>
+						<CollapseTransition>
+							<FormInput
+								label="Infura Key"
+								v-model="form.infura"
+								v-show="form.rpc === 'infura'"
+								type="text"
+								:error="form.errors.infura" />
+						</CollapseTransition>
+						<CollapseTransition>
+							<FormInput
+								label="Blast Api key"
+								v-model="form.blast"
+								v-show="form.rpc === 'blast'"
+								type="text"
+								:error="form.errors.blast" />
+						</CollapseTransition>
+						<div class="pt-5">
+							<div class="flex items-center gap-3 justify-end">
+								<PrimaryButton
+									type="submit"
+									size="xs"
+									:disabled="form.processing">
+									<Loading
+										class="mr-2 -ml-1 inline-block w-5 h-5"
+										v-if="form.processing" />
+									{{ $t("Update Rpc Setting") }}
+								</PrimaryButton>
+							</div>
+						</div>
+					</div>
+				</div>
+			</div>
+		</CollapseTransition>
+		<CollapseTransition>
+			<div v-show="showing === 'social'" class="card mt-6 card-border">
+				<div class="card-body">
+					<div class="flex items-center justify-between mb-4">
+						<h4>Project Links</h4>
+					</div>
+
+					<div class="grid gap-5">
+						<FormInput
+							label="Twitter URL"
+							v-model="form.twitter"
+							type="text"
+							:error="form.errors.twitter" />
+						<FormInput
+							label="Telegram group link"
+							v-model="form.telegram_group"
+							type="text"
+							:error="form.errors.telegram_group" />
+						<FormSwitch v-model="all">
+							Show Hidden Websites
+						</FormSwitch>
+						<CollapseTransition>
+							<div v-show="all" class="grid gap-5">
+								<FormInput
+									label="Discord Invite"
+									v-model="form.discord"
+									type="text"
+									:error="form.errors.discord" />
+								<FormInput
+									label="Telegram channel subscription link"
+									v-model="form.telegram_channel"
+									type="text"
+									:error="form.errors.telegram_channel" />
+								<FormInput
+									label="Youtube Channel URL"
+									v-model="form.youtube"
+									type="text"
+									:error="form.errors.youtube" />
+								<FormInput
+									label="Documentation URL"
+									v-model="form.documentation"
+									type="text"
+									:error="form.errors.documentation" />
+							</div>
+						</CollapseTransition>
+					</div>
+					<div class="pt-5">
+						<div class="flex items-center gap-3 justify-end">
+							<PrimaryButton
+								type="submit"
+								size="xs"
+								:disabled="form.processing">
+								<Loading
+									class="mr-2 -ml-1 inline-block !w-5 !h-5"
+									v-if="form.processing" />
+								{{ $t("Update Website links") }}
+							</PrimaryButton>
+						</div>
+					</div>
+				</div>
+			</div>
+		</CollapseTransition>
+	</form>
+</template>
+
+
+================================================
+File: resources/js/Pages/Admin/Dashboard/Mail/LaravelMailGun.vue
+================================================
+<script setup>
+	import { useForm } from "@inertiajs/vue3";
+
+	import FormInput from "@/Components/FormInput.vue";
+	import Loading from "@/Components/Loading.vue";
+	import PrimaryButton from "@/Components/PrimaryButton.vue";
+	const props = defineProps({
+		mailgun: Object,
+		mailer: Object,
+	});
+	const form = useForm({
+		MAIL_MAILER: "mailgun",
+		MAILGUN_SECRET: props.mailgun.domain,
+		MAILGUN_DOMAIN: props.mailgun.secret,
+		MAILGUN_ENDPOINT: props.mailgun.endpoint,
+		MAIL_FROM_ADDRESS: props.mailer?.address,
+		MAIL_FROM_NAME: props.mailer?.name,
+	});
+
+	const save = () => {
+		form.put(window.route("admin.settings.mail", { mailer: "mailgun" }), {
+			preserveScroll: true,
+			preserveState: true,
+		});
+	};
+</script>
+<template>
+	<div class="grid gap-4">
+		<p class="font-semibold py-3 text-sm text-primary">
+			Get your credentials
+			<a
+				class="text-sky-400 hover:text-sky-500 ml-1"
+				href="https://mailgun.com/">
+				Here
+			</a>
+		</p>
+		<FormInput
+			label="Universal Email from Address"
+			class="max-w-lg"
+			:error="form.errors.MAIL_FROM_ADDRESS"
+			v-model="form.MAIL_FROM_ADDRESS" />
+		<FormInput
+			label="Universal Email from Name"
+			:error="form.errors.MAIL_FROM_NAME"
+			v-model="form.MAIL_FROM_NAME" />
+		<FormInput
+			label="Mailgun Secret Key"
+			:error="form.errors.MAILGUN_SECRET"
+			v-model="form.MAILGUN_SECRET" />
+		<FormInput
+			label="Mailgun Domain"
+			:error="form.errors.MAILGUN_DOMAIN"
+			v-model="form.MAILGUN_DOMAIN" />
+		<FormInput
+			label="Mailgun Endpoint"
+			:error="form.errors.MAILGUN_ENDPOINT"
+			v-model="form.MAILGUN_ENDPOINT" />
+		<PrimaryButton
+			:disabled="form.processing"
+			@click="save"
+			class="w-full mt-4"
+			primary>
+			<Loading class="mr-2 -ml-1" v-if="form.processing" />
+			Save Mailgun Settings
+		</PrimaryButton>
+	</div>
+</template>
+
+
+================================================
+File: resources/js/Pages/Admin/Dashboard/Mail/LaravelMailersend.vue
+================================================
+<script setup>
+	import { useForm } from "@inertiajs/vue3";
+
+	import BaseButton from "@/Components/BaseButton.vue";
+	import FormInput from "@/Components/FormInput.vue";
+	import Loading from "@/Components/Loading.vue";
+	const props = defineProps({
+		mailersend: Object,
+		mailer: Object,
+	});
+	const form = useForm({
+		MAIL_MAILER: "mailersend",
+		MAILERSEND_API_KEY: props.mailersend?.apiKey,
+		MAIL_FROM_ADDRESS: props.mailer?.address,
+		MAIL_FROM_NAME: props.mailer?.name,
+	});
+
+	const save = () => {
+		form.put(
+			window.route("admin.settings.mail", { mailer: "mailersend" }),
+			{
+				preserveScroll: true,
+				preserveState: true,
+			},
+		);
+	};
+</script>
+<template>
+	<div class="grid gap-4">
+		<p class="font-semibold text-sm text-primary">
+			Get your credentials
+			<a
+				class="text-sky-400 hover:text-sky-500 ml-1"
+				href="https://www.mailersend.com/">
+				Here
+			</a>
+		</p>
+		<FormInput
+			label="Universal Email from Address"
+			class="max-w-lg"
+			:error="form.errors.MAIL_FROM_ADDRESS"
+			v-model="form.MAIL_FROM_ADDRESS" />
+		<FormInput
+			label="Universal Email from Name"
+			:error="form.errors.MAIL_FROM_NAME"
+			v-model="form.MAIL_FROM_NAME" />
+		<FormInput
+			label="MailerSend API Key"
+			:error="form.errors.MAILERSEND_API_KEY"
+			v-model="form.MAILERSEND_API_KEY" />
+		<BaseButton
+			:disabled="form.processing"
+			@click="save"
+			class="w-full mt-4"
+			primary>
+			<Loading class="mr-2 -ml-1" v-if="form.processing" />
+			Save Mailersend Settings
+		</BaseButton>
+	</div>
+</template>
+
+
+================================================
+File: resources/js/Pages/Admin/Dashboard/Mail/LaravelPostmark.vue
+================================================
+<script setup>
+	import { useForm } from "@inertiajs/vue3";
+
+	import FormInput from "@/Components/FormInput.vue";
+	import Loading from "@/Components/Loading.vue";
+	import PrimaryButton from "@/Components/PrimaryButton.vue";
+
+	const props = defineProps({
+		postmark: Object,
+		mailer: Object,
+	});
+	const form = useForm({
+		MAIL_MAILER: "postmark",
+		POSTMARK_TOKEN: props.postmark?.token,
+		MAIL_FROM_ADDRESS: props.mailer?.address,
+		MAIL_FROM_NAME: props.mailer?.name,
+	});
+
+	const save = () => {
+		form.put(window.route("admin.settings.mail", { mailer: "postmark" }), {
+			preserveScroll: true,
+			preserveState: true,
+		});
+	};
+</script>
+<template>
+	<div class="grid gap-4">
+		<p class="font-semibold py-3 text-sm text-primary">
+			Get your credentials
+			<a
+				class="text-sky-400 hover:text-sky-500 ml-1"
+				href="https://postmarkapp.com/">
+				Here
+			</a>
+		</p>
+		<FormInput
+			label="Universal Email from Address"
+			class="max-w-lg"
+			:error="form.errors.MAIL_FROM_ADDRESS"
+			v-model="form.MAIL_FROM_ADDRESS" />
+		<FormInput
+			label="Universal Email from Name"
+			:error="form.errors.MAIL_FROM_NAME"
+			v-model="form.MAIL_FROM_NAME" />
+		<FormInput
+			label="Postmark Api Token"
+			:error="form.errors.POSTMARK_TOKEN"
+			v-model="form.POSTMARK_TOKEN" />
+		<PrimaryButton
+			:disabled="form.processing"
+			@click="save"
+			class="w-full mt-4"
+			primary>
+			<Loading class="mr-2 -ml-1" v-if="form.processing" />
+			Save Postmark Settings
+		</PrimaryButton>
+	</div>
+</template>
+
+
+================================================
+File: resources/js/Pages/Admin/Dashboard/Mail/LaravelResend.vue
+================================================
+<script setup>
+	import { useForm } from "@inertiajs/vue3";
+
+	import BaseButton from "@/Components/BaseButton.vue";
+	import FormInput from "@/Components/FormInput.vue";
+	import Loading from "@/Components/Loading.vue";
+	const props = defineProps({
+		resend: Object,
+		mailer: Object,
+	});
+	const form = useForm({
+		MAIL_MAILER: "resend",
+		RESEND_KEY: props.resend?.key,
+		MAIL_FROM_ADDRESS: props.mailer?.address,
+		MAIL_FROM_NAME: props.mailer?.name,
+	});
+
+	const save = () => {
+		form.put(window.route("admin.settings.mail", { mailer: "resend" }), {
+			preserveScroll: true,
+			preserveState: true,
+		});
+	};
+</script>
+<template>
+	<div class="grid gap-4">
+		<p class="font-semibold text-sm text-primary">
+			Get your credentials
+			<a
+				class="text-sky-400 hover:text-sky-500 ml-1"
+				href="https://resend.com/">
+				Here
+			</a>
+		</p>
+		<FormInput
+			label="Universal Email from Address"
+			class="max-w-lg"
+			:error="form.errors.MAIL_FROM_ADDRESS"
+			v-model="form.MAIL_FROM_ADDRESS" />
+		<FormInput
+			label="Universal Email from Name"
+			:error="form.errors.MAIL_FROM_NAME"
+			v-model="form.MAIL_FROM_NAME" />
+		<FormInput
+			label="Resend API Key"
+			:error="form.errors.RESEND_KEY"
+			v-model="form.RESEND_KEY" />
+		<BaseButton
+			:disabled="form.processing"
+			@click="save"
+			class="w-full mt-4"
+			primary>
+			<Loading class="mr-2 -ml-1" v-if="form.processing" />
+			Save Resend Settings
+		</BaseButton>
+	</div>
+</template>
+
+
+================================================
+File: resources/js/Pages/Admin/Dashboard/Mail/LaravelSmtp.vue
+================================================
+<script setup>
+	import { useForm } from "@inertiajs/vue3";
+
+	import FormInput from "@/Components/FormInput.vue";
+	import FormLabel from "@/Components/FormLabel.vue";
+	import Loading from "@/Components/Loading.vue";
+	import PrimaryButton from "@/Components/PrimaryButton.vue";
+	import RadioSelect from "@/Components/RadioSelect.vue";
+	const props = defineProps({
+		smtp: Object,
+		mailer: Object,
+	});
+	const form = useForm({
+		MAIL_MAILER: "smtp",
+		MAIL_HOST: props.smtp.host,
+		MAIL_PORT: props.smtp.port,
+		MAIL_USERNAME: props.smtp.username,
+		MAIL_PASSWORD: props.smtp.password,
+		MAIL_ENCRYPTION: props.smtp.encryption,
+		MAIL_FROM_ADDRESS: props.mailer?.address,
+		MAIL_FROM_NAME: props.mailer?.name,
+	});
+
+	const save = () => {
+		form.put(window.route("admin.settings.mail", { mailer: "smtp" }), {
+			preserveScroll: true,
+			preserveState: true,
+		});
+	};
+</script>
+<template>
+	<div class="grid gap-4">
+		<FormInput
+			label="Universal Email from Address"
+			class="max-w-lg"
+			:error="form.errors.MAIL_FROM_ADDRESS"
+			v-model="form.MAIL_FROM_ADDRESS" />
+		<FormInput
+			label="Universal Email from Name"

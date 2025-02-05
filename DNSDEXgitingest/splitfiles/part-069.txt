@@ -1,0 +1,523 @@
+                    :initialTrades="$page.props.initialTrades"
+                    v-show="animate"
+                />
+            </CollapseTransition>
+
+            <div class="grid mb-6 md:grid-col-3 lg:grid-cols-3 gap-5">
+                <IndexCard
+                    v-for="lpd in launchpadsInfo.launchpads.value"
+                    :key="lpd.name"
+                    :id="lpd.contract"
+                    :launchpad="lpd"
+                />
+            </div>
+            <Pagination :meta="launchpads.meta" />
+            <HowItWorksModal v-model:show="showHowItWorks" />
+        </div>
+    </AppLayout>
+</template>
+
+
+================================================
+File: resources/js/Pages/Admin/Dashboard.vue
+================================================
+<script setup>
+	import { Head } from "@inertiajs/vue3";
+
+	// eslint-disable-next-line import/order
+	import AdminLayout from "@/Layouts/AdminLayout.vue";
+	import History from "@/Pages/Admin/Dashboard/History.vue";
+	defineProps({
+		stats: Array,
+		trades: Array,
+		releases: Array,
+	});
+</script>
+
+<template>
+	<Head title="Dashboard" />
+
+	<AdminLayout>
+		<div
+			class="relative h-full flex flex-auto flex-col px-4 sm:px-6 py-4 sm:py-6 md:px-8">
+			<div class="flex flex-col gap-4 h-full">
+				<div class="lg:flex items-center justify-between mb-4 gap-3">
+					<div class="mb-4 lg:mb-0">
+						<h3>Welcome Admin</h3>
+						<p>View your current earnings summary</p>
+					</div>
+				</div>
+				<div class="grid grid-cols-1 lg:grid-cols-4 gap-4">
+					<div
+						v-for="stat in stats"
+						:key="stat.name"
+						class="card card-border">
+						<div class="card-body">
+							<h6
+								class="font-semibold text-gray-800 dark:text-gray-400 mb-4 text-sm">
+								{{ stat.title }}
+							</h6>
+							<div class="flex justify-between items-center">
+								<div>
+									<div class="flex items-center">
+										<h3 class="h3 font-bold">
+											{{ stat.total }}
+											<span v-if="stat.symbol">
+												{{ stat.symbol }}
+											</span>
+										</h3>
+									</div>
+
+									<p>{{ stat.subtitle }}</p>
+								</div>
+								<div
+									class="badge gap-1 font-bold border-0 text-amber-600 bg-amber-100 dark:bg-amber-500/10 dark:text-primary">
+									{{ stat.today }}
+									<span>Today</span>
+								</div>
+							</div>
+						</div>
+					</div>
+				</div>
+				<History :orders="trades" :releases="releases" />
+			</div>
+		</div>
+	</AdminLayout>
+</template>
+
+
+================================================
+File: resources/js/Pages/Admin/Dashboard/History.vue
+================================================
+<script setup>
+	import { Clock, Eye, LucideScanQrCode } from "lucide-vue-next";
+
+	import ChainSymbol from "@/Components/ChainSymbol.vue";
+	import { useBillions } from "@/hooks";
+	import { shortenAddress } from "@/lib/wagmi";
+	import LatestUsers from "@/Pages/Admin/Dashboard/LatestUsers.vue";
+	import MailSettings from "@/Pages/Admin/Dashboard/MailSettings.vue";
+	import OrderBadge from "@/Pages/Admin/Dashboard/OrderBadge.vue";
+	import SiteSettings from "@/Pages/Admin/Dashboard/SiteSettings.vue";
+
+	defineProps({
+		orders: Array,
+		releases: Array,
+	});
+</script>
+<template>
+	<div class="grid grid-cols-1 lg:grid-cols-3 gap-4">
+		<div class="lg:col-span-2 grid gap-8">
+			<LatestUsers />
+			<div class="card-border card">
+				<div
+					class="flex flex-row card-body items-center justify-between mb-6">
+					<div class="flex items-center gap-3">
+						<Clock class="w-7 h-7 stroke-1 !text-sky-500" />
+						<h4 class="">Latest 10 Orders</h4>
+					</div>
+					<button
+						class="button flex items-center bg-white border border-gray-300 dark:bg-gray-700 dark:border-gray-700 hover:bg-gray-50 dark:hover:bg-gray-600 active:bg-gray-100 dark:active:bg-gray-500 dark:active:border-gray-500 text-gray-600 dark:text-gray-100 rounded-md h-9 px-3 py-2 text-sm">
+						<Eye class="mr-2 -ml-1" />
+						View All
+					</button>
+				</div>
+				<div class="overflow-x-auto">
+					<table class="table-default table-hover" role="table">
+						<thead class="">
+							<tr class="" role="row">
+								<th class="" colspan="1" role="columnheader">
+									Order
+								</th>
+								<th class="" colspan="1" role="columnheader">
+									Type
+								</th>
+								<th class="" colspan="1" role="columnheader">
+									Date
+								</th>
+								<th class="" colspan="1" role="columnheader">
+									Customer
+								</th>
+								<th class="" colspan="1" role="columnheader">
+									Amount
+								</th>
+							</tr>
+						</thead>
+						<tbody class="" role="rowgroup">
+							<tr
+								v-for="order in orders"
+								:key="order.id"
+								class=""
+								role="row">
+								<td class="" role="cell">
+									<span
+										class="cursor-pointer select-none font-semibold hover:text-blue-600">
+										{{ useBillions(order.qty) }}
+										{{ order.launchpad.symbol }}
+									</span>
+								</td>
+								<td class="" role="cell">
+									<OrderBadge
+										:text="order.type"
+										:type="
+											order.type == 'prebond'
+												? 'neutral'
+												: order.type == 'buy'
+												? 'success'
+												: 'error'
+										" />
+								</td>
+								<td class="" role="cell">
+									<span>{{ order.date }}</span>
+								</td>
+								<td class="" role="cell">
+									{{ shortenAddress(order.address, 8) }}
+								</td>
+								<td class="" role="cell">
+									<ChainSymbol
+										:chain-id="order.launchpad.chainId"
+										v-slot="chain">
+										<div
+											class="flex flex-row align-middle items-center">
+											{{
+												parseFloat(
+													order.amount,
+												).toFixed(6) * 1
+											}}
+											<span class="ml-1">
+												{{ chain?.symbol }}
+											</span>
+										</div>
+									</ChainSymbol>
+								</td>
+							</tr>
+							<!-- Empty State -->
+							<tr v-if="!orders.length">
+								<td
+									colspan="5"
+									class="px-6 py-10 text-center text-gray-500">
+									<div
+										class="h-[200px] flex flex-col items-center justify-center">
+										<LucideScanQrCode
+											class="h-16 opacity-50 w-16 stroke-[0.5]" />
+										<h3 class="text-base">
+											No orders found
+										</h3>
+									</div>
+								</td>
+							</tr>
+						</tbody>
+					</table>
+				</div>
+			</div>
+		</div>
+		<div>
+			<SiteSettings :setting="$page.props.setting" />
+			<MailSettings class="mt-6" />
+		</div>
+	</div>
+</template>
+<style scoped>
+	/* Optional: Add custom scrollbar styling */
+	.table-container {
+		@apply overflow-x-auto;
+		scrollbar-width: thin;
+	}
+
+	/* Optional: Add responsive wrapper if needed */
+	.table-responsive {
+		@apply overflow-x-auto sm:rounded-lg shadow;
+	}
+</style>
+
+
+================================================
+File: resources/js/Pages/Admin/Dashboard/LatestUsers.vue
+================================================
+<script setup>
+	import { Link } from "@inertiajs/vue3";
+	import { UserIcon } from "lucide-vue-next";
+
+	import FormSwitch from "@/Components/FormSwitch.vue";
+	import { shortenAddress } from "@/lib/wagmi";
+</script>
+<template>
+	<div class="card border-0 card-border">
+		<div class="card-body px-0 card-gutterless">
+			<div
+				class="flex flex-row card-body items-center justify-between mb-6">
+				<div class="flex items-center gap-3">
+					<UserIcon class="w-7 h-7 stroke-1 !text-sky-500" />
+					<h4 class="">Latest 10 Users</h4>
+				</div>
+				<Link
+					:href="route('admin.users.index')"
+					class="button flex items-center bg-white border border-gray-300 dark:bg-gray-700 dark:border-gray-700 hover:bg-gray-50 dark:hover:bg-gray-600 active:bg-gray-100 dark:active:bg-gray-500 dark:active:border-gray-500 text-gray-600 dark:text-gray-100 rounded-md h-9 px-3 py-2 text-sm">
+					<Eye class="mr-2 -ml-1" />
+					View All
+				</Link>
+			</div>
+			<div>
+				<div class="overflow-x-auto">
+					<table class="table-default table-hover" role="table">
+						<thead>
+							<tr role="row">
+								<th role="columnheader">
+									{{ $t("User") }}
+								</th>
+								<th role="columnheader">
+									{{ $t("Email") }}
+								</th>
+								<th role="columnheader">
+									{{ $t("Verified") }}
+								</th>
+								<th role="columnheader">
+									{{ $t("Date Time ") }}
+								</th>
+							</tr>
+						</thead>
+						<tbody role="rowgroup">
+							<tr
+								v-for="user in $page.props.users"
+								:key="user.id"
+								role="row">
+								<td role="cell">
+									<div
+										class="flex flex-row align-middle items-center">
+										<img
+											class="w-5 h-5 mr-2 rounded-full"
+											:src="user.profile_photo_url" />
+										<span>
+											{{
+												shortenAddress(user.address, 8)
+											}}
+										</span>
+									</div>
+								</td>
+								<td role="cell">
+									{{ user.email }}
+								</td>
+
+								<td role="cell">
+									<FormSwitch
+										disabled
+										:model-value="user.verified" />
+								</td>
+								<td role="cell">
+									{{ user.joinedAgo }}
+								</td>
+							</tr>
+						</tbody>
+					</table>
+				</div>
+			</div>
+		</div>
+	</div>
+</template>
+
+
+================================================
+File: resources/js/Pages/Admin/Dashboard/MailSettings.vue
+================================================
+<script setup>
+	import { ref } from "vue";
+
+	import { router } from "@inertiajs/core";
+	import { HiRefresh, RiMailAddLine } from "oh-vue-icons/icons";
+
+	import CollapseTransition from "@/Components/CollapseTransition.vue";
+	import RadioSelect from "@/Components/RadioSelect.vue";
+	import VueIcon from "@/Components/VueIcon.vue";
+	import LaravelMailersend from "@/Pages/Admin/Dashboard/Mail/LaravelMailersend.vue";
+	import LaravelMailGun from "@/Pages/Admin/Dashboard/Mail/LaravelMailGun.vue";
+	import LaravelPostmark from "@/Pages/Admin/Dashboard/Mail/LaravelPostmark.vue";
+	import LaravelResend from "@/Pages/Admin/Dashboard/Mail/LaravelResend.vue";
+	import LaravelSmtp from "@/Pages/Admin/Dashboard/Mail/LaravelSmtp.vue";
+	const drivers = [
+		{ label: "SMTP", value: "smtp" },
+		{
+			label: "Mailgun",
+			value: "mailgun",
+			img: "https://images.ctfassets.net/y6oq7udscnj8/6bfhvqjWqiC8dCzBNHxtJP/d682492374473b2e0d1377f0d4247bda/MG-Icon.png",
+		},
+
+		{
+			label: "Postmark",
+			img: "https://postmarkapp.com/images/apple-touch-icon.png",
+			value: "postmark",
+		},
+		{
+			label: "MailerSend",
+			img: "https://www.mailersend.com/favicon/favicon.svg",
+			value: "mailersend",
+		},
+		{
+			label: "Resend",
+			img: "https://resend.com/static/favicons/favicon@180x180.png",
+			value: "resend",
+		},
+	];
+	const mailer = ref("smtp");
+</script>
+<template>
+	<div class="card">
+		<div class="card-body p-6 grid gap-4">
+			<div class="flex justify-between items-center">
+				<div class="flex items-center">
+					<VueIcon
+						:icon="RiMailAddLine"
+						class="mr-2 h-6 w-6 text-amber-600 dark:text-amber-400" />
+					<h3 class="text-lg">Mailer Configuration</h3>
+				</div>
+				<a
+					@click.prevent="router.reload()"
+					v-tippy="$t('Reload')"
+					href="#">
+					<VueIcon :icon="HiRefresh" />
+				</a>
+			</div>
+			<RadioSelect
+				class=""
+				v-model="mailer"
+				:options="drivers"
+				:grid="2" />
+			<div class="p-4 border dark:border-gray-600 rounded-md">
+				<CollapseTransition>
+					<LaravelMailersend
+						v-show="mailer == 'mailersend'"
+						:mailersend="$page.props.mail?.mailersend"
+						:mailer="$page.props.mail?.mailer" />
+				</CollapseTransition>
+				<CollapseTransition>
+					<LaravelMailGun
+						v-show="mailer == 'mailgun'"
+						:mailgun="$page.props.mail?.mailgun"
+						:mailer="$page.props.mail?.mailer" />
+				</CollapseTransition>
+				<CollapseTransition>
+					<LaravelPostmark
+						v-show="mailer == 'postmark'"
+						:postmark="$page.props.mail?.postmark"
+						:mailer="$page.props.mail?.mailer" />
+				</CollapseTransition>
+				<CollapseTransition>
+					<LaravelResend
+						v-show="mailer == 'resend'"
+						:resend="$page.props.mail?.resend"
+						:mailer="$page.props.mail?.mailer" />
+				</CollapseTransition>
+				<CollapseTransition>
+					<LaravelSmtp
+						v-show="mailer == 'smtp'"
+						:smtp="$page.props.mail?.smtp"
+						:mailer="$page.props.mail?.mailer" />
+				</CollapseTransition>
+			</div>
+		</div>
+	</div>
+</template>
+
+
+================================================
+File: resources/js/Pages/Admin/Dashboard/OrderBadge.vue
+================================================
+<script setup>
+	import { computed } from "vue";
+
+	const props = defineProps({
+		type: {
+			type: String,
+			default: "neutral",
+			validator: (value) =>
+				["success", "error", "warning", "neutral", "info"].includes(
+					value,
+				),
+		},
+		text: {
+			type: String,
+			required: true,
+		},
+	});
+
+	// Color mappings for different states
+	const colorMap = {
+		success: {
+			dot: "bg-emerald-500",
+			text: "text-emerald-500",
+		},
+		error: {
+			dot: "bg-red-500",
+			text: "text-red-500",
+		},
+		warning: {
+			dot: "bg-amber-500",
+			text: "text-amber-500",
+		},
+		neutral: {
+			dot: "bg-gray-500",
+			text: "text-gray-500",
+		},
+		info: {
+			dot: "bg-blue-500",
+			text: "text-blue-500",
+		},
+	};
+
+	// Computed styles based on type
+	const badgeStyles = computed(() => colorMap[props.type]);
+</script>
+
+<template>
+	<div class="flex items-center">
+		<span class="badge-dot" :class="badgeStyles.dot"></span>
+		<span class="ml-2 capitalize font-semibold" :class="badgeStyles.text">
+			{{ text }}
+		</span>
+	</div>
+</template>
+
+<style scoped>
+	.badge-dot {
+		@apply h-2 w-2 rounded-full;
+	}
+</style>
+
+
+================================================
+File: resources/js/Pages/Admin/Dashboard/SiteSettings.vue
+================================================
+<script setup>
+	import { ref } from "vue";
+
+	import { useForm } from "@inertiajs/vue3";
+
+	import CollapseTransition from "@/Components/CollapseTransition.vue";
+	import FormInput from "@/Components/FormInput.vue";
+	import FormSwitch from "@/Components/FormSwitch.vue";
+	import Loading from "@/Components/Loading.vue";
+	import LogoInput from "@/Components/LogoInput.vue";
+	import LogoInputLocal from "@/Components/LogoInputLocal.vue";
+	import fakeLogo from "@/Components/no-image-available-icon.jpeg?url";
+	import PrimaryButton from "@/Components/PrimaryButton.vue";
+	import RadioSelect from "@/Components/RadioSelect.vue";
+	const props = defineProps({
+		setting: { type: Object, required: true },
+	});
+	const form = useForm({
+		logo: props.setting.logo,
+		name: props.setting.name,
+		twitter: props.setting.twitter,
+		youtube: props.setting.youtube,
+		telegram_group: props.setting.telegram_group,
+		telegram_channel: props.setting.telegram_channel,
+		discord: props.setting.discord,
+		documentation: props.setting.documentation,
+		rpc: props.setting.rpc,
+		ankr: props.setting.ankr,
+		infura: props.setting.infura,
+		blast: props.setting.blast,
+		chat: props.setting.chat,
+		featured: props.setting.featured,
+		logo_uri: null,
+		logo_path: null,
+		logo_upload: false,

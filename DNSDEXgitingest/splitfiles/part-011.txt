@@ -1,0 +1,523 @@
+     * toggle king of the hill status of  the specified resource in storage.
+     *
+     * @param \Illuminate\Http\Request $request
+     * @param  int  $id
+     *
+     * @return \Illuminate\Http\RedirectResponse|\Illuminate\Routing\Redirector
+     */
+    public function kingofthehill(Request $request, Launchpad $launchpad)
+    {
+        $launchpad->kingofthehill = !$launchpad->kingofthehill;
+        $launchpad->save();
+        return back()->with('success', $launchpad->kingofthehill ? __(' :name Launchpad Enabled !', ['name' => $launchpad->name]) : __(' :name  Launchpad Disabled!', ['name' => $launchpad->name]));
+    }
+
+    /**
+     * Remove the specified resource from storage.
+     *
+     * @param  int  $id
+     *
+     * @return \Illuminate\Http\RedirectResponse|\Illuminate\Routing\Redirector
+     */
+    public function destroy(Request $request, Launchpad $launchpad)
+    {
+        $launchpad->delete();
+        return back()->with('success', 'Launchpad deleted!');
+    }
+}
+
+
+================================================
+File: app/Http/Controllers/Admin/MsgsController.php
+================================================
+<?php
+
+namespace App\Http\Controllers\Admin;
+
+use App\Actions\Uploads;
+use App\Enums\MsgStatus;
+use App\Http\Controllers\Controller;
+use App\Http\Resources\Msg as MsgResource;
+use App\Models\Msg;
+use Illuminate\Http\Request;
+use Inertia\Inertia;
+
+class MsgsController extends Controller
+{
+    /**
+     * Display a listing of the resource.
+     * @return \Illuminate\View\View
+     */
+    public function index(Request $request)
+    {
+        $keyword = $request->get('search');
+        $perPage = 25;
+        $query  = Msg::query()->with(['user', 'launchpad']);
+        if (!empty($keyword)) {
+            $query->where('message', 'LIKE', "%$keyword%");
+        }
+        $msgsItems = $query->latest()->paginate($perPage);
+        $msgs = MsgResource::collection($msgsItems);
+        return Inertia::render('Admin/Msgs/Index', [
+            'msgs' => $msgs,
+            'statuses' => MsgStatus::cases(),
+        ]);
+    }
+
+
+
+    /**
+     * toggle status of  the specified resource in storage.
+     *
+     * @param \Illuminate\Http\Request $request
+     * @param  int  $id
+     *
+     * @return \Illuminate\Http\RedirectResponse|\Illuminate\Routing\Redirector
+     */
+    public function status(Request $request, Msg $msg, MsgStatus $status)
+    {
+        $msg->status = $status;
+        $msg->save();
+        return back();
+    }
+
+    /**
+     * Remove the specified resource from storage.
+     *
+     * @param  int  $id
+     *
+     * @return \Illuminate\Http\RedirectResponse|\Illuminate\Routing\Redirector
+     */
+    public function destroy(Request $request, Msg $msg)
+    {
+        $msg->delete();
+        return back();
+    }
+}
+
+
+================================================
+File: app/Http/Controllers/Admin/PromosController.php
+================================================
+<?php
+
+namespace App\Http\Controllers\Admin;
+
+use App\Actions\Uploads;
+use App\Http\Controllers\Controller;
+use App\Http\Resources\Promo as PromoResource;
+use App\Models\Promo;
+use Carbon\Carbon;
+use Illuminate\Http\Request;
+use Inertia\Inertia;
+
+class PromosController extends Controller
+{
+    /**
+     * Display a listing of the resource.
+     * @return \Illuminate\View\View
+     */
+    public function index(Request $request)
+    {
+        $keyword = $request->get('search');
+        $perPage = 25;
+        $query  = Promo::query();
+        if (!empty($keyword)) {
+            $query->where('name', 'LIKE', "%$keyword%")
+                ->orWhere('image', 'LIKE', "%$keyword%");
+        }
+        $promosItems = $query->latest()->paginate($perPage);
+        $promos = PromoResource::collection($promosItems);
+        return Inertia::render('Admin/Promos/Index', compact('promos'));
+    }
+
+    /**
+     * Show the form for creating a new resource.
+     * @return \Illuminate\View\View
+     */
+    public function create()
+    {
+        return Inertia::render('Admin/Promos/Create');
+    }
+
+    /**
+     * Store a newly created resource in storage.
+     * @param \Illuminate\Http\Request $request
+     * @return \Illuminate\Http\RedirectResponse|\Illuminate\Routing\Redirector
+     */
+    public function store(Request $request)
+    {
+        $request->validate([
+            'name' => ['required', 'string'],
+            'image_uri' => ['required', 'string'],
+            'image_upload' => ['required', 'boolean'],
+            'image_path' => ['nullable', 'required_if:image_upload,true'],
+            'url' => ['required', 'url'],
+            'starts_at' => ['required', 'string'],
+            'ends_at' => ['required', 'string'],
+            'active' => ['required', 'boolean'],
+        ]);
+        $promo = new Promo;
+        $promo->name = $request->name;
+        $promo->url = $request->url;
+        $promo->active = $request->active;
+        $promo->starts_at = Carbon::parse($request->starts_at);
+        $promo->ends_at = Carbon::parse($request->ends_at);
+        $promo->save();
+        $upload = app(Uploads::class)->upload($request,  $promo, 'image');
+        $promo->image =  $upload->url;
+        $promo->save();
+        return redirect()->route('admin.promos.index')->with('success', 'Promo added!');
+    }
+
+
+    /**
+     * Show the form for editing the specified resource.
+     * @param  int  $id
+     * @return \Illuminate\View\View
+     */
+    public function edit(Request $request, Promo $promo)
+    {
+
+        return Inertia::render('Admin/Promos/Edit', [
+            'promo' => new PromoResource($promo)
+        ]);
+    }
+
+    /**
+     * Update the specified resource in storage.
+     *
+     * @param \Illuminate\Http\Request $request
+     * @param  int  $id
+     *
+     * @return \Illuminate\Http\RedirectResponse|\Illuminate\Routing\Redirector
+     */
+    public function update(Request $request, Promo $promo)
+    {
+        $request->validate([
+            'name' => ['required', 'string'],
+            'image_uri' => ['nullable', 'required_if:image_upload,true', 'string'],
+            'image_upload' => ['required', 'boolean'],
+            'image_path' => ['nullable',  'required_if:image_upload,true'],
+            'url' => ['required', 'url'],
+            'starts_at' => ['required', 'string'],
+            'ends_at' => ['required', 'string'],
+            'active' => ['required', 'boolean'],
+        ]);
+        if ($request->image_upload) {
+            $upload = app(Uploads::class)->upload($request,  $promo, 'image');
+            $promo->image = $upload->url;
+        }
+        $promo->name = $request->name;
+        $promo->url = $request->url;
+        $promo->starts_at = Carbon::parse($request->starts_at);
+        $promo->ends_at = Carbon::parse($request->ends_at);
+        $promo->active = $request->active;
+        $promo->save();
+        return back()->with('success', 'Promo updated!');
+    }
+
+    /**
+     * toggle status of  the specified resource in storage.
+     *
+     * @param \Illuminate\Http\Request $request
+     * @param  int  $id
+     *
+     * @return \Illuminate\Http\RedirectResponse|\Illuminate\Routing\Redirector
+     */
+    public function toggle(Request $request, Promo $promo)
+    {
+        $promo->active = !$promo->active;
+        $promo->save();
+        return back()->with('success', $promo->active ? __(' :name Promo Enabled !', ['name' => $promo->name]) : __(' :name  Promo Disabled!', ['name' => $promo->name]));
+    }
+
+    /**
+     * Remove the specified resource from storage.
+     *
+     * @param  int  $id
+     *
+     * @return \Illuminate\Http\RedirectResponse|\Illuminate\Routing\Redirector
+     */
+    public function destroy(Request $request, Promo $promo)
+    {
+        $promo->delete();
+        return back()->with('success', 'Promo deleted!');
+    }
+}
+
+
+================================================
+File: app/Http/Controllers/Admin/SettingsController.php
+================================================
+<?php
+
+namespace App\Http\Controllers\Admin;
+
+use App\Actions\Uploads;
+use App\Enums\SettingRpc;
+use App\Http\Controllers\Controller;
+use App\Install\Helpers\EnvHelper;
+use App\Models\Setting;
+use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Artisan;
+use Illuminate\Validation\Rules\Enum;
+
+class SettingsController extends Controller
+{
+    /**
+     * Update the specified resource in storage.
+     *
+     * @param \Illuminate\Http\Request $request
+     * @param  int  $id
+     *
+     * @return \Illuminate\Http\RedirectResponse|\Illuminate\Routing\Redirector
+     */
+    public function update(Request $request)
+    {
+        $request->validate([
+            'logo_uri' => ['nullable', 'required_if:logo_upload,true', 'string'],
+            'logo_upload' => ['required', 'boolean'],
+            'logo_path' => ['nullable', 'required_if:logo_upload,true'],
+            'name' => ['required', 'string'],
+            'twitter' => ['nullable', 'string', 'url'],
+            'youtube' => ['nullable', 'string', 'url'],
+            'telegram_group' => ['nullable', 'string', 'url'],
+            'telegram_channel' => ['nullable', 'string', 'url'],
+            'discord' => ['nullable', 'string', 'url'],
+            'documentation' => ['nullable', 'string', 'url'],
+            'rpc' => ['nullable', 'string',  new Enum(SettingRpc::class)],
+            'ankr' => ['nullable', 'string'],
+            'infura' => ['nullable', 'string'],
+            'blast' => ['nullable', 'string'],
+            'chat' => ['nullable', 'boolean'],
+            'featured' => ['nullable', 'boolean'],
+        ]);
+        $setting = Setting::find(1);
+        if ($request->logo_upload || $request->logo_uri) {
+            $upload = app(Uploads::class)->upload($request,  $setting, 'logo');
+            $setting->logo = $upload->url;
+        }
+        $setting->name = $request->name;
+        $setting->twitter = $request->twitter;
+        $setting->youtube = $request->youtube;
+        $setting->telegram_group = $request->telegram_group;
+        $setting->telegram_channel = $request->telegram_channel;
+        $setting->discord = $request->discord;
+        $setting->documentation = $request->documentation;
+        $setting->rpc = $request->rpc;
+        $setting->ankr = $request->ankr;
+        $setting->infura = $request->infura;
+        $setting->blast = $request->blast;
+        $setting->chat = $request->chat;
+        $setting->featured = $request->featured;
+        $setting->save();
+        return back();
+    }
+
+
+    public function saveMailSettings(Request $request, $mailer)
+    {
+
+        $envHelper = new EnvHelper;
+        $validated = match ($mailer) {
+            'mailsend' => $request->validate([
+                'MAIL_MAILER' => 'required|string',
+                'MAIL_FROM_ADDRESS' => 'required|email',
+                'MAIL_FROM_NAME' => 'required|string',
+                'MAILERSEND_API_KEY' => 'required_if:MAIL_MAILER,mailersend|string',
+            ]),
+            'mailgun' => $request->validate([
+                'MAIL_MAILER' => 'required|string',
+                'MAIL_FROM_ADDRESS' => 'required|email',
+                'MAIL_FROM_NAME' => 'required|string',
+                'MAILGUN_SECRET' => 'required_if:MAIL_MAILER,mailgun|string',
+                'MAILGUN_DOMAIN' => 'required_if:MAIL_MAILER,mailgun|string',
+                'MAILGUN_ENDPOINT' => 'required_if:MAIL_MAILER,mailgun|string',
+            ]),
+            'postmark' => $request->validate([
+                'MAIL_MAILER' => 'required|string',
+                'MAIL_FROM_ADDRESS' => 'required|email',
+                'MAIL_FROM_NAME' => 'required|string',
+                'POSTMARK_TOKEN' => 'required_if:MAIL_MAILER,postmark|string',
+            ]),
+            'resend' => $request->validate([
+                'MAIL_MAILER' => 'required|string',
+                'MAIL_FROM_ADDRESS' => 'required|email',
+                'MAIL_FROM_NAME' => 'required|string',
+                'RESEND_KEY' => 'required_if:MAIL_MAILER,resend|string',
+            ]),
+            'smtp' => $request->validate([
+                'MAIL_MAILER' => 'required|string',
+                'MAIL_FROM_ADDRESS' => 'required|email',
+                'MAIL_FROM_NAME' => 'required|string',
+                'MAIL_HOST' => 'required_if:MAIL_MAILER,smtp|string',
+                'MAIL_PORT' => 'required_if:MAIL_MAILER,smtp|string',
+                'MAIL_ENCRYPTION' => 'nullable|string',
+                'MAIL_USERNAME' => 'nullable|string',
+                'MAIL_PASSWORD' => 'nullable|string',
+            ]),
+        };
+        $envHelper->updateMultipleEnv($validated);
+        Artisan::call('config:clear');
+        return back();
+    }
+}
+
+
+================================================
+File: app/Http/Controllers/Admin/TradesController.php
+================================================
+<?php
+
+namespace App\Http\Controllers\Admin;
+
+use App\Http\Controllers\Controller;
+use App\Http\Resources\Trade as TradeResource;
+use App\Models\Trade;
+use Illuminate\Database\Eloquent\Builder;
+use Illuminate\Http\Request;
+use Inertia\Inertia;
+
+class TradesController extends Controller
+{
+    /**
+     * Display a listing of the resource.
+     * @return \Illuminate\View\View
+     */
+    public function index(Request $request)
+    {
+        $keyword = $request->get('search');
+        $perPage = 25;
+        $query  = Trade::query()->with(['launchpad']);
+        if (!empty($keyword)) {
+            $query->where('txid', 'LIKE', "%$keyword%")
+                ->orWhere('address', 'LIKE', "%$keyword%")
+                ->orWhere('qty', 'LIKE', "%$keyword%")
+                ->orWhere('amount', 'LIKE', "%$keyword%")
+                ->orWhere('type', 'LIKE', "%$keyword%")
+                ->orWhereHas('launchpad', function (Builder $query) use ($keyword) {
+                    $query->where('contract', 'LIKE', "%$keyword%")
+                        ->orWhere('token', 'LIKE', "%$keyword%")
+                        ->orWhere('name', 'LIKE', "%$keyword%")
+                        ->orWhere('symbol', 'LIKE', "%$keyword%")
+                        ->orWhere('description', 'LIKE', "%$keyword%");
+                })
+            ;
+        }
+        $tradesItems = $query->latest()->paginate($perPage);
+        $trades = TradeResource::collection($tradesItems);
+        return Inertia::render('Admin/Trades/Index', compact('trades'));
+    }
+
+
+    /**
+     * Remove the specified resource from storage.
+     *
+     * @param  int  $id
+     *
+     * @return \Illuminate\Http\RedirectResponse|\Illuminate\Routing\Redirector
+     */
+    public function destroy(Request $request, Trade $trade)
+    {
+        $trade->delete();
+        return back()->with('success', 'Trade deleted!');
+    }
+}
+
+
+================================================
+File: app/Http/Controllers/Auth/OtpController.php
+================================================
+<?php
+
+namespace App\Http\Controllers\Auth;
+
+use App\Http\Controllers\Controller;
+use App\Notifications\OTPNotification;
+use Illuminate\Http\Request;
+use App\Services\UrlCrypt;
+use Illuminate\Validation\ValidationException;
+use RateLimiter;
+
+class OtpController extends Controller
+{
+
+    /**
+     * Handle the initial modal login request.
+     */
+    public function sendOtp(Request $request)
+    {
+        $request->validate([
+            'name' => 'required|nullable',
+            'email' => 'required|email',
+            'to' => 'string',
+        ]);
+        $user = $request->user();
+        $user->email = $request->email;
+        $user->name = $request->name;
+        $user->email_verified_at = null;
+        $user->save();
+        $otp = $user->generateOTP();
+        $user->notify(new OTPNotification($otp, 'Connect Your Email', route('otp.verify', ['code' => UrlCrypt::encrypt($otp)])));
+        // handle link
+        $request->session()->put('url', $request->to);
+        return  back();
+    }
+
+    /**
+     * Handle OTP verification and user login/registration.
+     */
+    public function modalVerify(Request $request)
+    {
+        $request->validate(['otp' => 'required|string']);
+        $user = $request->user();
+        if (!$user->verifyOTP($request->otp)) {
+            throw ValidationException::withMessages(['otp' => ['Invalid OTP']]);;
+        }
+        $user->update(['email_verified_at' => now()]);
+        return back();
+    }
+
+    /**
+     * Via email button
+     */
+    public function verifyOtp(Request $request, $code)
+    {
+        $url =  $request->session()->pull('url', '/');
+        $otp = UrlCrypt::decrypt($code);
+        $user = $request->user();
+        if (!$user || !$user->verifyOTP($otp)) {
+            return redirect()->to($url)->with('error', 'The provided OTP is Invalid.');
+        }
+        $user->update(['email_verified_at' => now()]);
+        return redirect()->to($url);
+    }
+    /**
+     * Resend authentication request with throttling.
+     */
+    public function resend(Request $request)
+    {
+        $key = 'otp_resend_' . ($request->ip() ?? '0');
+        if (RateLimiter::tooManyAttempts($key, 10)) { // 3 attempts max
+            $seconds = RateLimiter::availableIn($key);
+            return back()->with(
+                'error',
+                __(
+                    'Please wait :seconds seconds before requesting another OTP.',
+                    ['seconds' => $seconds]
+                )
+            );
+        }
+        RateLimiter::hit($key, 5); // Lock for 5 minutes (300 seconds)
+        $user = $request->user();
+        $otp = $user->generateOTP();
+        $user->notify(new OTPNotification(
+            $otp,
+            'Login to Your Account',
+            route('otp.verify', ['code' => UrlCrypt::encrypt($otp)])
+        ));
+        return back()->with('success', __('OTP has been resent to your contact.'));
+    }
+}
+

@@ -1,0 +1,523 @@
+
+================================================
+File: public/charting_library/bundles/zh.3753.abc1ac9bcf134df94dec.js
+================================================
+(self.webpackChunktradingview=self.webpackChunktradingview||[]).push([[3753],{63227:t=>{t.exports=["#{count}（K线）"]},9671:t=>{t.exports=["#{count}（价格，K线）"]},91282:t=>{t.exports=["#1 (K线)"]},1961:t=>{t.exports=["#1(价格)"]},12706:t=>{t.exports=["#1(价格, K线)"]},92195:t=>{t.exports=["#1（垂直位置%，K线）"]},66187:t=>{t.exports=["中线"]},5066:t=>{t.exports="%"},89795:t=>{t.exports=["逆时针方向"]},43809:t=>{t.exports=["Coeffs As Percents"]},40054:t=>{t.exports=["颜色"]},47737:t=>{t.exports=["精简统计模式"]},4639:t=>{t.exports=["坐标"]},76655:t=>{t.exports=["现金"]},99120:t=>{t.exports=["通道"]},60066:t=>{t.exports=["点数变化"]},36150:t=>{t.exports=["角度"]},38280:t=>{t.exports=["角度"]},95264:t=>{t.exports=["账户规模"]},85160:t=>{t.exports=["始终显示统计信息"]},54189:t=>{t.exports=["弧形"]},34674:t=>{t.exports=["最小刻度的高低平均价"]},17608:t=>{t.exports=["底标签"]},48848:t=>{t.exports=["边框"]},72269:t=>{t.exports=["边框"]},27331:t=>{t.exports=["背景"]},66282:t=>{t.exports=["背景#1"]},19949:t=>{t.exports=["K线范围"]},81260:t=>{t.exports=["网格"]},67114:t=>{t.exports=["日期/时间范围"]},37067:t=>{t.exports=["移位（价格，K线）"]},75460:t=>{t.exports=["距离"]},46211:t=>{t.exports=["表情符号"]},46001:t=>{t.exports=["进场价格"]},1220:t=>{t.exports=["延伸"]},71116:t=>{t.exports=["向下延伸"]},45809:t=>{t.exports=["向左延伸"]},25892:t=>{t.exports=["延伸左边线条"]},13611:t=>{t.exports=["延长线"]},3304:t=>{t.exports=["左侧延长线"]},83095:t=>{t.exports=["向右延长线"]},14025:t=>{t.exports=["向右延伸"]},74395:t=>{t.exports=["延伸右边线条"]},85197:t=>{t.exports=["向上延伸"]},17006:t=>{t.exports=["字体大小"]},31343:t=>{t.exports=["失败文字"]},28565:t=>{t.exports=["失败背景"]},87931:t=>{t.exports=["扇形"]},39836:t=>{t.exports=["基于对数坐标的Fib水平"]},10578:t=>{t.exports=["完整圆圈"]},25264:t=>{t.exports=["HL Bars"]},66049:t=>{t.exports=["OC Bars"]},27531:t=>{t.exports=["手数"]},99180:t=>{t.exports=["下带"]},53861:t=>{t.exports=["下带#2"]},44775:t=>{t.exports=["下带#3"]},85206:t=>{t.exports=["标签"]},75332:t=>{t.exports=["标签边框"]},14773:t=>{t.exports=["标签背景"]},37126:t=>{t.exports=["标签文字"]},79106:t=>{t.exports=["水平位"]},95610:t=>{t.exports=["水平线"]},79307:t=>{t.exports=["左标签"]},49286:t=>{t.exports="Line - HL/2"},17676:t=>{t.exports=["Line - Open"]},47669:t=>{t.exports=["线 - 收盘价"]},71899:t=>{t.exports=["Line - High"]},83394:t=>{t.exports=["Line - Low"]},60489:t=>{t.exports=["线条颜色"]},53889:t=>{t.exports=["模式"]},95543:t=>{t.exports=["个月"]},24510:t=>{t.exports=["中点"]},22213:t=>{t.exports=["来源背景"]},15500:t=>{t.exports=["来源边界"]},79238:t=>{t.exports=["来源文字"]},37249:t=>{t.exports=["统计数据"]},28712:t=>{t.exports=["统计位置"]},50948:t=>{t.exports=["止损颜色"]},56119:t=>{t.exports=["止损水平"]},69835:t=>{t.exports=["成功文本"]},91141:t=>{t.exports=["成功的背景色"]},2694:t=>{t.exports=["百分比变化"]},650:t=>{t.exports=["百分比"]},25684:t=>{t.exports=["价格"]},23675:t=>{t.exports=["价格标签"]},75675:t=>{t.exports=["价格标签"]},16103:t=>{t.exports=["价格位"]},46964:t=>{t.exports=["价格范围"]},59771:t=>{t.exports=["价格K线比"]},29072:t=>{t.exports=["价格"]},2635:t=>{t.exports=["止盈水平"]},33886:t=>{t.exports=["范围和比例"]},24186:t=>{t.exports=["反手"]},91367:t=>{t.exports=["右标签"]},63833:t=>{t.exports=["风险"]},95545:t=>{t.exports=["波浪"]},10209:t=>{t.exports=["顶标签"]},98001:t=>{t.exports=["目标背景"]},
+89258:t=>{t.exports=["目标边界"]},45302:t=>{t.exports=["目标颜色:"]},74289:t=>{t.exports=["目标文本"]},17932:t=>{t.exports=["文本换行"]},55325:t=>{t.exports=["时间标签"]},77838:t=>{t.exports=["时间水平"]},2295:t=>{t.exports=["透明度"]},4372:t=>{t.exports=["趋势线"]},26775:t=>{t.exports=["上带"]},21774:t=>{t.exports=["上带#2"]},21076:t=>{t.exports=["上带#3"]},12374:t=>{t.exports=["使用一种颜色"]},53473:t=>{t.exports=["成交量加权平均价（VWAP）"]},91322:t=>{t.exports=["数值"]},25227:t=>{t.exports=["方差"]},1670:t=>{t.exports=["更改角度"]},38829:t=>{t.exports=["更改箭头颜色"]},23723:t=>{t.exports=["更改K线X坐标"]},72080:t=>{t.exports=["更改标志颜色"]},66266:t=>{t.exports=["更改价格Y坐标"]},98905:t=>{t.exports=["更改上边距"]},11049:t=>{t.exports=["更改垂直位置Y坐标"]},98057:t=>{t.exports=["更改{title}VWAP线颜色"]},55218:t=>{t.exports=["更改{title}VWAP线宽度"]},31804:t=>{t.exports=["更改{title}逆时针"]},99128:t=>{t.exports=["更改{title}系数为百分比可见性"]},20216:t=>{t.exports=["更改{title}颜色"]},35435:t=>{t.exports=["更改{title}紧凑统计模式"]},550:t=>{t.exports=["更改{title}K线边框上涨颜色"]},28146:t=>{t.exports=["更改{title}K线边框可见性"]},7373:t=>{t.exports=["更改{title}K线边框下跌颜色"]},38742:t=>{t.exports=["更改{title}K线下跌颜色"]},42273:t=>{t.exports=["更改{title}K线上涨颜色"]},76054:t=>{t.exports=["更改{title}K线影线颜色"]},27029:t=>{t.exports=["更改{title}K线影线的可见性"]},22430:t=>{t.exports=["更改{title}点数变化可见性"]},45537:t=>{t.exports=["更改{title}角度可见性"]},31775:t=>{t.exports=["更改{title}帐户大小"]},37913:t=>{t.exports=["更改{title}总是显示统计信息"]},15521:t=>{t.exports=["更改{title}所有线条颜色"]},17466:t=>{t.exports=["更改{title}弧形{index}线条颜色"]},72307:t=>{t.exports=["更改{title}弧形{index}线条宽度"]},13853:t=>{t.exports=["更改{title}弧形{index}线条可见性"]},78680:t=>{t.exports=["更改{title}平均HL值"]},15802:t=>{t.exports=["更改{title}底部标签可见性"]},36438:t=>{t.exports=["更改{title}背景透明度"]},64548:t=>{t.exports=["更改{title}背景可见性"]},75312:t=>{t.exports=["更改{title}背景颜色"]},39651:t=>{t.exports=["更改{title}背景颜色1"]},78177:t=>{t.exports=["更改{title}背景颜色2"]},42746:t=>{t.exports=["更改{title}K线范围可见性"]},53770:t=>{t.exports=["更改{title}网格可见性"]},29145:t=>{t.exports=["更改{title}网格线颜色"]},64949:t=>{t.exports=["更改{title}网格线样式"]},93548:t=>{t.exports=["更改{title}网格线宽度"]},15485:t=>{t.exports=["更改{title}日期/时间范围可见性"]},3400:t=>{t.exports=["更改{title}角度"]},91534:t=>{t.exports=["更改{title}距离可见性"]},65056:t=>{t.exports=["更改{title}表情符号"]},65899:t=>{t.exports=["更改{title}表情符号可见性"]},59354:t=>{t.exports=["更改{title}入场价格"]},1447:t=>{t.exports=["更改{title}延长底部"]},15258:t=>{t.exports=["更改{title}延长左边"]},96902:t=>{t.exports=["更改{title}延长线"]},896:t=>{t.exports=["更改{title}延长顶部"]},3708:t=>{t.exports=["更改{title}向左延伸"]},52889:t=>{t.exports=["更改{title}向右延伸"]},86647:t=>{t.exports=["更改{title}扩展名"]},3156:t=>{t.exports=["更改{title}失败文本颜色"]},49885:t=>{t.exports=["更改{title}失败背景颜色"]},89126:t=>{t.exports=["更改{title}扇形{index}线条可见性"]},30016:t=>{t.exports=["更改{title}扇形{index}线条宽度"]},82516:t=>{t.exports=["更改{title}扇形{index}线条颜色"]},78142:t=>{t.exports=["更改{title}扇形可见性"]},79467:t=>{t.exports=["更改{title}扇形线颜色"]},45739:t=>{t.exports=["在对数坐标上更改{title}斐波那契水平"]},99670:t=>{t.exports=["更改{title}翻转"]},35165:t=>{t.exports=["更改{title}完整圆圈的可见性"]},48983:t=>{t.exports=["更改{title}图像背景颜色"]},45025:t=>{t.exports=["更改{title}手数大小"]},
+13901:t=>{t.exports=["更改{title}下带线颜色"]},78425:t=>{t.exports=["更改{title}下带线可见性"]},99491:t=>{t.exports=["更改{title}下带线宽度"]},55469:t=>{t.exports=["更改{title}下带#2线条颜色"]},76157:t=>{t.exports=["更改{title}下带#2线条可见性"]},8081:t=>{t.exports=["更改{title}下带#2线条宽度"]},95016:t=>{t.exports=["更改{title}下带#3线条颜色"]},84928:t=>{t.exports=["更改{title}下带#3线条可见性"]},44693:t=>{t.exports=["更改{title}下带#3线条宽度"]},81170:t=>{t.exports=["更改{title}标签对齐方式"]},22775:t=>{t.exports=["更改{title}标签字体大小"]},24338:t=>{t.exports=["更改{title}标签可见性"]},32891:t=>{t.exports=["更改{title}水平{index}线系数"]},85551:t=>{t.exports=["更改{title}水平{index}线颜色"]},47840:t=>{t.exports=["更改{title}水平{index}线样式"]},45463:t=>{t.exports=["更改{title}水平{index}线可见性"]},90098:t=>{t.exports=["更改{title}水平{index}线宽度"]},26710:t=>{t.exports=["更改{title}水平可见性"]},2359:t=>{t.exports=["更改{title}左侧标签可见性"]},44643:t=>{t.exports=["更改{title}线条宽度"]},20563:t=>{t.exports=["更改{title}线条颜色"]},66982:t=>{t.exports=["更改{title}线条样式"]},94441:t=>{t.exports=["更改{title}模式"]},89996:t=>{t.exports=["更改{title}中点可见性"]},36618:t=>{t.exports=["更改{title}镜像"]},18544:t=>{t.exports=["更改{title}源背景颜色"]},48035:t=>{t.exports=["更改{title}源边框颜色"]},42286:t=>{t.exports=["更改{title}源文本颜色"]},588:t=>{t.exports=["更改{title}统计信息位置"]},54659:t=>{t.exports=["更改{title}止损颜色"]},89182:t=>{t.exports=["更改{title}止损水平"]},82224:t=>{t.exports=["更改{title}止损价格"]},88383:t=>{t.exports=["更改{title}成功文本颜色"]},26967:t=>{t.exports=["更改{title}成功背景颜色"]},62243:t=>{t.exports=["更改{title}百分比变化可见性"]},45936:t=>{t.exports=["更改{title}价格标签可见性"]},88577:t=>{t.exports=["更改{title}价格标签可见性"]},47045:t=>{t.exports=["更改{title}价格范围可见性"]},94028:t=>{t.exports=["更改{title}价格可见性"]},56175:t=>{t.exports=["更改{title}价格可见性"]},44539:t=>{t.exports=["更改{title}止盈水平"]},41646:t=>{t.exports=["更改{title}止盈价格"]},52877:t=>{t.exports=["更改{title}翻转"]},16598:t=>{t.exports=["更改{title}右侧标签可见性"]},31553:t=>{t.exports=["更改{title}风险"]},40344:t=>{t.exports=["更改{title}风险显示模式"]},73137:t=>{t.exports=["更改{title}顶部标签可见性"]},52387:t=>{t.exports=["更改{title}目标背景颜色"]},6921:t=>{t.exports=["更改{title}目标边框颜色"]},97573:t=>{t.exports=["更改{title}目标颜色"]},27634:t=>{t.exports=["更改{title}目标文本颜色"]},33822:t=>{t.exports=["更改{title}时间标签可见性"]},84321:t=>{t.exports=["更改{title}透明度"]},10417:t=>{t.exports=["更改{title}上带线颜色"]},58722:t=>{t.exports=["更改{title}上带线可见性"]},13633:t=>{t.exports=["更改{title}上带线宽度"]},64709:t=>{t.exports=["更改{title}上带#2线条颜色"]},97847:t=>{t.exports=["更改{title}上带#2线条可见性"]},62921:t=>{t.exports=["更改{title}上带#2线条宽度"]},94153:t=>{t.exports=["更改{title}上带#3线条颜色"]},19835:t=>{t.exports=["更改{title}上带#3线条可见性"]},68310:t=>{t.exports=["更改{title}上带#3线条宽度"]},12355:t=>{t.exports=["更改{title}方差值"]},25937:t=>{t.exports=["更改{toolName}标签垂直对齐"]},46991:t=>{t.exports=["更改{toolName}标签水平对齐"]},73080:t=>{t.exports=["更改{toolName}标签方向"]},24272:t=>{t.exports=["更改{toolName}线条可见性"]},46404:t=>{t.exports=["更改{toolName}线条宽度"]},50265:t=>{t.exports=["更改{toolName}线条颜色"]},72781:t=>{t.exports=["更改{toolName}线条向左延伸"]},84613:t=>{t.exports=["更改{toolName}线条向右延伸"]},62603:t=>{t.exports=["更改{toolName}线条左端"]},62412:t=>{t.exports=["更改{toolName}线条右端"]},35422:t=>{t.exports=["更改{toolName}线条样式"]},
+77690:t=>{t.exports=["更改{toolName}文本"]},69871:t=>{t.exports=["更改{toolName}文本可见性"]},25878:t=>{t.exports=["更改{toolName}文本换行"]},91832:t=>{t.exports=["更改{toolName}文本背景颜色"]},18610:t=>{t.exports=["更改{toolName}文本背景可见性"]},44755:t=>{t.exports=["更改{toolName}文本边框颜色"]},6324:t=>{t.exports=["更改{toolName}文本边框宽度"]},45529:t=>{t.exports=["更改{toolName}文本边框可见性"]},6500:t=>{t.exports=["更改{toolName}文本颜色"]},51614:t=>{t.exports=["更改{toolName}文本字体加粗"]},18572:t=>{t.exports=["更改{toolName}文本字体斜体"]},48382:t=>{t.exports=["更改{toolName}文本字体大小"]},18567:t=>{t.exports=["更改{propertyName}属性"]},21926:t=>{t.exports=["背景颜色"]},52241:t=>{t.exports=["背景填充"]},70607:t=>{t.exports=["线条颜色"]},41075:t=>{t.exports=["线条样式"]},73043:t=>{t.exports=["线条宽度"]},72223:t=>{t.exports=["移动绘图"]},41437:t=>{t.exports=["文字颜色"]}}]);
+
+================================================
+File: public/charting_library/bundles/zh.4053.929467332218f26dc70f.js
+================================================
+(self.webpackChunktradingview=self.webpackChunktradingview||[]).push([[4053],{50831:e=>{e.exports=["根K线"]},19648:e=>{e.exports=["12小时"]},55838:e=>{e.exports=["24小时"]},72171:e=>{e.exports=["中心"]},88364:e=>{e.exports=["图表基本样式"]},46720:e=>{e.exports=["十字线"]},50985:e=>{e.exports=["货币"]},17319:e=>{e.exports=["货币和单位"]},19481:e=>{e.exports=["外观"]},68791:e=>{e.exports=["参数"]},95036:e=>{e.exports=["平均收盘价格"]},91757:e=>{e.exports=["底部"]},27331:e=>{e.exports=["背景"]},22519:e=>{e.exports=["K线变化值"]},87845:e=>{e.exports=["按钮"]},39392:e=>{e.exports=["网格线"]},25209:e=>{e.exports=["日期格式"]},55090:e=>{e.exports=["标签上的星期几"]},29601:e=>{e.exports=["描述"]},26897:e=>{e.exports=["事件"]},77405:e=>{e.exports=["横式"]},34403:e=>{e.exports=["仅水平"]},60971:e=>{e.exports=["最高和最低价格"]},61142:e=>{e.exports=["指标"]},34905:e=>{e.exports=["指标值"]},29687:e=>{e.exports=["指标和财务值"]},25084:e=>{e.exports=["指标和财务名称"]},9654:e=>{e.exports=["指标名称"]},99487:e=>{e.exports=["开高低收"]},75991:e=>{e.exports=["开市状态"]},96073:e=>{e.exports=["详细描述"]},78905:e=>{e.exports=["价格坐标上的标签"]},19286:e=>{e.exports=["左"]},70500:e=>{e.exports=["资金"]},66653:e=>{e.exports=["利润率"]},76476:e=>{e.exports=["中间"]},42502:e=>{e.exports=["无重叠"]},49199:e=>{e.exports=["无"]},74343:e=>{e.exports=["导航"]},43115:e=>{e.exports=["坐标"]},53224:e=>{e.exports=["坐标放置"]},79194:e=>{e.exports=["状态行"]},89053:e=>{e.exports=["商品代码"]},35383:e=>{e.exports=["商品名称"]},27767:e=>{e.exports=["商品最新价格"]},40847:e=>{e.exports=["商品前一天收盘价"]},50446:e=>{e.exports=["窗格"]},73908:e=>{e.exports=["窗格分隔符"]},36014:e=>{e.exports=["百分比"]},78621:e=>{e.exports=["点数"]},74823:e=>{e.exports=["盘前/盘后价格"]},64859:e=>{e.exports=["价格坐标"]},76523:e=>{e.exports=["价格和百分比值"]},21141:e=>{e.exports=["右"]},40187:e=>{e.exports=["右边距"]},77705:e=>{e.exports=["水印"]},26458:e=>{e.exports=["影线"]},65994:e=>{e.exports=["顶部"]},92960:e=>{e.exports=["文字对齐"]},90581:e=>{e.exports=["文字方向"]},67369:e=>{e.exports=["标题"]},31326:e=>{e.exports=["标题"]},23097:e=>{e.exports=["商品代码"]},82168:e=>{e.exports=["商品和描述"]},43637:e=>{e.exports=["时间坐标"]},97316:e=>{e.exports=["时间小时格式"]},90801:e=>{e.exports=["交易"]},77534:e=>{e.exports=["单位"]},1111:e=>{e.exports=["成交量"]},80170:e=>{e.exports=["根据坐标值"]},91322:e=>{e.exports=["数值"]},37174:e=>{e.exports=["垂直和水平"]},36426:e=>{e.exports=["仅垂直"]},44085:e=>{e.exports=["竖式"]},57889:e=>{e.exports=["更改OHLC值的可见性"]},35646:e=>{e.exports=["更改导航按钮可见性"]},18644:e=>{e.exports=["更改开市状态可见性"]},45110:e=>{e.exports=["更改K线涨跌可见性"]},10349:e=>{e.exports=["更改下边距"]},88161:e=>{e.exports=["更改货币和单位标签的可见性"]},84060:e=>{e.exports=["更改货币标签可见性"]},99011:e=>{e.exports=["更改图表背景颜色"]},72458:e=>{e.exports=["更改图表背景类型"]},37034:e=>{e.exports=["更改十字准线宽度"]},29951:e=>{e.exports=["更改十字准线颜色"]},92027:e=>{e.exports=["更改十字准线样式"]},50457:e=>{e.exports=["更改日期格式"]},7104:e=>{e.exports=["更改标签上的星期几"]},27764:e=>{e.exports=["更改网格线可见性"]},88096:e=>{e.exports=["更改水平网格线颜色"]},31325:e=>{e.exports=["更改指标标题可见性"]},99774:e=>{e.exports=["更改指标值的可见性"]},96162:e=>{e.exports=["更改指标参数可见性"]},59820:e=>{e.exports=["更改指标和财务名称标签可见性"]},90512:e=>{e.exports=["更改指标和财务值标签可见性"]},97956:e=>{e.exports=["更改图例背景透明度"]},61061:e=>{e.exports=["更改图例背景可见性"]},
+37730:e=>{e.exports=["更改窗格按钮可见性"]},89032:e=>{e.exports=["更改窗格分隔符颜色"]},35636:e=>{e.exports=["更改右边距"]},66601:e=>{e.exports=["更改右边距百分比"]},25616:e=>{e.exports=["更改商品水印颜色"]},87159:e=>{e.exports=["更改商品水印可见性"]},26717:e=>{e.exports=["更改商品描述可见性"]},6091:e=>{e.exports=["更改商品字段可见性"]},28741:e=>{e.exports=["更改商品最新值模式"]},95071:e=>{e.exports=["更改商品图例格式"]},35065:e=>{e.exports=["更改坐标文本颜色"]},84382:e=>{e.exports=["更改坐标字体大小"]},12468:e=>{e.exports=["更改坐标线条颜色"]},71589:e=>{e.exports=["更改交易时段分隔可见性"]},15035:e=>{e.exports=["更改交易时段分隔宽度"]},1579:e=>{e.exports=["更改交易时段分隔颜色"]},21460:e=>{e.exports=["更改交易时段分隔样式"]},76991:e=>{e.exports=["更改时间小时格式"]},98905:e=>{e.exports=["更改上边距"]},7011:e=>{e.exports=["更改单位标签可见性"]},22722:e=>{e.exports=["更改垂直网格线颜色"]},9455:e=>{e.exports=["更改成交量值的可见性"]}}]);
+
+================================================
+File: public/charting_library/bundles/zh.5652.209eb64b624dfe3c853a.js
+================================================
+(self.webpackChunktradingview=self.webpackChunktradingview||[]).push([[5652],{40276:e=>{e.exports=["增加"]},53585:e=>{e.exports=["添加自定义颜色"]},81865:e=>{e.exports=["不透明度"]},40054:e=>{e.exports=["颜色"]},44629:e=>{e.exports=["添加到收藏"]},38455:e=>{e.exports=["背景颜色"]},79964:e=>{e.exports=["背景颜色1"]},45320:e=>{e.exports=["背景颜色2"]},60925:e=>{e.exports=["圆点"]},42973:e=>{e.exports=["点虚线"]},59317:e=>{e.exports=["短虚线"]},99289:e=>{e.exports=["橡皮擦"]},23886:e=>{e.exports=["字体大小"]},17006:e=>{e.exports=["字体大小"]},17517:e=>{e.exports=["隐藏所有绘图"]},74813:e=>{e.exports=["隐藏收藏的绘图工具栏"]},37057:e=>{e.exports=["锁定所有绘图"]},71845:e=>{e.exports=["划线工具背景"]},12928:e=>{e.exports=["划线工具颜色"]},21327:e=>{e.exports=["划线工具文字颜色"]},86327:e=>{e.exports=["图形宽度"]},47059:e=>{e.exports=["图形宽度"]},41610:e=>{e.exports=["更多"]},37140:e=>{e.exports=["磁铁模式将吸附至K线的開高低收值"]},67455:e=>{e.exports=["马克笔颜色"]},59607:e=>{e.exports=["测量"]},36551:e=>{e.exports=["新的绘图将复制到同一布局中的所有图表，并在选择同一商品时显示"]},91977:e=>{e.exports=["显示隐藏的工具"]},51072:e=>{e.exports=["显示对象树"]},49421:e=>{e.exports=["保持绘图模式"]},49593:e=>{e.exports=["止损背景颜色"]},36785:e=>{e.exports=["利润背景颜色"]},76091:e=>{e.exports=["移除绘图"]},54336:e=>{e.exports=["移除颜色"]},72482:e=>{e.exports=["从收藏中移除"]},19221:e=>{e.exports=["文字颜色"]},38925:e=>{e.exports=["放大"]},49895:e=>{e.exports=["缩小"]},16631:e=>{e.exports=["更改线条工具文本颜色"]},74350:e=>{e.exports=["更改线条工具背景颜色"]},68519:e=>{e.exports=["更改线条工具颜色"]},36819:e=>{e.exports=["更改线条工具字体大小"]},54769:e=>{e.exports=["更改线条工具的线条样式"]},41648:e=>{e.exports=["更改线条工具的线条宽度"]},32868:e=>{e.exports=["{hotKey_0} + 点击图表"]},68125:e=>{e.exports=["{hotKey_0} — 圆圈"]},40234:e=>{e.exports=["{hotKey_0} — 以45度角绘制一条直线"]},10289:e=>{e.exports=["{hotKey_0} — 固定增量"]},81591:e=>{e.exports=["{hotKey_0} — 正方形"]}}]);
+
+================================================
+File: public/charting_library/bundles/zh.6196.3e28185b53cd2346f10d.js
+================================================
+(self.webpackChunktradingview=self.webpackChunktradingview||[]).push([[6196],{22353:e=>{e.exports=["(开 + 高 + 低 + 收)/4"]},94884:e=>{e.exports=["(高 + 低 + 收)/3"]},10591:e=>{e.exports=["(高 + 低)/2"]},63243:e=>{e.exports=["K线颜色基于前一收盘价"]},15857:e=>{e.exports="Close line"},9994:e=>{e.exports=["调整股息数据"]},10989:e=>{e.exports=["根据合约变更调整"]},70816:e=>{e.exports=["平均收盘价"]},50430:e=>{e.exports=["下边框线"]},83760:e=>{e.exports=["主体"]},72269:e=>{e.exports=["边框"]},7445:e=>{e.exports=["基准位"]},47586:e=>{e.exports=["Bid和Ask"]},39667:e=>{e.exports=["下跌烛线"]},87151:e=>{e.exports=["下跌颜色"]},81285:e=>{e.exports=["数据修改"]},4329:e=>{e.exports=["系统预设"]},86846:e=>{e.exports=["填充"]},58747:e=>{e.exports=["上填充色"]},11157:e=>{e.exports=["下填充色"]},86953:e=>{e.exports=["HLC 线"]},39292:e=>{e.exports=["高点和低点"]},83678:e=>{e.exports="High line"},75310:e=>{e.exports="Low line"},15107:e=>{e.exports=["最新价"]},6350:e=>{e.exports=["盘前/盘后市场"]},62521:e=>{e.exports=["盘前/盘后市场时段背景"]},73947:e=>{e.exports=["精确度"]},8094:e=>{e.exports=["前一天收盘"]},77986:e=>{e.exports=["价格线"]},24248:e=>{e.exports=["价格源"]},94089:e=>{e.exports=["预测上涨烛线"]},80293:e=>{e.exports="Projection candles"},5704:e=>{e.exports=["预测下跌烛线"]},29881:e=>{e.exports=["价格坐标上的实际价格（而不是Heikin-Ashi价格）"]},57417:e=>{e.exports=["上边框线"]},55314:e=>{e.exports=["细K线"]},87492:e=>{e.exports=["时区"]},5536:e=>{e.exports=["上涨颜色"]},83610:e=>{e.exports=["上涨烛线"]},99983:e=>{e.exports=["使用结算价作为每日周期的收盘价"]},30792:e=>{e.exports=["蜡烛"]},55740:e=>{e.exports=["更改美国线"]},68927:e=>{e.exports=["更改平均收盘价线宽度"]},30385:e=>{e.exports=["更改平均收盘价线颜色"]},97008:e=>{e.exports=["更改面积填充颜色"]},6610:e=>{e.exports=["更改面积线条宽度"]},661:e=>{e.exports=["更改面积线条颜色"]},1316:e=>{e.exports=["更改面积价格来源"]},29180:e=>{e.exports=["更改ask线颜色"]},31547:e=>{e.exports=["更改基础水平"]},4164:e=>{e.exports=["更改基准线底线颜色"]},38990:e=>{e.exports=["更改基准线底线宽度"]},73163:e=>{e.exports=["更改基准线填充底部区域颜色"]},12673:e=>{e.exports=["更改基准线填充顶部区域颜色"]},56819:e=>{e.exports=["更改基准线价格来源"]},68621:e=>{e.exports=["更改基准线顶线颜色"]},35339:e=>{e.exports=["更改基准线顶线宽度"]},76804:e=>{e.exports=["更改上涨K线颜色"]},71816:e=>{e.exports=["更改K线下跌颜色"]},36703:e=>{e.exports=["更改bid线颜色"]},29353:e=>{e.exports=["根据前一个收盘价更改K线颜色"]},85709:e=>{e.exports=["更改向上列的颜色"]},12155:e=>{e.exports=["更改向下列的颜色"]},66890:e=>{e.exports=["更改列价格来源"]},71809:e=>{e.exports=["更改小数位"]},31317:e=>{e.exports=["更改延长时段颜色"]},60944:e=>{e.exports=["更改高低价线颜色"]},83708:e=>{e.exports=["更改高低价线宽度"]},81080:e=>{e.exports=["更改高-低实体颜色"]},30033:e=>{e.exports=["更改高-低实体可见性"]},76885:e=>{e.exports=["更改高-低边框颜色"]},79236:e=>{e.exports=["更改高-低边框可见性"]},42981:e=>{e.exports=["更改高-低标签可见性"]},31937:e=>{e.exports=["更改高-低标签颜色"]},87828:e=>{e.exports=["更改线条颜色"]},17119:e=>{e.exports=["更改线条价格来源"]},69125:e=>{e.exports=["更改线条宽度"]},49973:e=>{e.exports=["更改盘后市场颜色"]},5969:e=>{e.exports=["更改盘后市场线条颜色"]},50393:e=>{e.exports=["更改盘前/盘后市场价格线的可见性"]},46257:e=>{e.exports=["更改盘前市场颜色"]},60852:e=>{e.exports=["更改盘前市场线条颜色"]},91183:e=>{e.exports=["更改前一根收盘价线颜色"]},87631:e=>{e.exports=["更改前一根收盘价线宽度"]},77640:e=>{e.exports=["更改价格线颜色"]},97322:e=>{e.exports=["更改价格线宽度"]},35116:e=>{e.exports=["更改范围K线样式"]},28143:e=>{e.exports=["更改范围细K线"]},75986:e=>{
+e.exports=["更改renko下影线颜色"]},7747:e=>{e.exports=["更改renko下影线颜色"]},9473:e=>{e.exports=["更改renko影线的可见性"]},39783:e=>{e.exports=["更改价格坐标上的实际价格显示（而不是Heiken-Ashi价格）"]},72886:e=>{e.exports=["更改细K线"]},5464:e=>{e.exports=["更改{candleType}上边框颜色"]},61118:e=>{e.exports=["更改{candleType}上涨颜色"]},60164:e=>{e.exports=["更改{candleType}下影线颜色"]},45543:e=>{e.exports=["更改{candleType}上影线颜色"]},39987:e=>{e.exports=["更改{candleType}影线的可见性"]},47202:e=>{e.exports=["更改{candleType}实体可见性"]},23986:e=>{e.exports=["更改{candleType}边框可见性"]},92330:e=>{e.exports=["更改{candleType}下边框颜色"]},36320:e=>{e.exports=["更改{candleType}向下颜色"]},79088:e=>{e.exports=["更改{chartType}边框K线下跌颜色"]},11107:e=>{e.exports=["更改{chartType}边框K线上涨颜色"]},85503:e=>{e.exports=["更改{chartType}向下颜色"]},61250:e=>{e.exports=["更改{chartType}投影边框K线上涨颜色"]},18465:e=>{e.exports=["更改{chartType}投影K线下跌颜色"]},50453:e=>{e.exports=["更改{chartType}投影K线上涨颜色"]},59414:e=>{e.exports=["更改{chartType}上涨颜色"]},21547:e=>{e.exports=["更改{inputName}属性"]},42390:e=>{e.exports=["调整股息数据"]},99511:e=>{e.exports=["根据合约变更调整"]},75165:e=>{e.exports=["空心K线图"]},18995:e=>{e.exports=["范围"]},47500:e=>{e.exports=["砖形图"]},98402:e=>{e.exports=["使用结算价作为每日周期的收盘价"]}}]);
+
+================================================
+File: public/charting_library/bundles/zh.7201.028a386569caa7df9e56.js
+================================================
+(self.webpackChunktradingview=self.webpackChunktradingview||[]).push([[7201],{72171:t=>{t.exports=["中心"]},91757:t=>{t.exports=["底部"]},22192:t=>{t.exports=["日"]},63099:t=>{t.exports=["小时"]},77405:t=>{t.exports=["横式"]},66304:t=>{t.exports=["输入"]},19286:t=>{t.exports=["左"]},76476:t=>{t.exports=["中间"]},28134:t=>{t.exports=["分钟"]},71129:t=>{t.exports=["秒"]},86672:t=>{t.exports=["范围"]},21141:t=>{t.exports=["右"]},21594:t=>{t.exports=["周"]},26458:t=>{t.exports=["影线"]},65994:t=>{t.exports=["顶部"]},92960:t=>{t.exports=["文字对齐"]},90581:t=>{t.exports=["文字方向"]},44085:t=>{t.exports=["竖式"]},13355:t=>{t.exports=["更改{title}日图到"]},41377:t=>{t.exports=["更改{title}日图从"]},35388:t=>{t.exports=["更改{title}小时图从"]},78586:t=>{t.exports=["更改{title}小时图到"]},59635:t=>{t.exports=["更改{title}月图从"]},74266:t=>{t.exports=["更改{title}月图到"]},91633:t=>{t.exports=["更改{title}分钟图到"]},15106:t=>{t.exports=["更改{title}分钟图从"]},66161:t=>{t.exports=["更改{title}秒图到"]},2822:t=>{t.exports=["更改{title}秒图从"]},21339:t=>{t.exports=["更改{title}周图从"]},68643:t=>{t.exports=["更改{title}周图到"]},30810:t=>{t.exports=["更改{title}在tick图上的可见性"]},24941:t=>{t.exports=["更改{title}在周图上的可见性"]},29088:t=>{t.exports=["更改{title}在日图上的可见性"]},68971:t=>{t.exports=["更改{title}在小时图上的可见性"]},64370:t=>{t.exports=["更改{title}在分钟图上的可见性"]},6659:t=>{t.exports=["更改{title}在月图上的可见性"]},29091:t=>{t.exports=["更改{title}在范围图上的可见性"]},46948:t=>{t.exports=["更改{title}在秒图上的可见性"]},82211:t=>{t.exports=["日"]},33486:t=>{t.exports=["天到"]},14077:t=>{t.exports=["天从"]},3143:t=>{t.exports=["小时"]},84775:t=>{t.exports=["小时从"]},11255:t=>{t.exports=["小时到"]},58964:t=>{t.exports=["个月"]},71770:t=>{t.exports=["月从"]},37179:t=>{t.exports=["月到"]},16465:t=>{t.exports=["分钟"]},72317:t=>{t.exports=["分钟到"]},25586:t=>{t.exports=["分钟从"]},32925:t=>{t.exports=["秒"]},39017:t=>{t.exports=["秒到"]},6049:t=>{t.exports=["秒从"]},13604:t=>{t.exports=["范围"]},93016:t=>{t.exports=["周"]},32002:t=>{t.exports=["周从"]},28091:t=>{t.exports=["周到"]},59523:t=>{t.exports="ticks"}}]);
+
+================================================
+File: public/charting_library/bundles/zh.77.5401b8766c940f90b3e9.js
+================================================
+(self.webpackChunktradingview=self.webpackChunktradingview||[]).push([[77],{40276:e=>{e.exports=["增加"]},53585:e=>{e.exports=["添加自定义颜色"]},81865:e=>{e.exports=["不透明度"]},19801:e=>{e.exports=["周五"]},11268:e=>{e.exports=["周一"]},63331:e=>{e.exports=["周六"]},85954:e=>{e.exports=["周日"]},26230:e=>{e.exports=["周三"]},24793:e=>{e.exports=["周四"]},31533:e=>{e.exports=["周二"]},73755:e=>{e.exports=["其他代码"]},16936:e=>{e.exports=["返回"]},88046:e=>{e.exports=["主图表代码"]},9898:e=>{e.exports=["认股权"]},52051:e=>{e.exports=["日历目前在{year}年"]},99990:e=>{e.exports=["日历当前是从{year_start}到{year_end}年"]},92702:e=>{e.exports=["日历目前在{month}月"]},20036:e=>{e.exports=["取消"]},23398:e=>{e.exports=["变更品种"]},94551:e=>{e.exports=["图表"]},64498:e=>{e.exports=["全部来源"]},97637:e=>{e.exports=["4月"]},86797:e=>{e.exports=["8月"]},79852:e=>{e.exports=["债券"]},55669:e=>{e.exports=["12月"]},56095:e=>{e.exports=["减少"]},29601:e=>{e.exports=["描述"]},16467:e=>{e.exports=["2月"]},72970:e=>{e.exports=["周五"]},46812:e=>{e.exports=["增加"]},26910:e=>{e.exports=["1月"]},23230:e=>{e.exports=["7月"]},49385:e=>{e.exports=["6月"]},90784:e=>{e.exports=["10月"]},89298:e=>{e.exports=["偏移"]},68988:e=>{e.exports=["确认"]},61199:e=>{e.exports=["周一"]},95543:e=>{e.exports=["个月"]},68327:e=>{e.exports=["5月"]},84675:e=>{e.exports=["3月"]},29673:e=>{e.exports=["没有交易所符合您的条件"]},41379:e=>{e.exports=["没有代码符合您的条件"]},71194:e=>{e.exports=["11月"]},83771:e=>{e.exports=["下一年"]},75385:e=>{e.exports=["未来几年"]},39752:e=>{e.exports=["下一个月"]},35563:e=>{e.exports=["号码格式无效。"]},19724:e=>{e.exports=["来源"]},1144:e=>{e.exports=["周六"]},52298:e=>{e.exports=["搜索"]},13269:e=>{e.exports=["选择来源"]},61132:e=>{e.exports=["9月"]},2607:e=>{e.exports=["指定值大于商品最大值{max}。"]},53669:e=>{e.exports=["指定值小于商品最小值{min}。"]},72149:e=>{e.exports=["周日"]},83583:e=>{e.exports=["切换到月"]},6244:e=>{e.exports=["切换到日期"]},80879:e=>{e.exports=["切换到年"]},89053:e=>{e.exports=["商品代码"]},48490:e=>{e.exports=["商品和描述"]},75905:e=>{e.exports=["商品代码搜索"]},32457:e=>{e.exports=["请输入正确的日期"]},5122:e=>{e.exports=["请输入正确的日期格式 yyyy-mm-dd"]},2587:e=>{e.exports=["上一个月"]},39329:e=>{e.exports=["上一年"]},27004:e=>{e.exports=["往年"]},54336:e=>{e.exports=["移除颜色"]},7147:e=>{e.exports=["周三"]},7951:e=>{e.exports=["周四"]},60142:e=>{e.exports=["厚度"]},44979:e=>{e.exports=["周二"]},69325:e=>{e.exports=["年"]},12629:e=>{e.exports=["商品"]},87592:e=>{e.exports=["差价合约"]},17023:e=>{e.exports=["更改不透明度"]},13066:e=>{e.exports=["更改颜色"]},95657:e=>{e.exports=["更改厚度"]},18567:e=>{e.exports=["更改{propertyName}属性"]},36962:e=>{e.exports=["收盘"]},8448:e=>{e.exports=["加密"]},67245:e=>{e.exports="dr"},88720:e=>{e.exports=["经济"]},39512:e=>{e.exports=["外汇"]},81859:e=>{e.exports=["期货"]},39337:e=>{e.exports=["最高"]},91815:e=>{e.exports=["(h+l)/2"]},40771:e=>{e.exports=["(h+l+c)/3"]},9523:e=>{e.exports="hlcc4"},12754:e=>{e.exports=["指数"]},60804:e=>{e.exports=["指数"]},12504:e=>{e.exports=["(o+h+l+c)/4"]},38466:e=>{e.exports=["开盘"]},3919:e=>{e.exports=["最低"]},36931:e=>{e.exports=["股票"]}}]);
+
+================================================
+File: public/charting_library/bundles/zh.8884.515644758428ad7e8263.js
+================================================
+(self.webpackChunktradingview=self.webpackChunktradingview||[]).push([[8884],{74274:e=>{e.exports=["十字图"]},60558:e=>{e.exports=["动物&自然"]},14232:e=>{e.exports=["活动"]},35305:e=>{e.exports=["食物&饮料"]},49546:e=>{e.exports=["旗帜"]},72302:e=>{e.exports=["物品"]},96330:e=>{e.exports=["笑脸&人像"]},6878:e=>{e.exports=["符号"]},15426:e=>{e.exports=["最近使用"]},15395:e=>{e.exports=["旅游&地点"]},41596:e=>{e.exports=["价格坐标上的标签"]},45811:e=>{e.exports=["状态行中的值"]},39495:e=>{e.exports=["圆点图"]},41389:e=>{e.exports=["列上"]},29520:e=>{e.exports=["绝对值"]},67049:e=>{e.exports=["应用默认"]},65262:e=>{e.exports=["中断区块"]},83760:e=>{e.exports=["主体"]},48848:e=>{e.exports=["边框"]},27331:e=>{e.exports=["背景"]},78626:e=>{e.exports=["Bar下方"]},16079:e=>{e.exports=["渐变"]},42973:e=>{e.exports=["点虚线"]},41361:e=>{e.exports=["下"]},59317:e=>{e.exports=["短虚线"]},31577:e=>{e.exports=["发展数值区(VA)"]},4329:e=>{e.exports=["系统预设"]},98938:e=>{e.exports=["系统预设"]},11091:e=>{e.exports=["直方图"]},40297:e=>{e.exports=["输出"]},36993:e=>{e.exports=["覆盖最小tick"]},64606:e=>{e.exports=["标签字体"]},54934:e=>{e.exports=["中断线"]},41610:e=>{e.exports=["更多"]},55362:e=>{e.exports=["正常"]},35637:e=>{e.exports="Solid"},18229:e=>{e.exports=["保存为默认"]},86520:e=>{e.exports=["信号标签"]},64108:e=>{e.exports=["带中断的阶梯线"]},67767:e=>{e.exports=["菱形阶梯线"]},91502:e=>{e.exports=["配置"]},73947:e=>{e.exports=["精确度"]},66596:e=>{e.exports=["数量"]},79782:e=>{e.exports=["重置设置"]},95247:e=>{e.exports=["宽度(Box的%)"]},19221:e=>{e.exports=["文字颜色"]},77409:e=>{e.exports=["图表上的交易"]},98802:e=>{e.exports=["上"]},78019:e=>{e.exports=["使用特殊的数学符号替换选定的图形：+,-,/,* 表示价格，+,- 表示K线指数。"]},14414:e=>{e.exports=["成交量分布图(VP)"]},91322:e=>{e.exports=["数值"]},20834:e=>{e.exports=["更改最小tick"]},98491:e=>{e.exports=["更改字符"]},7378:e=>{e.exports=["更改字体大小"]},28691:e=>{e.exports=["更改线条样式"]},38361:e=>{e.exports=["更改位置"]},51081:e=>{e.exports=["更改百分比宽度"]},47634:e=>{e.exports=["更改挂单"]},15683:e=>{e.exports=["更改绘图类型"]},164:e=>{e.exports=["更改精度"]},86888:e=>{e.exports=["更改形状"]},50463:e=>{e.exports=["更改数值"]},12628:e=>{e.exports=["更改值的可见性"]},76080:e=>{e.exports=["例如 +1"]},95166:e=>{e.exports=["例如 /2"]}}]);
+
+================================================
+File: public/charting_library/bundles/zh_TW.2014.ac41a755cbd36fd3ce84.js
+================================================
+(self.webpackChunktradingview=self.webpackChunktradingview||[]).push([[2014],{19801:e=>{e.exports=["周五"]},11268:e=>{e.exports=["周一"]},63331:e=>{e.exports=["周六"]},85954:e=>{e.exports=["周日"]},26230:e=>{e.exports=["周三"]},24793:e=>{e.exports=["周四"]},31533:e=>{e.exports=["周二"]},89790:e=>{e.exports=["無法取得Pine原始碼"]},39589:e=>{e.exports=["摺疊窗格"]},38154:e=>{e.exports=["確定移除研究樹"]},45e3:e=>{e.exports=["Cboe BZX"]},36004:e=>{e.exports=["建立一個免費賬戶"]},69419:e=>{e.exports=["一切良好 — 市場開啟。"]},97637:e=>{e.exports=["四月"]},86797:e=>{e.exports=["八月"]},22519:e=>{e.exports=["K棒漲跌值"]},52003:e=>{e.exports=["確定要刪除研究及其所有子項目嗎？"]},68854:e=>{e.exports=["雙擊"]},97325:e=>{e.exports=["數據錯誤"]},52916:e=>{e.exports=["數據每天更新一次。"]},25978:e=>{e.exports=["即使市場上有更多的數據更新，數據也只會每秒更新一次。"]},57310:e=>{e.exports=["顯示數據"]},49321:e=>{e.exports=["即使市場上有更多的數據更新，基本方案的數據也只會每秒更新一次。"]},55669:e=>{e.exports=["十二月"]},83498:e=>{e.exports=["刪除窗格"]},6044:e=>{e.exports=["派息數據"]},31461:e=>{e.exports="Derived Data refers to financial indicators which are created by combining and/or processing raw data supplied from various sources."},59315:e=>{e.exports=["盤後資訊"]},82751:e=>{e.exports=["錯誤"]},40519:e=>{e.exports=["晚安。盤後市場已開市。"]},80227:e=>{e.exports=["交易所時區"]},16467:e=>{e.exports=["二月"]},25046:e=>{e.exports=["填寫交易所協議"]},93666:e=>{e.exports=["標記商品"]},564:e=>{e.exports=["周五"]},72970:e=>{e.exports=["周五"]},88958:e=>{e.exports=["假日"]},32960:e=>{e.exports="Halal symbol"},21686:e=>{e.exports=["隱藏指標圖例"]},26935:e=>{e.exports=["指標參數"]},26315:e=>{e.exports=["指標名稱"]},84098:e=>{e.exports=["指標值"]},91459:e=>{e.exports=["如果您需要{listedExchange}即時數據，則需要完成交易所協議。不用擔心，只需點擊幾下"]},50634:e=>{e.exports=["它將在{remainingTime}後進入盤後交易。"]},74537:e=>{e.exports=["盤前交易將在{remainingTime}後開盤。"]},26910:e=>{e.exports=["一月"]},23230:e=>{e.exports=["七月"]},49385:e=>{e.exports=["六月"]},99487:e=>{e.exports=["開高低收值"]},15815:e=>{e.exports=["每秒更新一次"]},90784:e=>{e.exports=["十月"]},75991:e=>{e.exports=["開市狀態"]},36051:e=>{e.exports=["了解更多"]},39899:e=>{e.exports=["下移窗格"]},70343:e=>{e.exports=["上移窗格"]},83085:e=>{e.exports=["周一"]},61199:e=>{e.exports=["周一"]},41610:e=>{e.exports=["更多"]},1653:e=>{e.exports=["早安。盤前市場已開市。"]},56470:e=>{e.exports=["最大化圖表"]},19603:e=>{e.exports=["最大化窗格"]},68327:e=>{e.exports=["五月"]},35732:e=>{e.exports=["管理窗格"]},84675:e=>{e.exports=["三月"]},83949:e=>{e.exports=["開市"]},35701:e=>{e.exports=["市場在{remainingTime}後開盤。"]},95814:e=>{e.exports=["休市"]},98105:e=>{e.exports=["市場在{remainingTime}後收盤。"]},56086:e=>{e.exports=["市場目前正在放假。放鬆一下。"]},71194:e=>{e.exports=["十一月"]},66324:e=>{e.exports=["原始碼"]},36835:e=>{e.exports=["周六"]},1144:e=>{e.exports=["周六"]},40653:e=>{e.exports=["向左滾動"]},26721:e=>{e.exports=["滾動到最近的欄位"]},35809:e=>{e.exports=["向右滾動"]},61132:e=>{e.exports=["九月"]},28705:e=>{e.exports=["顯示指標圖例"]},51072:e=>{e.exports=["顯示物件樹"]},37809:e=>{e.exports=["顯示周期設定"]},39045:e=>{e.exports=["Study錯誤"]},86577:e=>{e.exports=["周日"]},72149:e=>{e.exports=["周日"]},46041:e=>{e.exports=["商品價格來源"]},63143:e=>{e.exports=["商品標題"]},29985:e=>{e.exports=["盤後時段"]},28412:e=>{e.exports=["付費方案的數據更新更快速。"]},56042:e=>{e.exports=["盤前時段"]},24680:e=>{
+e.exports=["主要上市"]},89022:e=>{e.exports="Real-time data for this symbol is not supported right now. We may support it in the future."},6667:e=>{e.exports=["{symbolName}的即時數據由{exchange}交易所提供。"]},48293:e=>{e.exports=["還原圖表"]},91029:e=>{e.exports=["還原窗格"]},75094:e=>{e.exports=["周三"]},7147:e=>{e.exports=["周三"]},52984:e=>{e.exports=["要獲取{description}的即時數據，請購買即時數據包。"]},9787:e=>{e.exports=["周四"]},7951:e=>{e.exports=["周四"]},99214:e=>{e.exports=["公司股票上市和交易的主要或第一證券交易所。"]},2310:e=>{e.exports="This data is real-time, but it may be slightly different to its official counterpart coming from primary exchanges."},29512:e=>{e.exports="This data is real-time, but it may be slightly different to its official counterpart coming from {exchange}."},52449:e=>{e.exports="This is a shariah-compliant stock, meaning that it follows Islamic law. This company does not charge or receive interest, and does not engage with certain sectors (gambling, alcohol, tobacco, pork products)."},73717:e=>{e.exports=["無此商品，請選擇另一個商品。"]},57048:e=>{e.exports=["該去散步了 — 此市場已關閉。"]},94316:e=>{e.exports=["周二"]},44979:e=>{e.exports=["周一"]},8209:e=>{e.exports=["取消標記商品"]},1111:e=>{e.exports=["成交量"]},61311:e=>{e.exports=["放大"]},47602:e=>{e.exports=["縮小"]},57889:e=>{e.exports=["更改開高低收值可見性"]},18644:e=>{e.exports=["更改開盤狀態可見性"]},45110:e=>{e.exports=["更改K線漲跌可見性"]},31325:e=>{e.exports=["更改指標標題可見性"]},99774:e=>{e.exports=["更改指標值可見性"]},96162:e=>{e.exports=["更改指標參數可見性"]},26717:e=>{e.exports=["更改商品描述可見性"]},6091:e=>{e.exports=["更改商品欄位可見性"]},9455:e=>{e.exports=["更改成交量值可見性"]},39348:e=>{e.exports=["少於一分鐘"]},87358:e=>{e.exports=["顯示{title}"]},7827:e=>{e.exports=["{days}和{hours}"]},7435:e=>{e.exports=["來自{originalExchange}的{exchange}"]},19830:e=>{e.exports=["{hours}和{minutes}"]},1084:e=>{e.exports=["{listedExchange}即時數據可供註冊用戶免費使用。"]},11155:e=>{e.exports=["{symbolName}數據延遲{time}分鐘。"]},77033:e=>{e.exports=["數據每{amount}秒更新一次，即使市場上有更多更新也是如此。"]},2121:e=>{e.exports=["我們基本方案的數據每{amount}秒更新一次，即使市場上有更多更新也是如此。"]},5223:e=>{e.exports=["每{amount}秒更新一次"]},58609:e=>{e.exports=["{number} 天"]},24430:e=>{e.exports=["{number} 小時"]},67151:e=>{e.exports=["{number} 分"]}}]);
+
+================================================
+File: public/charting_library/bundles/zh_TW.2427.596db67d26c83197588d.js
+================================================
+(self.webpackChunktradingview=self.webpackChunktradingview||[]).push([[2427],{14281:e=>{e.exports=["貨幣"]},60558:e=>{e.exports=["動物&自然"]},14232:e=>{e.exports=["活動"]},57792:e=>{e.exports=["箭頭"]},33628:e=>{e.exports=["手勢&笑臉"]},35305:e=>{e.exports=["食物&飲料"]},49546:e=>{e.exports=["旗幟"]},72302:e=>{e.exports=["物品"]},11739:e=>{e.exports=["自然"]},96330:e=>{e.exports=["笑臉&人像"]},6878:e=>{e.exports=["符號"]},77011:e=>{e.exports=["商品&旗幟"]},15426:e=>{e.exports=["最近使用"]},15395:e=>{e.exports=["旅遊&地點"]},82401:e=>{e.exports=["游標"]},19661:e=>{e.exports=["註釋工具"]},44629:e=>{e.exports=["加入收藏"]},5816:e=>{e.exports=["江恩和斐波那契工具"]},22146:e=>{e.exports=["幾何形狀"]},60925:e=>{e.exports=["點點"]},19570:e=>{e.exports=["表情符號"]},99289:e=>{e.exports=["清除"]},97100:e=>{e.exports=["預測和測量工具"]},17517:e=>{e.exports=["隱藏所有繪圖"]},96411:e=>{e.exports=["隱藏繪圖工具列"]},92464:e=>{e.exports=["圖像"]},37057:e=>{e.exports=["鎖定所有繪圖"]},37140:e=>{e.exports=["磁鐵模式將吸附至K線的開高低收值"]},59607:e=>{e.exports=["測量"]},36551:e=>{e.exports=["新的繪圖將複製到同一版面中的所有圖表，並在選擇同一商品時顯示"]},63354:e=>{e.exports=["顯示繪圖工具列"]},49616:e=>{e.exports=["顯示常用繪圖工具列"]},91977:e=>{e.exports=["顯示隱藏的工具"]},51072:e=>{e.exports=["顯示物件樹"]},49421:e=>{e.exports=["保持繪圖模式"]},84121:e=>{e.exports=["貼紙"]},85422:e=>{e.exports=["強磁鐵"]},19693:e=>{e.exports=["形態"]},76091:e=>{e.exports=["移除繪圖"]},45286:e=>{e.exports=["移除物件"]},72482:e=>{e.exports=["從收藏移除"]},30513:e=>{e.exports=["移除{drawings}"]},10049:e=>{e.exports=["移除{drawings}&{indicators}"]},55084:e=>{e.exports=["移除{indicators}"]},45265:e=>{e.exports=["弱磁鐵"]},18794:e=>{e.exports=["趨勢線工具"]},38925:e=>{e.exports=["放大"]},49895:e=>{e.exports=["縮小"]},32868:e=>{e.exports=["{hotKey_0} + 點擊圖表"]},68125:e=>{e.exports=["{hotKey_0} — 圓圈"]},40234:e=>{e.exports=["{hotKey_0} — 以45度角繪製一條直線"]},10289:e=>{e.exports=["{hotKey_0} — 固定增量"]},81591:e=>{e.exports=["{hotKey_0} — 正方形"]},93030:e=>{e.exports=["{amount}繪圖"]},80437:e=>{e.exports=["{amount}指標"]}}]);
+
+================================================
+File: public/charting_library/bundles/zh_TW.2684.25cb9ba0254ab5298f14.js
+================================================
+(self.webpackChunktradingview=self.webpackChunktradingview||[]).push([[2684],{14229:e=>{e.exports=["點"]},6174:e=>{e.exports=["天"]},5285:e=>{e.exports=["小時"]},79410:e=>{e.exports=["個月"]},37830:e=>{e.exports=["分鐘"]},25042:e=>{e.exports=["周"]},74787:e=>{e.exports=["天"]},62346:e=>{e.exports=["小時"]},94328:e=>{e.exports=["月"]},57470:e=>{e.exports=["分"]},74973:e=>{e.exports=["秒"]},48801:e=>{e.exports="Ranges"},86614:e=>{e.exports=["周"]},30426:e=>{e.exports="Ticks"},43001:e=>{e.exports=["複製圖片"]},7367:e=>{e.exports=["複製連結"]},45888:e=>{e.exports=["圖表快照"]},74207:e=>{e.exports=["圖表設定"]},54777:e=>{e.exports=["增加"]},95798:e=>{e.exports=["增加自訂周期"]},44629:e=>{e.exports=["加入收藏"]},15795:e=>{e.exports=["我的所有版面"]},88368:e=>{e.exports=["所有更改已保存"]},84232:e=>{e.exports=["圖表樣式"]},39011:e=>{e.exports=["下載圖片"]},43399:e=>{e.exports=["預設模板"]},83127:e=>{e.exports=["常用指標"]},33959:e=>{e.exports=["收藏"]},11682:e=>{e.exports=["全螢幕模式"]},15812:e=>{e.exports=["指標模板"]},61142:e=>{e.exports=["技術指標"]},74527:e=>{e.exports=["指標 & 策略"]},79353:e=>{e.exports=["開啟周期對話框"]},55520:e=>{e.exports=["在彈出視窗開啟圖表"]},38543:e=>{e.exports=["在新頁簽中打開"]},75687:e=>{e.exports=["載入圖表版面"]},75789:e=>{e.exports=["加載版面"]},90879:e=>{e.exports=["下載……"]},80959:e=>{e.exports=["製作副本"]},58219:e=>{e.exports=["管理版面"]},38554:e=>{e.exports=["我的模板"]},14605:e=>{e.exports=["數字或{hotKey_0}"]},85520:e=>{e.exports=["儲存"]},92093:e=>{e.exports=["儲存指標範本"]},87409:e=>{e.exports=["儲存版面裡的所有圖表，包含圖表裡的全部品種和周期"]},11680:e=>{e.exports=["儲存版面"]},20987:e=>{e.exports=["只要在圖表上開始輸入，即可拉出此搜尋框"]},75905:e=>{e.exports=["商品搜尋"]},70728:e=>{e.exports=["重做{hint}"]},72482:e=>{e.exports=["從收藏移除"]},35038:e=>{e.exports=["重新命名"]},88513:e=>{e.exports=["快照"]},32916:e=>{e.exports=["時間周期"]},99746:e=>{e.exports=["Twitter圖表圖片"]},80323:e=>{e.exports=["復原 {hint}"]},23687:e=>{e.exports=["您尚未有收藏的指標"]}}]);
+
+================================================
+File: public/charting_library/bundles/zh_TW.3753.abc1ac9bcf134df94dec.js
+================================================
+(self.webpackChunktradingview=self.webpackChunktradingview||[]).push([[3753],{63227:t=>{t.exports=["#{count}（K棒）"]},9671:t=>{t.exports=["#{count}（價格，K棒）"]},91282:t=>{t.exports=["#1 (K棒)"]},1961:t=>{t.exports=["#1(價格)"]},12706:t=>{t.exports=["#1(價格,K棒)"]},92195:t=>{t.exports=["#1 (垂直位置%，K線)"]},66187:t=>{t.exports=["中立線"]},5066:t=>{t.exports="%"},89795:t=>{t.exports="Counterclockwise"},43809:t=>{t.exports=["以百分比表示的係數"]},40054:t=>{t.exports=["顏色"]},47737:t=>{t.exports=["精簡統計模式"]},4639:t=>{t.exports=["座標"]},76655:t=>{t.exports=["現金"]},99120:t=>{t.exports=["管道"]},60066:t=>{t.exports=["點數值變化"]},36150:t=>{t.exports=["角度"]},38280:t=>{t.exports=["角度"]},95264:t=>{t.exports=["賬戶規模"]},85160:t=>{t.exports=["總是顯示統計數據"]},54189:t=>{t.exports=["弧形"]},34674:t=>{t.exports=["最小刻度的高低平均價"]},17608:t=>{t.exports=["底部標籤"]},48848:t=>{t.exports=["框線"]},72269:t=>{t.exports=["邊框"]},27331:t=>{t.exports=["背景"]},66282:t=>{t.exports=["背景#1"]},19949:t=>{t.exports=["K線範圍"]},81260:t=>{t.exports=["格線"]},67114:t=>{t.exports=["日期/時間範圍"]},37067:t=>{t.exports=["替換(價格，K線)"]},75460:t=>{t.exports=["距離"]},46211:t=>{t.exports=["表情貼"]},46001:t=>{t.exports=["進場價："]},1220:t=>{t.exports=["延伸"]},71116:t=>{t.exports=["延伸底部"]},45809:t=>{t.exports=["向左延伸"]},25892:t=>{t.exports=["延伸左邊線條"]},13611:t=>{t.exports=["延長線"]},3304:t=>{t.exports=["左側延長線"]},83095:t=>{t.exports=["向右延長線"]},14025:t=>{t.exports=["向右延伸"]},74395:t=>{t.exports=["延伸右邊線條"]},85197:t=>{t.exports=["延伸頂部"]},17006:t=>{t.exports=["字體大小"]},31343:t=>{t.exports=["失敗文本"]},28565:t=>{t.exports=["失敗背景"]},87931:t=>{t.exports=["扇形"]},39836:t=>{t.exports=["基於對數坐標的Fib水平"]},10578:t=>{t.exports=["完整圓圈"]},25264:t=>{t.exports=["HL K線"]},66049:t=>{t.exports=["OC Bars"]},27531:t=>{t.exports=["手數"]},99180:t=>{t.exports=["下軌"]},53861:t=>{t.exports=["下帶#2"]},44775:t=>{t.exports=["下帶#3"]},85206:t=>{t.exports=["標籤"]},75332:t=>{t.exports=["標籤邊框"]},14773:t=>{t.exports=["標籤背景顏色"]},37126:t=>{t.exports=["標籤文字"]},79106:t=>{t.exports=["水平"]},95610:t=>{t.exports=["水平線"]},79307:t=>{t.exports=["左標籤"]},49286:t=>{t.exports=["線 - HL/2"]},17676:t=>{t.exports=["線 - 開盤價"]},47669:t=>{t.exports=["線 - 收盤價"]},71899:t=>{t.exports=["線 - 最高價"]},83394:t=>{t.exports=["線 - 最低價"]},60489:t=>{t.exports=["線條顏色"]},53889:t=>{t.exports=["模式"]},95543:t=>{t.exports=["個月"]},24510:t=>{t.exports=["中點"]},22213:t=>{t.exports=["來源背景"]},15500:t=>{t.exports=["來源邊界"]},79238:t=>{t.exports=["來源文本"]},37249:t=>{t.exports=["統計數據"]},28712:t=>{t.exports=["統計位置"]},50948:t=>{t.exports=["停損顏色："]},56119:t=>{t.exports=["停損水平"]},69835:t=>{t.exports=["成功文本"]},91141:t=>{t.exports=["成功背景"]},2694:t=>{t.exports=["比例變化"]},650:t=>{t.exports=["百分比"]},25684:t=>{t.exports=["價格"]},23675:t=>{t.exports=["價格標籤"]},75675:t=>{t.exports=["價格標籤"]},16103:t=>{t.exports=["價格水平"]},46964:t=>{t.exports=["價格範圍"]},59771:t=>{t.exports=["價格/K線比"]},29072:t=>{t.exports=["價格"]},2635:t=>{t.exports=["停利水平"]},33886:t=>{t.exports=["範圍和比例"]},24186:t=>{t.exports=["反轉"]},91367:t=>{t.exports=["右邊標籤"]},63833:t=>{t.exports=["風險"]},95545:t=>{t.exports=["波浪"]},10209:t=>{t.exports=["熱門標籤"]},98001:t=>{t.exports=["目標背景"]},89258:t=>{
+t.exports=["目標邊界"]},45302:t=>{t.exports=["獲利顏色："]},74289:t=>{t.exports=["目標文本"]},17932:t=>{t.exports=["自動換行"]},55325:t=>{t.exports=["時間標籤"]},77838:t=>{t.exports=["時間水平"]},2295:t=>{t.exports=["透明度"]},4372:t=>{t.exports=["趨勢線"]},26775:t=>{t.exports=["上軌"]},21774:t=>{t.exports=["上帶#2"]},21076:t=>{t.exports=["上帶#3"]},12374:t=>{t.exports=["使用一個顏色"]},53473:t=>{t.exports="VWAP"},91322:t=>{t.exports=["數值"]},25227:t=>{t.exports=["方差"]},1670:t=>{t.exports=["更改角度"]},38829:t=>{t.exports=["更改箭頭顏色"]},23723:t=>{t.exports=["更改K線X坐標"]},72080:t=>{t.exports=["更改旗標顏色"]},66266:t=>{t.exports=["更改價格Y坐標"]},98905:t=>{t.exports=["更改上邊距"]},11049:t=>{t.exports=["更改垂直位置Y坐標"]},98057:t=>{t.exports=["更改{title}VWAP線顏色"]},55218:t=>{t.exports=["更改{title}VWAP線寬度"]},31804:t=>{t.exports=["更改{title}逆時針"]},99128:t=>{t.exports=["更改{title}係數為百分比可見性"]},20216:t=>{t.exports=["更改{title}顏色"]},35435:t=>{t.exports=["更改{title}緊湊統計模式"]},550:t=>{t.exports=["更改{title}K線邊框上漲顏色"]},28146:t=>{t.exports=["更改{title}K線邊框可見性"]},7373:t=>{t.exports=["更改{title}K線邊框下跌顏色"]},38742:t=>{t.exports=["更改{title}K線下跌顏色"]},42273:t=>{t.exports=["更改{title}K線上漲顏色"]},76054:t=>{t.exports=["更改{title}K線影線顏色"]},27029:t=>{t.exports=["更改{title}K線影線可見性"]},22430:t=>{t.exports=["將{title}的顯示更改為按點數值變化"]},45537:t=>{t.exports=["更改{title}角度可見性"]},31775:t=>{t.exports=["更改{title}帳戶大小"]},37913:t=>{t.exports=["更改{title}總是顯示統計資訊"]},15521:t=>{t.exports=["更改{title}所有線條顏色"]},17466:t=>{t.exports=["更改{title}弧形{index}線條顏色"]},72307:t=>{t.exports=["更改{title}弧形{index}線條寬度"]},13853:t=>{t.exports=["更改{title}弧形{index}線條可見性"]},78680:t=>{t.exports=["更改{title}平均HL值"]},15802:t=>{t.exports=["更改{title}底部標籤可見性"]},36438:t=>{t.exports=["更改{title}背景透明度"]},64548:t=>{t.exports=["更改{title}背景可見性"]},75312:t=>{t.exports=["更改{title}背景顏色"]},39651:t=>{t.exports=["更改{title}背景顏色1"]},78177:t=>{t.exports=["更改{title}背景顏色2"]},42746:t=>{t.exports=["更改{title}K線範圍可見性"]},53770:t=>{t.exports=["更改{title}網格可見性"]},29145:t=>{t.exports=["更改{title}網格線顏色"]},64949:t=>{t.exports=["更改{title}網格線樣式"]},93548:t=>{t.exports=["更改{title}網格線寬度"]},15485:t=>{t.exports=["更改{title}日期/時間範圍可見性"]},3400:t=>{t.exports=["更改{title}角度"]},91534:t=>{t.exports=["更改{title}距離可見性"]},65056:t=>{t.exports=["更改{title}表情符號"]},65899:t=>{t.exports=["更改{title}表情符號可見性"]},59354:t=>{t.exports=["更改{title}入場價格"]},1447:t=>{t.exports=["更改{title}延長底部"]},15258:t=>{t.exports=["更改{title}延長左邊"]},96902:t=>{t.exports=["更改{title}延長線"]},896:t=>{t.exports=["更改{title}延長頂部"]},3708:t=>{t.exports=["更改{title}向左延伸"]},52889:t=>{t.exports=["更改{title}向右延伸"]},86647:t=>{t.exports=["更改{title}擴展名"]},3156:t=>{t.exports=["更改{title}失敗文本顏色"]},49885:t=>{t.exports=["更改{title}失敗背景顏色"]},89126:t=>{t.exports=["改變{title}扇形{index}線條可見性"]},30016:t=>{t.exports=["更改{title}扇形{index}線條寬度"]},82516:t=>{t.exports=["更改{title}扇形{index}線條顏色"]},78142:t=>{t.exports=["更改{title}扇形可見性"]},79467:t=>{t.exports=["更改{title}扇形線條顏色"]},45739:t=>{t.exports=["在對數刻度上更改{title}斐波那契水平"]},99670:t=>{t.exports=["更改{title}翻轉"]},35165:t=>{t.exports=["更改{title}完整圓圈的可見性"]},48983:t=>{t.exports=["更改{title}圖片背景顏色"]},45025:t=>{t.exports=["更改{title}手數大小"]},13901:t=>{
+t.exports=["更改{title}下帶線顏色"]},78425:t=>{t.exports=["更改{title}下帶線可見性"]},99491:t=>{t.exports=["更改{title}下帶線寬度"]},55469:t=>{t.exports=["更改{title}下帶#2線條的顏色"]},76157:t=>{t.exports=["更改{title}下帶#2線條的可見性"]},8081:t=>{t.exports=["更改{title}下帶#2線條的寬度"]},95016:t=>{t.exports=["更改{title}下帶#3線條的顏色"]},84928:t=>{t.exports=["更改{title}下帶#3線條的可見性"]},44693:t=>{t.exports=["更改{title}下帶#3線條的寬度"]},81170:t=>{t.exports=["更改{title}標籤對齊方式"]},22775:t=>{t.exports=["更改{title}標籤字體大小"]},24338:t=>{t.exports=["更改{title}標籤可見性"]},32891:t=>{t.exports=["更改{title}水平{index}線系數"]},85551:t=>{t.exports=["更改{title}水平{index}線顏色"]},47840:t=>{t.exports=["更改{title}水平{index}線樣式"]},45463:t=>{t.exports=["更改{title}水平{index}線可見性"]},90098:t=>{t.exports=["更改{title}水平{index}線寬度"]},26710:t=>{t.exports=["更改{title}水平可見性"]},2359:t=>{t.exports=["更改{title}左側標籤可見性"]},44643:t=>{t.exports=["更改{title}線條寬度"]},20563:t=>{t.exports=["更改{title}線條顏色"]},66982:t=>{t.exports=["更改{title}線條樣式"]},94441:t=>{t.exports=["更改{title}模式"]},89996:t=>{t.exports=["更改{title}中點可見性"]},36618:t=>{t.exports=["更改{title}鏡像"]},18544:t=>{t.exports=["更改{title}源背景顏色"]},48035:t=>{t.exports=["更改{title}源邊框顏色"]},42286:t=>{t.exports=["更改{title}源文字顏色"]},588:t=>{t.exports=["更改{title}統計位置"]},54659:t=>{t.exports=["更改{title}停損顏色"]},89182:t=>{t.exports=["更改{title}停損水平"]},82224:t=>{t.exports=["更改{title}停損價格"]},88383:t=>{t.exports=["更改{title}成功文字顏色"]},26967:t=>{t.exports=["更改{title}成功背景顏色"]},62243:t=>{t.exports=["將{title}的顯示更改為按比例變化"]},45936:t=>{t.exports=["更改{title}價格標籤可見性"]},88577:t=>{t.exports=["更改{title}價格標籤可見性"]},47045:t=>{t.exports=["更改{title}價格範圍可見性"]},94028:t=>{t.exports=["更改{title}價格可見性"]},56175:t=>{t.exports=["更改{title}價格可見性"]},44539:t=>{t.exports=["更改{title}停利水平"]},41646:t=>{t.exports=["更改{title}停利價格"]},52877:t=>{t.exports=["更改{title}翻轉"]},16598:t=>{t.exports=["更改{title}右側標籤可見性"]},31553:t=>{t.exports=["更改{title}風險"]},40344:t=>{t.exports=["更改{title}風險顯示模式"]},73137:t=>{t.exports=["更改{title}頂部標籤可見性"]},52387:t=>{t.exports=["更改{title}目標背景顏色"]},6921:t=>{t.exports=["更改{title}目標邊框顏色"]},97573:t=>{t.exports=["更改{title}目標顏色"]},27634:t=>{t.exports=["更改{title}目標文字顏色"]},33822:t=>{t.exports=["更改{title}時間標籤可見性"]},84321:t=>{t.exports=["更改{title}透明度"]},10417:t=>{t.exports=["更改{title}上帶線顏色"]},58722:t=>{t.exports=["更改{title}上帶線可見性"]},13633:t=>{t.exports=["更改{title}上帶線寬度"]},64709:t=>{t.exports=["更改{title}上帶#2線條的顏色"]},97847:t=>{t.exports=["更改{title}上帶#2線條的可見性"]},62921:t=>{t.exports=["更改{title}上帶#2線條的寬度"]},94153:t=>{t.exports=["更改{title}上帶#3線條的顏色"]},19835:t=>{t.exports=["更改{title}上帶#3線條的可見性"]},68310:t=>{t.exports=["更改{title}上帶#3線條的寬度"]},12355:t=>{t.exports=["更改{title}方差值"]},25937:t=>{t.exports=["更改{toolName}標籤垂直對齊"]},46991:t=>{t.exports=["更改{toolName}標籤水平對齊"]},73080:t=>{t.exports=["更改{toolName}標籤方向"]},24272:t=>{t.exports=["更改{toolName}線條可見性"]},46404:t=>{t.exports=["更改{toolName}線條寬度"]},50265:t=>{t.exports=["更改{toolName}線條顏色"]},72781:t=>{t.exports=["更改{toolName}線條向左延伸"]},84613:t=>{t.exports=["更改{toolName}線條向右延伸"]},62603:t=>{t.exports=["更改{toolName}線條左端"]},62412:t=>{t.exports=["更改{toolName}線條右端"]},35422:t=>{t.exports=["更改{toolName}線條樣式"]},
+77690:t=>{t.exports=["更改{toolName}文字"]},69871:t=>{t.exports=["更改{toolName}文字可見性"]},25878:t=>{t.exports=["更改{toolName}文字換行"]},91832:t=>{t.exports=["更改{toolName}文字背景顏色"]},18610:t=>{t.exports=["更改{toolName}文字背景可見性"]},44755:t=>{t.exports=["更改{toolName}文字邊框顏色"]},6324:t=>{t.exports=["更改{toolName}文字邊框寬度"]},45529:t=>{t.exports=["更改{toolName}文字邊框可見性"]},6500:t=>{t.exports=["更改{toolName}文字顏色"]},51614:t=>{t.exports=["更改{toolName}文字字體加粗"]},18572:t=>{t.exports=["更改{toolName}文字字體斜體"]},48382:t=>{t.exports=["更改{toolName}文字字體大小"]},18567:t=>{t.exports=["更改{propertyName}屬性"]},21926:t=>{t.exports=["背景顏色"]},52241:t=>{t.exports=["背景填充"]},70607:t=>{t.exports=["線條顏色"]},41075:t=>{t.exports=["線條樣式"]},73043:t=>{t.exports=["線條寬度"]},72223:t=>{t.exports=["移動繪圖"]},41437:t=>{t.exports=["文字顏色"]}}]);
+
+================================================
+File: public/charting_library/bundles/zh_TW.4053.929467332218f26dc70f.js
+================================================
+(self.webpackChunktradingview=self.webpackChunktradingview||[]).push([[4053],{50831:e=>{e.exports=["根K棒"]},19648:e=>{e.exports=["12小時"]},55838:e=>{e.exports=["24小時"]},72171:e=>{e.exports=["中心"]},88364:e=>{e.exports=["圖表基本樣式"]},46720:e=>{e.exports=["十字準線"]},50985:e=>{e.exports=["貨幣"]},17319:e=>{e.exports=["貨幣和單位"]},19481:e=>{e.exports=["外觀"]},68791:e=>{e.exports=["參數"]},95036:e=>{e.exports=["平均收盤價"]},91757:e=>{e.exports=["底部"]},27331:e=>{e.exports=["背景"]},22519:e=>{e.exports=["K棒漲跌值"]},87845:e=>{e.exports=["按鈕"]},39392:e=>{e.exports=["網格線"]},25209:e=>{e.exports=["日期格式"]},55090:e=>{e.exports=["標籤上的星期幾"]},29601:e=>{e.exports=["描述"]},26897:e=>{e.exports=["事件"]},77405:e=>{e.exports=["橫式"]},34403:e=>{e.exports=["僅水平"]},60971:e=>{e.exports=["高價和低價"]},61142:e=>{e.exports=["技術指標"]},34905:e=>{e.exports=["指標值"]},29687:e=>{e.exports=["指標和財務值"]},25084:e=>{e.exports=["指標和財務名稱"]},9654:e=>{e.exports=["指標名稱"]},99487:e=>{e.exports=["開高低收值"]},75991:e=>{e.exports=["開市狀態"]},96073:e=>{e.exports=["詳細描述"]},78905:e=>{e.exports=["價格刻度上的標籤"]},19286:e=>{e.exports=["左"]},70500:e=>{e.exports=["資金"]},66653:e=>{e.exports=["利益率"]},76476:e=>{e.exports=["中間"]},42502:e=>{e.exports=["無重疊"]},49199:e=>{e.exports=["沒有任何"]},74343:e=>{e.exports=["導航"]},43115:e=>{e.exports=["刻度"]},53224:e=>{e.exports=["刻度放置"]},79194:e=>{e.exports=["狀態列"]},89053:e=>{e.exports=["商品代碼"]},35383:e=>{e.exports=["商品名稱"]},27767:e=>{e.exports=["商品最新價格"]},40847:e=>{e.exports=["商品前一天收盤價"]},50446:e=>{e.exports=["窗格"]},73908:e=>{e.exports=["窗格分隔符號"]},36014:e=>{e.exports=["百分比"]},78621:e=>{e.exports=["點數"]},74823:e=>{e.exports=["盤前/盤後市場價格"]},64859:e=>{e.exports=["價格刻度"]},76523:e=>{e.exports=["價格和百分比值"]},21141:e=>{e.exports=["右"]},40187:e=>{e.exports=["右邊距"]},77705:e=>{e.exports=["浮水印"]},26458:e=>{e.exports=["燭芯"]},65994:e=>{e.exports=["頂部"]},92960:e=>{e.exports=["文字對齊"]},90581:e=>{e.exports=["文字方向"]},67369:e=>{e.exports=["標題"]},31326:e=>{e.exports=["標題"]},23097:e=>{e.exports=["商品代碼"]},82168:e=>{e.exports=["商品和描述"]},43637:e=>{e.exports=["時間刻度"]},97316:e=>{e.exports=["時間小時格式"]},90801:e=>{e.exports=["交易"]},77534:e=>{e.exports=["單位"]},1111:e=>{e.exports=["成交量"]},80170:e=>{e.exports=["根據刻度值"]},91322:e=>{e.exports=["數值"]},37174:e=>{e.exports=["垂直和水平"]},36426:e=>{e.exports=["僅垂直"]},44085:e=>{e.exports=["直式"]},57889:e=>{e.exports=["更改開高低收值可見性"]},35646:e=>{e.exports=["更改導航按鈕可見性"]},18644:e=>{e.exports=["更改開盤狀態可見性"]},45110:e=>{e.exports=["更改K線漲跌可見性"]},10349:e=>{e.exports=["更改下邊距"]},88161:e=>{e.exports=["更改貨幣和單位標籤的可見性"]},84060:e=>{e.exports=["更改貨幣標籤可見性"]},99011:e=>{e.exports=["更改圖表背景顏色"]},72458:e=>{e.exports=["更改圖表背景類型"]},37034:e=>{e.exports=["更改十字準線寬度"]},29951:e=>{e.exports=["更改十字準線顏色"]},92027:e=>{e.exports=["更改十字準線樣式"]},50457:e=>{e.exports=["更改日期格式"]},7104:e=>{e.exports=["更改標籤上的星期幾"]},27764:e=>{e.exports=["更改網格線可見性"]},88096:e=>{e.exports=["更改水平網格線顏色"]},31325:e=>{e.exports=["更改指標標題可見性"]},99774:e=>{e.exports=["更改指標值可見性"]},96162:e=>{e.exports=["更改指標參數可見性"]},59820:e=>{e.exports=["更改指標和財務名稱標籤可見性"]},90512:e=>{e.exports=["更改指標和財務值標籤可見性"]},97956:e=>{e.exports=["更改圖例背景透明度"]},61061:e=>{e.exports=["更改圖例背景可見性"]
+},37730:e=>{e.exports=["更改窗格按鈕可見性"]},89032:e=>{e.exports=["改變窗格分隔符號顏色"]},35636:e=>{e.exports=["更改右邊距"]},66601:e=>{e.exports=["更改右邊距百分比"]},25616:e=>{e.exports=["更改商品浮水印顏色"]},87159:e=>{e.exports=["更改商品浮水印可見性"]},26717:e=>{e.exports=["更改商品描述可見性"]},6091:e=>{e.exports=["更改商品欄位可見性"]},28741:e=>{e.exports=["更改商品最新值模式"]},95071:e=>{e.exports=["更改商品圖例格式"]},35065:e=>{e.exports=["更改刻度文字顏色"]},84382:e=>{e.exports=["更改刻度字體大小"]},12468:e=>{e.exports=["更改刻度線條顏色"]},71589:e=>{e.exports=["更改交易時段分隔可見性"]},15035:e=>{e.exports=["更改交易時段分隔寬度"]},1579:e=>{e.exports=["更改交易時段分隔顏色"]},21460:e=>{e.exports=["更改交易時段分隔樣式"]},76991:e=>{e.exports=["更改時間格式"]},98905:e=>{e.exports=["更改上邊距"]},7011:e=>{e.exports=["更改單位標籤可見性"]},22722:e=>{e.exports=["更改垂直網格線顏色"]},9455:e=>{e.exports=["更改成交量值可見性"]}}]);
+
+================================================
+File: public/charting_library/bundles/zh_TW.5652.209eb64b624dfe3c853a.js
+================================================
+(self.webpackChunktradingview=self.webpackChunktradingview||[]).push([[5652],{40276:e=>{e.exports=["增加"]},53585:e=>{e.exports=["增加自訂顏色"]},81865:e=>{e.exports=["不透明度"]},40054:e=>{e.exports=["顏色"]},44629:e=>{e.exports=["加入收藏"]},38455:e=>{e.exports=["背景顏色"]},79964:e=>{e.exports=["背景顏色1"]},45320:e=>{e.exports=["背景顏色2"]},60925:e=>{e.exports=["點點"]},42973:e=>{e.exports=["點虛線"]},59317:e=>{e.exports=["短虛線"]},99289:e=>{e.exports=["清除"]},23886:e=>{e.exports=["字體大小"]},17006:e=>{e.exports=["字體大小"]},17517:e=>{e.exports=["隱藏所有繪圖"]},74813:e=>{e.exports=["隱藏常用繪圖工具列"]},37057:e=>{e.exports=["鎖定所有繪圖"]},71845:e=>{e.exports=["畫線工具背景"]},12928:e=>{e.exports=["畫線工具顏色"]},21327:e=>{e.exports=["畫線工具文字顏色"]},86327:e=>{e.exports=["圖形寬度"]},47059:e=>{e.exports=["設定圖形寬度"]},41610:e=>{e.exports=["更多"]},37140:e=>{e.exports=["磁鐵模式將吸附至K線的開高低收值"]},67455:e=>{e.exports=["馬克筆顏色"]},59607:e=>{e.exports=["測量"]},36551:e=>{e.exports=["新的繪圖將複製到同一版面中的所有圖表，並在選擇同一商品時顯示"]},91977:e=>{e.exports=["顯示隱藏的工具"]},51072:e=>{e.exports=["顯示物件樹"]},49421:e=>{e.exports=["保持繪圖模式"]},49593:e=>{e.exports=["停損背景顏色"]},36785:e=>{e.exports=["盈利背景顏色"]},76091:e=>{e.exports=["移除繪圖"]},54336:e=>{e.exports=["移除顏色"]},72482:e=>{e.exports=["從收藏移除"]},19221:e=>{e.exports=["文字顏色"]},38925:e=>{e.exports=["放大"]},49895:e=>{e.exports=["縮小"]},16631:e=>{e.exports=["更改線條工具文字顏色"]},74350:e=>{e.exports=["更改線條工具背景顏色"]},68519:e=>{e.exports=["更改線條工具顏色"]},36819:e=>{e.exports=["更改線條工具字體大小"]},54769:e=>{e.exports=["更改線條工具的線條樣式"]},41648:e=>{e.exports=["更改線條工具的線寬"]},32868:e=>{e.exports=["{hotKey_0} + 點擊圖表"]},68125:e=>{e.exports=["{hotKey_0} — 圓圈"]},40234:e=>{e.exports=["{hotKey_0} — 以45度角繪製一條直線"]},10289:e=>{e.exports=["{hotKey_0} — 固定增量"]},81591:e=>{e.exports=["{hotKey_0} — 正方形"]}}]);
+
+================================================
+File: public/charting_library/bundles/zh_TW.6196.3e28185b53cd2346f10d.js
+================================================
+(self.webpackChunktradingview=self.webpackChunktradingview||[]).push([[6196],{22353:e=>{e.exports=["(開盤 + 最高 + 最低 + 收盤)/4"]},94884:e=>{e.exports=["(最高 + 最低 + 收盤)/3"]},10591:e=>{e.exports=["(最高 + 最低)/2"]},63243:e=>{e.exports=["bar顏色基於前一個收盤價"]},15857:e=>{e.exports="Close line"},9994:e=>{e.exports=["調整股息數據"]},10989:e=>{e.exports=["調整合約變更"]},70816:e=>{e.exports=["平均收盤價"]},50430:e=>{e.exports=["下邊框線"]},83760:e=>{e.exports=["主體"]},72269:e=>{e.exports=["邊框"]},7445:e=>{e.exports=["基準水位"]},47586:e=>{e.exports=["買入價和賣出價"]},39667:e=>{e.exports=["下跌燭線"]},87151:e=>{e.exports=["下跌顏色"]},81285:e=>{e.exports=["數據修改"]},4329:e=>{e.exports=["系統預設"]},86846:e=>{e.exports=["填充"]},58747:e=>{e.exports=["上填充色"]},11157:e=>{e.exports=["下填充色"]},86953:e=>{e.exports=["HLC 線"]},39292:e=>{e.exports=["高價和低價"]},83678:e=>{e.exports="High line"},75310:e=>{e.exports="Low line"},15107:e=>{e.exports=["最新價"]},6350:e=>{e.exports=["盤前/盤後市場"]},62521:e=>{e.exports=["盤前/盤後市場時段背景"]},73947:e=>{e.exports=["精確度"]},8094:e=>{e.exports=["前一天收盤價"]},77986:e=>{e.exports=["價格線"]},24248:e=>{e.exports=["價格來源"]},94089:e=>{e.exports=["預測上漲燭線"]},80293:e=>{e.exports=["投影K線"]},5704:e=>{e.exports=["預測下跌燭線"]},29881:e=>{e.exports=["價格刻度上的實際價格（而不是平均K線價格）"]},57417:e=>{e.exports=["上邊框線"]},55314:e=>{e.exports=["自動調整K棒寬度"]},87492:e=>{e.exports=["時區"]},5536:e=>{e.exports=["上漲顏色"]},83610:e=>{e.exports=["上漲燭線"]},99983:e=>{e.exports=["使用結算價做為日圖的收盤價"]},30792:e=>{e.exports=["燭線"]},55740:e=>{e.exports=["更改美國線"]},68927:e=>{e.exports=["改變平均收盤價線的寬度"]},30385:e=>{e.exports=["改變平均收盤價線的顏色"]},97008:e=>{e.exports=["更改面積填充顏色"]},6610:e=>{e.exports=["更改面積線條寬度"]},661:e=>{e.exports=["更改面積線條顏色"]},1316:e=>{e.exports=["更改面積價格來源"]},29180:e=>{e.exports=["更改ask線顏色"]},31547:e=>{e.exports=["更改基礎水平"]},4164:e=>{e.exports=["更改基準線底線顏色"]},38990:e=>{e.exports=["更改基準線底線寬度"]},73163:e=>{e.exports=["更改基準線填充底部區域顏色"]},12673:e=>{e.exports=["更改基準線填充頂部區域顏色"]},56819:e=>{e.exports=["更改基準線價格來源"]},68621:e=>{e.exports=["更改基準線頂線顏色"]},35339:e=>{e.exports=["更改基準線頂線寬度"]},76804:e=>{e.exports=["更改上漲K線顏色"]},71816:e=>{e.exports=["更改下跌K線顏色"]},36703:e=>{e.exports=["更改bid線顏色"]},29353:e=>{e.exports=["根據前一個收盤價更改K線顏色"]},85709:e=>{e.exports=["更改向上列的顏色"]},12155:e=>{e.exports=["更改向下列的顏色"]},66890:e=>{e.exports=["更改列價格來源"]},71809:e=>{e.exports=["更改小數位"]},31317:e=>{e.exports=["更改延長時段顏色"]},60944:e=>{e.exports=["改變高價和低價線的顏色"]},83708:e=>{e.exports=["改變高價和低價線的寬度"]},81080:e=>{e.exports=["更改高-低實體顏色"]},30033:e=>{e.exports=["更改高-低實體可見性"]},76885:e=>{e.exports=["更改高-低邊框顏色"]},79236:e=>{e.exports=["更改高-低邊框可見性"]},42981:e=>{e.exports=["更改高-低標籤可見性"]},31937:e=>{e.exports=["更改高-低標籤顏色"]},87828:e=>{e.exports=["更改線條顏色"]},17119:e=>{e.exports=["更改線條價格來源"]},69125:e=>{e.exports=["更改線條寬度"]},49973:e=>{e.exports=["更改盤後市場顏色"]},5969:e=>{e.exports=["更改盤後市場線條顏色"]},50393:e=>{e.exports=["更改盤前/盤後市場價格線的可見性"]},46257:e=>{e.exports=["更改盤前市場顏色"]},60852:e=>{e.exports=["更改盤前市場線條顏色"]},91183:e=>{e.exports=["更改前一根收盤價線顏色"]},87631:e=>{e.exports=["更改前一根收盤價線寬度"]},77640:e=>{e.exports=["更改價格線顏色"]},97322:e=>{e.exports=["更改價格線寬度"]},35116:e=>{e.exports=["更改範圍K線樣式"]},28143:e=>{e.exports=["更改範圍K線寬度"]},
+75986:e=>{e.exports=["更改磚形圖下影線顏色"]},7747:e=>{e.exports=["更改磚形圖上影線顏色"]},9473:e=>{e.exports=["更改磚形圖影線可見性"]},39783:e=>{e.exports=["更改價格坐標上的實際價格顯示(而不是Heiken-Ashi價格)"]},72886:e=>{e.exports=["更改K線寬度"]},5464:e=>{e.exports=["更改{candleType}上漲邊框顏色"]},61118:e=>{e.exports=["更改{candleType}上漲顏色"]},60164:e=>{e.exports=["更改{candleType}下影線顏色"]},45543:e=>{e.exports=["更改{candleType}上影線顏色"]},39987:e=>{e.exports=["更改{candleType}影線可見性"]},47202:e=>{e.exports=["更改{candleType}實體可見性"]},23986:e=>{e.exports=["更改{candleType}邊框可見性"]},92330:e=>{e.exports=["更改{candleType}下跌邊框顏色"]},36320:e=>{e.exports=["更改{candleType}下跌顏色"]},79088:e=>{e.exports=["更改{chartType}邊框下跌顏色"]},11107:e=>{e.exports=["更改{chartType}邊框上漲顏色"]},85503:e=>{e.exports=["更改{chartType}下跌顏色"]},61250:e=>{e.exports=["更改{chartType}投影邊框上漲顏色"]},18465:e=>{e.exports=["更改{chartType}投影K線下跌顏色"]},50453:e=>{e.exports=["更改{chartType}投影K線上漲顏色"]},59414:e=>{e.exports=["更改{chartType}上漲顏色"]},21547:e=>{e.exports=["更改{inputName}屬性"]},42390:e=>{e.exports=["調整股息數據"]},99511:e=>{e.exports=["調整合約變更"]},75165:e=>{e.exports=["空心K線"]},18995:e=>{e.exports=["範圍"]},47500:e=>{e.exports=["磚形圖"]},98402:e=>{e.exports=["使用結算價做為日圖的收盤價"]}}]);
+
+================================================
+File: public/charting_library/bundles/zh_TW.7201.028a386569caa7df9e56.js
+================================================
+(self.webpackChunktradingview=self.webpackChunktradingview||[]).push([[7201],{72171:t=>{t.exports=["中心"]},91757:t=>{t.exports=["底部"]},22192:t=>{t.exports=["日"]},63099:t=>{t.exports=["小時"]},77405:t=>{t.exports=["橫式"]},66304:t=>{t.exports=["輸入"]},19286:t=>{t.exports=["左"]},76476:t=>{t.exports=["中間"]},28134:t=>{t.exports=["分鐘"]},71129:t=>{t.exports=["秒"]},86672:t=>{t.exports="Ranges"},21141:t=>{t.exports=["右"]},21594:t=>{t.exports=["週"]},26458:t=>{t.exports=["燭芯"]},65994:t=>{t.exports=["頂部"]},92960:t=>{t.exports=["文字對齊"]},90581:t=>{t.exports=["文字方向"]},44085:t=>{t.exports=["直式"]},13355:t=>{t.exports=["更改{title}日圖到"]},41377:t=>{t.exports=["更改{title}日圖從"]},35388:t=>{t.exports=["更改{title}小時圖從"]},78586:t=>{t.exports=["更改{title}小時圖到"]},59635:t=>{t.exports=["更改{title}月圖從"]},74266:t=>{t.exports=["更改{title}月圖到"]},91633:t=>{t.exports=["更改{title}分鐘圖到"]},15106:t=>{t.exports=["更改{title}分鐘圖從"]},66161:t=>{t.exports=["更改{title}秒圖到"]},2822:t=>{t.exports=["更改{title}秒圖從"]},21339:t=>{t.exports=["更改{title}周圖從"]},68643:t=>{t.exports=["更改{title}周圖到"]},30810:t=>{t.exports=["更改{title}在tick圖上的可見性"]},24941:t=>{t.exports=["更改{title}周圖的可見性"]},29088:t=>{t.exports=["更改{title}在日圖上的可見性"]},68971:t=>{t.exports=["更改{title}在小時圖上的可見性"]},64370:t=>{t.exports=["更改{title}在分鐘圖上的可見性"]},6659:t=>{t.exports=["更改{title}月圖的可見性"]},29091:t=>{t.exports=["更改{title}在範圍圖上的可見性"]},46948:t=>{t.exports=["更改{title}在秒圖上的可見性"]},82211:t=>{t.exports=["日"]},33486:t=>{t.exports=["日圖到"]},14077:t=>{t.exports=["日圖從"]},3143:t=>{t.exports=["小時"]},84775:t=>{t.exports=["小時圖從"]},11255:t=>{t.exports=["小時圖到"]},58964:t=>{t.exports=["個月"]},71770:t=>{t.exports=["月圖從"]},37179:t=>{t.exports=["月圖到"]},16465:t=>{t.exports=["分鐘"]},72317:t=>{t.exports=["分鐘圖到"]},25586:t=>{t.exports=["分鐘圖從"]},32925:t=>{t.exports=["秒圖"]},39017:t=>{t.exports=["秒圖到"]},6049:t=>{t.exports=["秒圖從"]},13604:t=>{t.exports=["Ranges"]},93016:t=>{t.exports=["周圖"]},32002:t=>{t.exports=["周圖從"]},28091:t=>{t.exports=["周圖到"]},59523:t=>{t.exports=["Ticks"]}}]);
+
+================================================
+File: public/charting_library/bundles/zh_TW.77.5401b8766c940f90b3e9.js
+================================================
+(self.webpackChunktradingview=self.webpackChunktradingview||[]).push([[77],{40276:e=>{e.exports=["增加"]},53585:e=>{e.exports=["增加自訂顏色"]},81865:e=>{e.exports=["不透明度"]},19801:e=>{e.exports=["周五"]},11268:e=>{e.exports=["周一"]},63331:e=>{e.exports=["周六"]},85954:e=>{e.exports=["周日"]},26230:e=>{e.exports=["周三"]},24793:e=>{e.exports=["周四"]},31533:e=>{e.exports=["周二"]},73755:e=>{e.exports=["另一個代碼"]},16936:e=>{e.exports=["返回"]},88046:e=>{e.exports=["主圖表代碼"]},9898:e=>{e.exports=["認股權"]},52051:e=>{e.exports=["日曆目前在{year}年"]},99990:e=>{e.exports=["日曆當前是從{year_start}年到{year_end}年"]},92702:e=>{e.exports=["日曆目前在{month}月"]},20036:e=>{e.exports=["取消"]},23398:e=>{e.exports=["變更商品"]},94551:e=>{e.exports=["圖表"]},64498:e=>{e.exports=["全部來源"]},97637:e=>{e.exports=["四月"]},86797:e=>{e.exports=["八月"]},79852:e=>{e.exports=["債券"]},55669:e=>{e.exports=["十二月"]},56095:e=>{e.exports=["減少"]},29601:e=>{e.exports=["描述"]},16467:e=>{e.exports=["二月"]},72970:e=>{e.exports=["周五"]},46812:e=>{e.exports=["增加"]},26910:e=>{e.exports=["一月"]},23230:e=>{e.exports=["七月"]},49385:e=>{e.exports=["六月"]},90784:e=>{e.exports=["十月"]},89298:e=>{e.exports=["偏移"]},68988:e=>{e.exports=["確認"]},61199:e=>{e.exports=["周一"]},95543:e=>{e.exports=["個月"]},68327:e=>{e.exports=["五月"]},84675:e=>{e.exports=["三月"]},29673:e=>{e.exports=["沒有交易所符合您的條件"]},41379:e=>{e.exports=["沒有商品符合您的條件"]},71194:e=>{e.exports=["十一月"]},83771:e=>{e.exports=["明年"]},75385:e=>{e.exports=["未來幾年"]},39752:e=>{e.exports=["下個月"]},35563:e=>{e.exports=["號碼格式無效。"]},19724:e=>{e.exports=["來源"]},1144:e=>{e.exports=["周六"]},52298:e=>{e.exports=["搜尋"]},13269:e=>{e.exports=["選擇來源"]},61132:e=>{e.exports=["九月"]},2607:e=>{e.exports=["指定值大於商品最大值{max}。"]},53669:e=>{e.exports=["指定值小於商品最小值{min}。"]},72149:e=>{e.exports=["周日"]},83583:e=>{e.exports=["切換到月份"]},6244:e=>{e.exports=["切換到日期"]},80879:e=>{e.exports=["切換到年"]},89053:e=>{e.exports=["商品代碼"]},48490:e=>{e.exports=["商品&描述"]},75905:e=>{e.exports=["商品搜尋"]},32457:e=>{e.exports=["請輸入正確的日期"]},5122:e=>{e.exports=["請輸入正確的日期格式 yyyy-mm-dd"]},2587:e=>{e.exports=["上個月"]},39329:e=>{e.exports=["去年"]},27004:e=>{e.exports=["昔年"]},54336:e=>{e.exports=["移除顏色"]},7147:e=>{e.exports=["周三"]},7951:e=>{e.exports=["周四"]},60142:e=>{e.exports=["厚度"]},44979:e=>{e.exports=["周一"]},69325:e=>{e.exports=["年"]},12629:e=>{e.exports=["商品"]},87592:e=>{e.exports="cfd"},17023:e=>{e.exports=["改變不透明度"]},13066:e=>{e.exports=["更改顏色"]},95657:e=>{e.exports=["改變密度"]},18567:e=>{e.exports=["更改{propertyName}屬性"]},36962:e=>{e.exports=["收盤"]},8448:e=>{e.exports="crypto"},67245:e=>{e.exports="dr"},88720:e=>{e.exports=["經濟"]},39512:e=>{e.exports=["外匯"]},81859:e=>{e.exports=["期貨"]},39337:e=>{e.exports=["高點"]},91815:e=>{e.exports=["高低2"]},40771:e=>{e.exports=["高低3"]},9523:e=>{e.exports="hlcc4"},12754:e=>{e.exports=["指數"]},60804:e=>{e.exports=["指數"]},12504:e=>{e.exports=["開高低收4"]},38466:e=>{e.exports=["開盤"]},3919:e=>{e.exports=["低點"]},36931:e=>{e.exports=["股票"]}}]);
+
+================================================
+File: public/charting_library/bundles/zh_TW.8884.515644758428ad7e8263.js
+================================================
+(self.webpackChunktradingview=self.webpackChunktradingview||[]).push([[8884],{74274:e=>{e.exports=["十字圖"]},60558:e=>{e.exports=["動物&自然"]},14232:e=>{e.exports=["活動"]},35305:e=>{e.exports=["食物&飲料"]},49546:e=>{e.exports=["旗幟"]},72302:e=>{e.exports=["物品"]},96330:e=>{e.exports=["笑臉&人像"]},6878:e=>{e.exports=["符號"]},15426:e=>{e.exports=["最近使用"]},15395:e=>{e.exports=["旅遊&地點"]},41596:e=>{e.exports=["價格座標上的標籤"]},45811:e=>{e.exports=["狀態行中的值"]},39495:e=>{e.exports=["圓"]},41389:e=>{e.exports=["列上"]},29520:e=>{e.exports=["絕對位置"]},67049:e=>{e.exports=["套用預設值"]},65262:e=>{e.exports=["中斷區塊"]},83760:e=>{e.exports=["主體"]},48848:e=>{e.exports=["框線"]},27331:e=>{e.exports=["背景"]},78626:e=>{e.exports=["Bar下方"]},16079:e=>{e.exports=["漸層"]},42973:e=>{e.exports=["點虛線"]},41361:e=>{e.exports=["下"]},59317:e=>{e.exports=["短虛線"]},31577:e=>{e.exports=["發展數值區(VA)"]},4329:e=>{e.exports=["系統預設"]},98938:e=>{e.exports=["預設值"]},11091:e=>{e.exports=["直方圖"]},40297:e=>{e.exports=["輸出"]},36993:e=>{e.exports=["顯示最小刻度"]},64606:e=>{e.exports=["標籤字體"]},54934:e=>{e.exports=["中斷線"]},41610:e=>{e.exports=["更多"]},55362:e=>{e.exports=["正常"]},35637:e=>{e.exports="Solid"},18229:e=>{e.exports=["存為系統預設"]},86520:e=>{e.exports=["信號標籤"]},64108:e=>{e.exports=["帶中斷的階梯線"]},67767:e=>{e.exports=["菱形階梯線"]},91502:e=>{e.exports=["放置"]},73947:e=>{e.exports=["精確度"]},66596:e=>{e.exports=["數量"]},79782:e=>{e.exports=["重設設定"]},95247:e=>{e.exports=["寬度(Box的%)"]},19221:e=>{e.exports=["文字顏色"]},77409:e=>{e.exports=["圖表上的交易"]},98802:e=>{e.exports=["上"]},78019:e=>{e.exports=["使用特殊的數學符號替換選定的圖形：+,-,/,* 表示價格，+,- 表示K線指數。"]},14414:e=>{e.exports=["成交量分佈"]},91322:e=>{e.exports=["數值"]},20834:e=>{e.exports=["改變Min Tick"]},98491:e=>{e.exports=["改變字符"]},7378:e=>{e.exports=["更改字體大小"]},28691:e=>{e.exports=["改變線條樣式"]},38361:e=>{e.exports=["改變位置"]},51081:e=>{e.exports=["更改百分比寬度"]},47634:e=>{e.exports=["更改掛單"]},15683:e=>{e.exports=["改變繪圖類型"]},164:e=>{e.exports=["改變精確度"]},86888:e=>{e.exports=["改變形狀"]},50463:e=>{e.exports=["改變數值"]},12628:e=>{e.exports=["更改值的可見性"]},76080:e=>{e.exports=["例如+1"]},95166:e=>{e.exports=["例如 /2"]}}]);
+
+================================================
+File: resources/crud-strap/enum.stub
+================================================
+<?php
+
+namespace {{enumNamespace}};
+enum {{enum}}: {{type}}
+{
+{{cases}}
+}
+
+
+================================================
+File: resources/crud-strap/inertia-controller.stub
+================================================
+<?php
+namespace DummyNamespace;
+use Inertia\Inertia;
+use DummyRootNamespaceHttp\Controllers\Controller;
+use DummyRootNamespaceModels{{modelNamespace}}\{{modelName}};
+use DummyRootNamespaceHttp\Resources\{{modelName}} as {{modelName}}Resource ;
+{{useItems}}
+use Illuminate\Http\Request;
+
+class DummyClass extends Controller
+{
+    /**
+     * Display a listing of the resource.
+     * @return \Illuminate\View\View
+     */
+    public function index(Request $request )
+    {
+        $keyword = $request->get('search');
+        $perPage = {{pagination}};
+        $query  = {{modelName}}::query(){{relationsList}};
+        if (!empty($keyword)) {
+            $query->{{whereSnippet}};
+        } 
+        ${{crudName}}Items = $query->latest()->paginate($perPage);
+        ${{crudName}} = {{modelName}}Resource::collection(${{crudName}}Items);
+        return Inertia::render('{{viewPath}}{{viewName}}/Index', compact('{{crudName}}'));
+    }
+
+    /**
+     * Show the form for creating a new resource.
+     * @return \Illuminate\View\View
+     */
+    public function create()
+    {
+        return Inertia::render('{{viewPath}}{{viewName}}/Create');
+    }
+
+    /**
+     * Store a newly created resource in storage.
+     * @param \Illuminate\Http\Request $request
+     * @return \Illuminate\Http\RedirectResponse|\Illuminate\Routing\Redirector
+     */
+    public function store(Request $request )
+    {
+        {{validationRules}}
+        ${{crudNameSingular}} = new {{modelName}};
+        {{saveable}}
+        {{fileSnippet}}
+        return redirect()->route('{{routePrefix}}{{crudName}}.index')->with('success', '{{modelName}} added!');
+    }
+
+    /**
+     * Display the specified resource.
+     * @param  int  $id
+     * @return \Illuminate\View\View
+     */
+    public function show(Request $request, {{modelName}} ${{crudNameSingular}})
+    {
+        {{relationsLoadList}}
+        return Inertia::render('{{viewPath}}{{viewName}}/Show', [
+            '{{crudNameSingular}}'=> new {{modelName}}Resource(${{crudNameSingular}})
+        ]);
+    }
+
+    /**
+     * Show the form for editing the specified resource.
+     * @param  int  $id
+     * @return \Illuminate\View\View
+     */
+    public function edit(Request $request, {{modelName}} ${{crudNameSingular}})
+    {
+        {{relationsLoadList}}
+        return Inertia::render('{{viewPath}}{{viewName}}/Edit', [
+            '{{crudNameSingular}}'=> new {{modelName}}Resource(${{crudNameSingular}})
+        ]);
+    }
+
+    /**
+     * Update the specified resource in storage.
+     *
+     * @param \Illuminate\Http\Request $request
+     * @param  int  $id
+     *
+     * @return \Illuminate\Http\RedirectResponse|\Illuminate\Routing\Redirector
+     */
+    public function update(Request $request, {{modelName}} ${{crudNameSingular}})
+    {
+        {{validationRules}}
+        {{fileSnippet}}
+        {{saveable}}
+        return back()->with('success', '{{modelName}} updated!');
+    }
+
+     /**
+     * toggle status of  the specified resource in storage.
+     *
+     * @param \Illuminate\Http\Request $request
+     * @param  int  $id
+     *
+     * @return \Illuminate\Http\RedirectResponse|\Illuminate\Routing\Redirector
+     */
+    public function toggle(Request $request, {{modelName}} ${{crudNameSingular}})
+    {
+        ${{crudNameSingular}}->active = !${{crudNameSingular}}->active;
+        ${{crudNameSingular}}->save();
+        return back()->with('success', ${{crudNameSingular}}->active ? __(' :name {{modelName}} Enabled !', ['name' => ${{crudNameSingular}}->name]) : __(' :name  {{modelName}} Disabled!', ['name' => ${{crudNameSingular}}->name]));
+    }
+
+    /**
+     * Remove the specified resource from storage.
+     *
+     * @param  int  $id
+     *
+     * @return \Illuminate\Http\RedirectResponse|\Illuminate\Routing\Redirector
+     */
+    public function destroy(Request $request, {{modelName}} ${{crudNameSingular}})
+    {
+        ${{crudNameSingular}}->delete();
+        return redirect()->route('{{routePrefix}}{{crudName}}.index')->with('success', '{{modelName}} deleted!');
+    }
+}
+
+
+================================================
+File: resources/crud-strap/migration.stub
+================================================
+<?php
+use Illuminate\Database\Migrations\Migration;
+use Illuminate\Database\Schema\Blueprint;
+
+return new class extends Migration
+{
+    /**
+     * Run the migrations.
+     *
+     * @return void
+     */
+    public function up()
+    {
+        {{schema_up}}
+    }
+
+    /**
+     * Reverse the migrations.
+     *
+     * @return void
+     */
+    public function down()
+    {
+        {{schema_down}}
+    }
+};
+
+
+================================================
+File: resources/crud-strap/model.stub
+================================================
+<?php
+
+namespace DummyNamespace;
+
+use Illuminate\Database\Eloquent\Model;
+{{use}}
+class DummyClass extends Model
+{
+    {{useTrait}}
+	/**
+     * The database table used by the model.
+     *
+     * @var string
+     */
+    protected $table = '{{table}}';
+
+    {{primaryKey}}
+	
+	/**
+     * Attributes that should be cast to native types.
+     *
+     * @var string
+     */
+    {{casts}}
+
+    /**
+     * Attributes that should be mass-assignable.
+     *
+     * @var array
+     */
+    protected $fillable = {{fillable}};
+
+    {{relationships}}
+
+}
+
+
+================================================
+File: resources/crud-strap/policy.stub
+================================================
+<?php
+
+namespace DummyNamespace;
+
+use NamespacedDummyUserModel;
+use NamespacedDummyModel;
+use Illuminate\Auth\Access\HandlesAuthorization;
+
+class DummyClass
+{
+    use HandlesAuthorization;
+	
+	public function before(DummyUser $user)
+	{
+		if ($user->isAdmin()) {
+			return true;
+		}
+	}
+	
+	 /**
+     * Determine whether the user can view any models.
+     *
+     * @param  \NamespacedDummyUserModel  $user
+     * @return mixed
+     */
+    public function viewAny(DummyUser $user): bool
+    {
+        return $user->hasPermission('viewany.dummyModel');
+    }
+
+    /**
+     * Determine whether the user can view the DocDummyModel.
+     *
+     * @param  \NamespacedDummyUserModel  $user
+     * @param  \NamespacedDummyModel  $dummyModel
+     * @return bool
+     */
+    public function view(DummyUser $user, DummyModel $dummyModel): bool
+    {
+		return $user->hasPermission('view.dummyModel');
+    }
+
+    /**
+     * Determine whether the user can create DocDummyPluralModel.
+     *
+     * @param  \NamespacedDummyUserModel  $user
+     * @return bool
+     */
+    public function create(DummyUser $user): bool
+    {
+		return $user->hasPermission('create.dummyModel');
+    }
+
+    /**
+     * Determine whether the user can update the DocDummyModel.
+     *
+     * @param  \NamespacedDummyUserModel  $user
+     * @param  \NamespacedDummyModel  $dummyModel
+     * @return bool
+     */
+    public function update(DummyUser $user, DummyModel $dummyModel): bool
+    {
+        return $user->hasPermission('update.dummyModel') || $user->id == $dummyModel->user_id;
+    }
+
+    /**
+     * Determine whether the user can delete the DocDummyModel.
+     *
+     * @param  \NamespacedDummyUserModel  $user
+     * @param  \NamespacedDummyModel  $dummyModel
+     * @return bool
+     */
+    public function delete(DummyUser $user, DummyModel $dummyModel): bool
+    {
+        return  $user->hasPermission('delete.dummyModel') || $user->id == $dummyModel->user_id;
+    }
+
+    /**
+     * Determine whether the user can restore the DocDummyModel.
+     *
+     * @param  \NamespacedDummyUserModel  $user
+     * @param  \NamespacedDummyModel  $dummyModel
+     * @return bool
+     */
+    public function restore(DummyUser $user, DummyModel $dummyModel): bool
+    {
+         return $user->hasPermission('restore.dummyModel') || $user->id == $dummyModel->user_id;
+    }
+
+    /**
+     * Determine whether the user can permanently delete the DocDummyModel.
+     *
+     * @param  \NamespacedDummyUserModel  $user
+     * @param  \NamespacedDummyModel  $dummyModel
+     * @return bool
+     */
+    public function forceDelete(DummyUser $user, DummyModel $dummyModel): bool
+    {
+        return $user->hasPermission('forcedelete.dummyModel') || $user->id == $dummyModel->user_id;		
+    }
+}
+
+================================================
+File: resources/crud-strap/resource.stub
+================================================
+<?php
+
+namespace DummyNamespace;
+{{morphTraitNamespace}}
+use Illuminate\Http\Resources\Json\JsonResource;
+
+class DummyClass extends JsonResource
+{
+    {{morphTrait}}
+    /**
+     * Transform the resource into an array.
+     *
+     * @param  \Illuminate\Http\Request  $request
+     * @return array
+     */
+    public function toArray($request)
+    {
+        return {{transformArray}};
+    }
+}
+
+
+================================================
+File: resources/crud-strap/user.stub
+================================================
+<?php
+namespace DummyNamespace;
+use Illuminate\Contracts\Auth\MustVerifyEmail;
+use Illuminate\Foundation\Auth\User as Authenticatable;
+use Illuminate\Notifications\Notifiable;
+use Laravel\Fortify\TwoFactorAuthenticatable;
+use Laravel\Jetstream\HasProfilePhoto;
+use Laravel\Sanctum\HasApiTokens;
+{{useSoftDeletes}}
+{{use}}
+class DummyClass extends Authenticatable
+{
+    use HasApiTokens;
+    use HasProfilePhoto;
+    use Notifiable;
+    use TwoFactorAuthenticatable;
+    {{softDeletes}}
+    {{useTrait}}
+
+    /**
+     * The database table used by the model.
+     *
+     * @var string
+     */
+    protected $table = '{{table}}';
+
+    {{primaryKey}}
+	
+	/**
+     * Attributes that should be cast to native types.
+     *
+     * @var string
+     */
+    {{casts}}
+
+    /**
+     * Attributes that should be mass-assignable.
+     *
+     * @var array
+     */
+    protected $fillable = {{fillable}};
+
+   
+
+    /**
+     * The attributes that should be hidden for serialization.
+     *
+     * @var array
+     */
+    protected $hidden = [
+        'password',
+        'remember_token',
+        'two_factor_recovery_codes',
+        'two_factor_secret',
+    ];
+
+    /**
+     * The accessors to append to the model's array form.
+     *
+     * @var array
+     */
+    protected $appends = [
+        'profile_photo_url',
+    ];
+
+     {{relationships}}
+
+     /**
+     * Check if a user has required permissions.
+     *
+     * @var array
+     */
+    public function hasPermission(string|array $permissions)
+    {
+        return false;
+    }
+}
+
+
+================================================
+File: resources/crud-strap/views/create.vue.stub
+================================================
+<script setup>
+import { HiArrowLeft } from "oh-vue-icons/icons";

@@ -1,0 +1,523 @@
+    <DialogOverlay
+      class="fixed inset-0 z-50 grid place-items-center overflow-y-auto bg-black/80 data-[state=open]:animate-in data-[state=closed]:animate-out data-[state=closed]:fade-out-0 data-[state=open]:fade-in-0"
+    >
+      <DialogContent
+        :class="
+          cn(
+            'relative z-50 grid w-full max-w-lg my-8 gap-4 border border-gray-200 bg-white p-6 shadow-lg duration-200 sm:rounded-lg md:w-full dark:border-gray-800 dark:bg-gray-950',
+            props.class,
+          )
+        "
+        v-bind="forwarded"
+        @pointer-down-outside="
+          (event) => {
+            const originalEvent = event.detail.originalEvent;
+            const target = originalEvent.target;
+            if (
+              originalEvent.offsetX > target.clientWidth ||
+              originalEvent.offsetY > target.clientHeight
+            ) {
+              event.preventDefault();
+            }
+          }
+        "
+      >
+        <slot />
+
+        <DialogClose
+          class="absolute top-3 right-3 p-0.5 transition-colors rounded-md hover:bg-gray-100 dark:hover:bg-gray-800"
+        >
+          <X class="w-4 h-4" />
+          <span class="sr-only">Close</span>
+        </DialogClose>
+      </DialogContent>
+    </DialogOverlay>
+  </DialogPortal>
+</template>
+
+
+================================================
+File: resources/js/Components/ui/dialog/DialogTitle.vue
+================================================
+<script setup>
+import { cn } from '@/lib/utils';
+import { DialogTitle, useForwardProps } from 'radix-vue';
+import { computed } from 'vue';
+
+const props = defineProps({
+  asChild: { type: Boolean, required: false },
+  as: { type: null, required: false },
+  class: { type: null, required: false },
+});
+
+const delegatedProps = computed(() => {
+  const { class: _, ...delegated } = props;
+
+  return delegated;
+});
+
+const forwardedProps = useForwardProps(delegatedProps);
+</script>
+
+<template>
+  <DialogTitle
+    v-bind="forwardedProps"
+    :class="
+      cn('text-lg font-semibold leading-none tracking-tight', props.class)
+    "
+  >
+    <slot />
+  </DialogTitle>
+</template>
+
+
+================================================
+File: resources/js/Components/ui/dialog/DialogTrigger.vue
+================================================
+<script setup>
+import { DialogTrigger } from 'radix-vue';
+
+const props = defineProps({
+  asChild: { type: Boolean, required: false },
+  as: { type: null, required: false },
+});
+</script>
+
+<template>
+  <DialogTrigger v-bind="props">
+    <slot />
+  </DialogTrigger>
+</template>
+
+
+================================================
+File: resources/js/Components/ui/dialog/index.js
+================================================
+export { default as Dialog } from './Dialog.vue';
+export { default as DialogClose } from './DialogClose.vue';
+export { default as DialogContent } from './DialogContent.vue';
+export { default as DialogDescription } from './DialogDescription.vue';
+export { default as DialogFooter } from './DialogFooter.vue';
+export { default as DialogHeader } from './DialogHeader.vue';
+export { default as DialogScrollContent } from './DialogScrollContent.vue';
+export { default as DialogTitle } from './DialogTitle.vue';
+export { default as DialogTrigger } from './DialogTrigger.vue';
+
+
+================================================
+File: resources/js/Components/ui/dropdown-menu/DropdownMenu.vue
+================================================
+<script setup>
+import { DropdownMenuRoot, useForwardPropsEmits } from 'radix-vue';
+
+const props = defineProps({
+  defaultOpen: { type: Boolean, required: false },
+  open: { type: Boolean, required: false },
+  dir: { type: String, required: false },
+  modal: { type: Boolean, required: false },
+});
+const emits = defineEmits(['update:open']);
+
+const forwarded = useForwardPropsEmits(props, emits);
+</script>
+
+<template>
+  <DropdownMenuRoot v-bind="forwarded">
+    <slot />
+  </DropdownMenuRoot>
+</template>
+
+
+================================================
+File: resources/js/Components/ui/dropdown-menu/DropdownMenuCheckboxItem.vue
+================================================
+<script setup>
+import { cn } from '@/lib/utils';
+import { Check } from 'lucide-vue-next';
+import {
+  DropdownMenuCheckboxItem,
+  DropdownMenuItemIndicator,
+  useForwardPropsEmits,
+} from 'radix-vue';
+import { computed } from 'vue';
+
+const props = defineProps({
+  checked: { type: [Boolean, String], required: false },
+  disabled: { type: Boolean, required: false },
+  textValue: { type: String, required: false },
+  asChild: { type: Boolean, required: false },
+  as: { type: null, required: false },
+  class: { type: null, required: false },
+});
+const emits = defineEmits(['select', 'update:checked']);
+
+const delegatedProps = computed(() => {
+  const { class: _, ...delegated } = props;
+
+  return delegated;
+});
+
+const forwarded = useForwardPropsEmits(delegatedProps, emits);
+</script>
+
+<template>
+  <DropdownMenuCheckboxItem
+    v-bind="forwarded"
+    :class="
+      cn(
+        'relative flex cursor-default select-none items-center rounded-sm py-1.5 pl-8 pr-2 text-sm outline-none transition-colors focus:bg-gray-100 focus:text-gray-900 data-[disabled]:pointer-events-none data-[disabled]:opacity-50 dark:focus:bg-gray-800 dark:focus:text-gray-50',
+        props.class,
+      )
+    "
+  >
+    <span class="absolute left-2 flex h-3.5 w-3.5 items-center justify-center">
+      <DropdownMenuItemIndicator>
+        <Check class="w-4 h-4" />
+      </DropdownMenuItemIndicator>
+    </span>
+    <slot />
+  </DropdownMenuCheckboxItem>
+</template>
+
+
+================================================
+File: resources/js/Components/ui/dropdown-menu/DropdownMenuContent.vue
+================================================
+<script setup>
+import { cn } from '@/lib/utils';
+import {
+  DropdownMenuContent,
+  DropdownMenuPortal,
+  useForwardPropsEmits,
+} from 'radix-vue';
+import { computed } from 'vue';
+
+const props = defineProps({
+  forceMount: { type: Boolean, required: false },
+  loop: { type: Boolean, required: false },
+  side: { type: null, required: false },
+  sideOffset: { type: Number, required: false, default: 4 },
+  align: { type: null, required: false },
+  alignOffset: { type: Number, required: false },
+  avoidCollisions: { type: Boolean, required: false },
+  collisionBoundary: { type: null, required: false },
+  collisionPadding: { type: [Number, Object], required: false },
+  arrowPadding: { type: Number, required: false },
+  sticky: { type: String, required: false },
+  hideWhenDetached: { type: Boolean, required: false },
+  updatePositionStrategy: { type: String, required: false },
+  prioritizePosition: { type: Boolean, required: false },
+  asChild: { type: Boolean, required: false },
+  as: { type: null, required: false },
+  class: { type: null, required: false },
+});
+const emits = defineEmits([
+  'escapeKeyDown',
+  'pointerDownOutside',
+  'focusOutside',
+  'interactOutside',
+  'closeAutoFocus',
+]);
+
+const delegatedProps = computed(() => {
+  const { class: _, ...delegated } = props;
+
+  return delegated;
+});
+
+const forwarded = useForwardPropsEmits(delegatedProps, emits);
+</script>
+
+<template>
+  <DropdownMenuPortal>
+    <DropdownMenuContent
+      v-bind="forwarded"
+      :class="
+        cn(
+          'z-50 min-w-32 overflow-hidden rounded-md border border-gray-200 bg-white p-1 text-gray-950 shadow-md data-[state=open]:animate-in data-[state=closed]:animate-out data-[state=closed]:fade-out-0 data-[state=open]:fade-in-0 data-[state=closed]:zoom-out-95 data-[state=open]:zoom-in-95 data-[side=bottom]:slide-in-from-top-2 data-[side=left]:slide-in-from-right-2 data-[side=right]:slide-in-from-left-2 data-[side=top]:slide-in-from-bottom-2 dark:border-gray-800 dark:bg-gray-950 dark:text-gray-50',
+          props.class,
+        )
+      "
+    >
+      <slot />
+    </DropdownMenuContent>
+  </DropdownMenuPortal>
+</template>
+
+
+================================================
+File: resources/js/Components/ui/dropdown-menu/DropdownMenuGroup.vue
+================================================
+<script setup>
+import { DropdownMenuGroup } from 'radix-vue';
+
+const props = defineProps({
+  asChild: { type: Boolean, required: false },
+  as: { type: null, required: false },
+});
+</script>
+
+<template>
+  <DropdownMenuGroup v-bind="props">
+    <slot />
+  </DropdownMenuGroup>
+</template>
+
+
+================================================
+File: resources/js/Components/ui/dropdown-menu/DropdownMenuItem.vue
+================================================
+<script setup>
+import { cn } from '@/lib/utils';
+import { DropdownMenuItem, useForwardProps } from 'radix-vue';
+import { computed } from 'vue';
+
+const props = defineProps({
+  disabled: { type: Boolean, required: false },
+  textValue: { type: String, required: false },
+  asChild: { type: Boolean, required: false },
+  as: { type: null, required: false },
+  class: { type: null, required: false },
+  inset: { type: Boolean, required: false },
+});
+
+const delegatedProps = computed(() => {
+  const { class: _, ...delegated } = props;
+
+  return delegated;
+});
+
+const forwardedProps = useForwardProps(delegatedProps);
+</script>
+
+<template>
+  <DropdownMenuItem
+    v-bind="forwardedProps"
+    :class="
+      cn(
+        'relative flex cursor-default select-none items-center rounded-sm gap-2 px-2 py-1.5 text-sm outline-none transition-colors focus:bg-gray-100 focus:text-gray-900 data-[disabled]:pointer-events-none data-[disabled]:opacity-50  [&>svg]:size-4 [&>svg]:shrink-0 dark:focus:bg-gray-800 dark:focus:text-gray-50',
+        inset && 'pl-8',
+        props.class,
+      )
+    "
+  >
+    <slot />
+  </DropdownMenuItem>
+</template>
+
+
+================================================
+File: resources/js/Components/ui/dropdown-menu/DropdownMenuLabel.vue
+================================================
+<script setup>
+import { cn } from '@/lib/utils';
+import { DropdownMenuLabel, useForwardProps } from 'radix-vue';
+import { computed } from 'vue';
+
+const props = defineProps({
+  asChild: { type: Boolean, required: false },
+  as: { type: null, required: false },
+  class: { type: null, required: false },
+  inset: { type: Boolean, required: false },
+});
+
+const delegatedProps = computed(() => {
+  const { class: _, ...delegated } = props;
+
+  return delegated;
+});
+
+const forwardedProps = useForwardProps(delegatedProps);
+</script>
+
+<template>
+  <DropdownMenuLabel
+    v-bind="forwardedProps"
+    :class="
+      cn('px-2 py-1.5 text-sm font-semibold', inset && 'pl-8', props.class)
+    "
+  >
+    <slot />
+  </DropdownMenuLabel>
+</template>
+
+
+================================================
+File: resources/js/Components/ui/dropdown-menu/DropdownMenuRadioGroup.vue
+================================================
+<script setup>
+import { DropdownMenuRadioGroup, useForwardPropsEmits } from 'radix-vue';
+
+const props = defineProps({
+  modelValue: { type: String, required: false },
+  asChild: { type: Boolean, required: false },
+  as: { type: null, required: false },
+});
+const emits = defineEmits(['update:modelValue']);
+
+const forwarded = useForwardPropsEmits(props, emits);
+</script>
+
+<template>
+  <DropdownMenuRadioGroup v-bind="forwarded">
+    <slot />
+  </DropdownMenuRadioGroup>
+</template>
+
+
+================================================
+File: resources/js/Components/ui/dropdown-menu/DropdownMenuRadioItem.vue
+================================================
+<script setup>
+import { cn } from '@/lib/utils';
+import { Circle } from 'lucide-vue-next';
+import {
+  DropdownMenuItemIndicator,
+  DropdownMenuRadioItem,
+  useForwardPropsEmits,
+} from 'radix-vue';
+import { computed } from 'vue';
+
+const props = defineProps({
+  value: { type: String, required: true },
+  disabled: { type: Boolean, required: false },
+  textValue: { type: String, required: false },
+  asChild: { type: Boolean, required: false },
+  as: { type: null, required: false },
+  class: { type: null, required: false },
+});
+
+const emits = defineEmits(['select']);
+
+const delegatedProps = computed(() => {
+  const { class: _, ...delegated } = props;
+
+  return delegated;
+});
+
+const forwarded = useForwardPropsEmits(delegatedProps, emits);
+</script>
+
+<template>
+  <DropdownMenuRadioItem
+    v-bind="forwarded"
+    :class="
+      cn(
+        'relative flex cursor-default select-none items-center rounded-sm py-1.5 pl-8 pr-2 text-sm outline-none transition-colors focus:bg-gray-100 focus:text-gray-900 data-[disabled]:pointer-events-none data-[disabled]:opacity-50 dark:focus:bg-gray-800 dark:focus:text-gray-50',
+        props.class,
+      )
+    "
+  >
+    <span class="absolute left-2 flex h-3.5 w-3.5 items-center justify-center">
+      <DropdownMenuItemIndicator>
+        <Circle class="h-2 w-2 fill-current" />
+      </DropdownMenuItemIndicator>
+    </span>
+    <slot />
+  </DropdownMenuRadioItem>
+</template>
+
+
+================================================
+File: resources/js/Components/ui/dropdown-menu/DropdownMenuSeparator.vue
+================================================
+<script setup>
+import { cn } from '@/lib/utils';
+import { DropdownMenuSeparator } from 'radix-vue';
+import { computed } from 'vue';
+
+const props = defineProps({
+  asChild: { type: Boolean, required: false },
+  as: { type: null, required: false },
+  class: { type: null, required: false },
+});
+
+const delegatedProps = computed(() => {
+  const { class: _, ...delegated } = props;
+
+  return delegated;
+});
+</script>
+
+<template>
+  <DropdownMenuSeparator
+    v-bind="delegatedProps"
+    :class="cn('-mx-1 my-1 h-px bg-gray-100 dark:bg-gray-800', props.class)"
+  />
+</template>
+
+
+================================================
+File: resources/js/Components/ui/dropdown-menu/DropdownMenuShortcut.vue
+================================================
+<script setup>
+import { cn } from '@/lib/utils';
+
+const props = defineProps({
+  class: { type: null, required: false },
+});
+</script>
+
+<template>
+  <span :class="cn('ml-auto text-xs tracking-widest opacity-60', props.class)">
+    <slot />
+  </span>
+</template>
+
+
+================================================
+File: resources/js/Components/ui/dropdown-menu/DropdownMenuSub.vue
+================================================
+<script setup>
+import { DropdownMenuSub, useForwardPropsEmits } from 'radix-vue';
+
+const props = defineProps({
+  defaultOpen: { type: Boolean, required: false },
+  open: { type: Boolean, required: false },
+});
+const emits = defineEmits(['update:open']);
+
+const forwarded = useForwardPropsEmits(props, emits);
+</script>
+
+<template>
+  <DropdownMenuSub v-bind="forwarded">
+    <slot />
+  </DropdownMenuSub>
+</template>
+
+
+================================================
+File: resources/js/Components/ui/dropdown-menu/DropdownMenuSubContent.vue
+================================================
+<script setup>
+import { cn } from '@/lib/utils';
+import { DropdownMenuSubContent, useForwardPropsEmits } from 'radix-vue';
+import { computed } from 'vue';
+
+const props = defineProps({
+  forceMount: { type: Boolean, required: false },
+  loop: { type: Boolean, required: false },
+  sideOffset: { type: Number, required: false },
+  alignOffset: { type: Number, required: false },
+  avoidCollisions: { type: Boolean, required: false },
+  collisionBoundary: { type: null, required: false },
+  collisionPadding: { type: [Number, Object], required: false },
+  arrowPadding: { type: Number, required: false },
+  sticky: { type: String, required: false },
+  hideWhenDetached: { type: Boolean, required: false },
+  updatePositionStrategy: { type: String, required: false },
+  prioritizePosition: { type: Boolean, required: false },
+  asChild: { type: Boolean, required: false },
+  as: { type: null, required: false },
+  class: { type: null, required: false },
+});
+const emits = defineEmits([
+  'escapeKeyDown',
+  'pointerDownOutside',
+  'focusOutside',
+  'interactOutside',
+  'entryFocus',
+  'openAutoFocus',
+  'closeAutoFocus',
+]);

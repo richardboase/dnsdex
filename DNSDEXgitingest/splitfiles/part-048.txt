@@ -1,0 +1,523 @@
+                if (canPointGroups.value) {
+                    groupLabel.push(c.groupLabelPointable);
+                }
+
+                return groupLabel;
+            },
+            groupOptions: c.groupOptions,
+            option: (o, g) => {
+                const option = [c.option];
+
+                if (isPointed(o)) {
+                    option.push(isSelected(o) ? c.optionSelectedPointed : c.optionPointed);
+                } else if (isSelected(o)) {
+                    option.push(isDisabled(o) ? c.optionSelectedDisabled : c.optionSelected);
+                } else if (isDisabled(o) || (g && isDisabled(g))) {
+                    option.push(c.optionDisabled);
+                }
+
+                return option;
+            },
+            noOptions: c.noOptions,
+            noResults: c.noResults,
+            assist: c.assist,
+            fakeInput: c.fakeInput,
+        };
+    });
+
+    return {
+        classList,
+        showDropdown,
+    };
+}
+
+================================================
+File: resources/js/Components/Multiselect/composables/useData.js
+================================================
+import { getCurrentInstance, toRefs } from 'vue';
+
+import isNullish from './../utils/isNullish';
+
+export default function useData (props, context, dep)
+{
+  const { object, valueProp, mode } = toRefs(props);
+
+  const $this = getCurrentInstance().proxy;
+
+  // ============ DEPENDENCIES ============
+
+  const iv = dep.iv;
+
+  // =============== METHODS ==============
+
+  const update = (val, triggerInput = true) => {
+    // Setting object(s) as internal value
+    iv.value = makeInternal(val);
+
+    // Setting object(s) or plain value as external 
+    // value based on `option` setting
+    const externalVal = makeExternal(val);
+
+    context.emit('change', externalVal, $this);
+
+    if (triggerInput) {
+      context.emit('input', externalVal);
+      context.emit('update:modelValue', externalVal);
+    }
+  }; 
+
+  // no export
+  const makeExternal = (val) => {
+    // If external value should be object
+    // no transformation is required
+    if (object.value) {
+      return val;
+    }
+
+    // No need to transform if empty value
+    if (isNullish(val)) {
+      return val;
+    }
+
+    // If external should be plain transform
+    // value object to plain values
+    return !Array.isArray(val) ? val[valueProp.value] : val.map(v => v[valueProp.value]);
+  };
+
+  // no export
+  const makeInternal = (val) => {
+    if (isNullish(val)) {
+      return mode.value === 'single' ? {} : [];
+    }
+
+    return val;
+  };
+
+  return {
+    update,
+  };
+}
+
+================================================
+File: resources/js/Components/Multiselect/composables/useDropdown.js
+================================================
+import { getCurrentInstance, ref, toRefs } from 'vue';
+
+export default function useDropdown (props, context, dep)
+{
+  const { disabled } = toRefs(props);
+
+  const $this = getCurrentInstance().proxy;
+
+  // ================ DATA ================
+
+  const isOpen = ref(false);
+
+  // =============== METHODS ==============
+
+  const open = () => {
+    if (isOpen.value || disabled.value) {
+      return;
+    }
+
+    isOpen.value = true;
+    context.emit('open', $this);
+  };
+
+  const close = () => {
+    if (!isOpen.value) {
+      return;
+    }
+
+    isOpen.value = false;
+    context.emit('close', $this);
+  };
+
+  return {
+    isOpen,
+    open,
+    close,
+  };
+}
+
+================================================
+File: resources/js/Components/Multiselect/composables/useI18n.js
+================================================
+import { toRefs } from 'vue';
+
+export default function useI18n (props, context, dep)
+{
+  const {
+    locale, fallbackLocale,
+  } = toRefs(props);
+
+  // =============== METHODS ==============
+
+  const localize = (target) => {
+    if (!target || typeof target !== 'object') {
+      return target;
+    }
+
+    if (target && target[locale.value]) {
+      return target[locale.value];
+    } else if (target && locale.value && target[locale.value.toUpperCase()]) {
+      return target[locale.value.toUpperCase()];
+    } else if (target && target[fallbackLocale.value]) {
+      return target[fallbackLocale.value];
+    } else if (target && fallbackLocale.value && target[fallbackLocale.value.toUpperCase()]) {
+      return target[fallbackLocale.value.toUpperCase()];
+    } else if (target && Object.keys(target)[0]) {
+      return target[Object.keys(target)[0]];
+    } else {
+      return '';
+    }
+  };
+
+  return {
+    localize,
+  };
+}
+
+================================================
+File: resources/js/Components/Multiselect/composables/useKeyboard.js
+================================================
+import { computed, getCurrentInstance, toRefs } from 'vue';
+
+export default function useKeyboard(props, context, dep) {
+    const {
+        mode, addTagOn, searchable,
+        showOptions, valueProp, groups: groupped,
+        addOptionOn: addOptionOn_, createTag, createOption: createOption_,
+
+    } = toRefs(props);
+
+    const $this = getCurrentInstance().proxy;
+
+    // ============ DEPENDENCIES ============
+
+    const iv = dep.iv;
+    const update = dep.update;
+    const search = dep.search;
+    const setPointer = dep.setPointer;
+    const selectPointer = dep.selectPointer;
+    const backwardPointer = dep.backwardPointer;
+    const forwardPointer = dep.forwardPointer;
+    const multiselect = dep.multiselect;
+    const wrapper = dep.wrapper;
+    const tags = dep.tags;
+    const isOpen = dep.isOpen;
+    const open = dep.open;
+    const blur = dep.blur;
+    const fo = dep.fo;
+
+    // ============== COMPUTED ==============
+
+    // no export
+    const createOption = computed(() => {
+        return createTag.value || createOption_.value || false;
+    });
+
+    // no export
+    const addOptionOn = computed(() => {
+        if (addTagOn.value !== undefined) {
+            return addTagOn.value;
+        }
+        else if (addOptionOn_.value !== undefined) {
+            return addOptionOn_.value;
+        }
+
+        return ['enter'];
+    });
+
+    // =============== METHODS ==============
+
+    // no export
+    const preparePointer = () => {
+        // When options are hidden and creating tags is allowed
+        // no pointer will be set (because options are hidden).
+        // In such case we need to set the pointer manually to the 
+        // first option, which equals to the option created from
+        // the search value.
+        if (mode.value === 'tags' && !showOptions.value && createOption.value && searchable.value && !groupped.value) {
+            setPointer(fo.value[fo.value.map(o => o[valueProp.value]).indexOf(search.value)]);
+        }
+    };
+
+    const removeLastRemovable = (arr) => {
+        // Find the index of the last object in the array that doesn't have a "remove" property set to false
+        let indexToRemove = arr.length - 1;
+        while (indexToRemove >= 0 && (arr[indexToRemove].remove === false || arr[indexToRemove].disabled)) {
+            indexToRemove--;
+        }
+
+        // If all objects have a "remove" property set to false, don't remove anything and return the original array
+        if (indexToRemove < 0) {
+            return arr;
+        }
+
+        // Remove the object at the found index and return the updated array
+        arr.splice(indexToRemove, 1);
+        return arr;
+    };
+
+    const handleKeydown = (e) => {
+        context.emit('keydown', e, $this);
+
+        let tagList;
+        let activeIndex;
+
+        if (['ArrowLeft', 'ArrowRight', 'Enter'].indexOf(e.key) !== -1 && mode.value === 'tags') {
+            tagList = [...(multiselect.value.querySelectorAll(`[data-tags] > *`))].filter(e => e !== tags.value);
+            activeIndex = tagList.findIndex(e => e === document.activeElement);
+        }
+
+        switch (e.key) {
+            case 'Backspace':
+                if (mode.value === 'single') {
+                    return;
+                }
+
+                if (searchable.value && [null, ''].indexOf(search.value) === -1) {
+                    return;
+                }
+
+                if (iv.value.length === 0) {
+                    return;
+                }
+
+                update(removeLastRemovable([...iv.value]));
+                break;
+
+            case 'Enter':
+                e.preventDefault();
+
+                if (e.keyCode === 229) {
+                    // ignore IME confirmation
+                    return;
+                }
+
+                if (activeIndex !== -1 && activeIndex !== undefined) {
+                    update([...iv.value].filter((v, k) => k !== activeIndex));
+
+                    if (activeIndex === tagList.length - 1) {
+                        if (tagList.length - 1) {
+                            tagList[tagList.length - 2].focus();
+                        } else if (searchable.value) {
+                            tags.value.querySelector('input').focus();
+                        } else {
+                            wrapper.value.focus();
+                        }
+                    }
+                    return;
+                }
+
+                if (addOptionOn.value.indexOf('enter') === -1 && createOption.value) {
+                    return;
+                }
+
+                preparePointer();
+                selectPointer();
+                break;
+
+            case ' ':
+                if (!createOption.value && !searchable.value) {
+                    e.preventDefault();
+
+                    preparePointer();
+                    selectPointer();
+                    return;
+                }
+
+                if (!createOption.value) {
+                    return false;
+                }
+
+                if (addOptionOn.value.indexOf('space') === -1 && createOption.value) {
+                    return;
+                }
+
+                e.preventDefault();
+
+                preparePointer();
+                selectPointer();
+                break;
+
+            case 'Tab':
+            case ';':
+            case ',':
+                if (addOptionOn.value.indexOf(e.key.toLowerCase()) === -1 || !createOption.value) {
+                    return;
+                }
+
+                preparePointer();
+                selectPointer();
+                e.preventDefault();
+                break;
+
+            case 'Escape':
+                blur();
+                break;
+
+            case 'ArrowUp':
+                e.preventDefault();
+
+                if (!showOptions.value) {
+                    return;
+                }
+
+                /* istanbul ignore else */
+                if (!isOpen.value) {
+                    open();
+                }
+
+                backwardPointer();
+                break;
+
+            case 'ArrowDown':
+                e.preventDefault();
+
+                if (!showOptions.value) {
+                    return;
+                }
+
+                /* istanbul ignore else */
+                if (!isOpen.value) {
+                    open();
+                }
+
+                forwardPointer();
+                break;
+
+            case 'ArrowLeft':
+                if (
+                    (searchable.value && tags.value && tags.value.querySelector('input').selectionStart)
+                    || e.shiftKey || mode.value !== 'tags' || !iv.value || !iv.value.length
+                ) {
+                    return;
+                }
+
+                e.preventDefault();
+
+                if (activeIndex === -1) {
+                    tagList[tagList.length - 1].focus();
+                }
+                else if (activeIndex > 0) {
+                    tagList[activeIndex - 1].focus();
+                }
+                break;
+
+            case 'ArrowRight':
+                if (activeIndex === -1 || e.shiftKey || mode.value !== 'tags' || !iv.value || !iv.value.length) {
+                    return;
+                }
+
+                e.preventDefault();
+
+                /* istanbul ignore else */
+                if (tagList.length > activeIndex + 1) {
+                    tagList[activeIndex + 1].focus();
+                }
+                else if (searchable.value) {
+                    tags.value.querySelector('input').focus();
+                }
+                else if (!searchable.value) {
+                    wrapper.value.focus();
+                }
+
+                break;
+        }
+    };
+
+    const handleKeyup = (e) => {
+        context.emit('keyup', e, $this);
+    };
+
+    return {
+        handleKeydown,
+        handleKeyup,
+        preparePointer,
+    };
+}
+
+================================================
+File: resources/js/Components/Multiselect/composables/useMultiselect.js
+================================================
+import { computed, ref, toRefs } from 'vue';
+
+export default function useMultiselect (props, context, dep)
+{
+  const { searchable, disabled, clearOnBlur } = toRefs(props);
+
+  // ============ DEPENDENCIES ============
+
+  const input = dep.input;
+  const open = dep.open;
+  const close = dep.close;
+  const clearSearch = dep.clearSearch;
+  const isOpen = dep.isOpen;
+
+  // ================ DATA ================
+
+  const multiselect = ref(null);
+  
+  const wrapper = ref(null);
+
+  const tags = ref(null);
+
+  const isActive = ref(false);
+
+  const mouseClicked = ref(false);
+
+  // ============== COMPUTED ==============
+
+  const tabindex = computed(() => {
+    return searchable.value || disabled.value ? -1 : 0;
+  });
+
+  // =============== METHODS ==============
+
+  const blur = () => {
+    if (searchable.value) {
+      input.value.blur();
+    }
+
+    wrapper.value.blur();
+  };
+
+  const focus = () => {
+    if (searchable.value && !disabled.value) {
+      input.value.focus();
+    }
+  };
+
+  const activate = (shouldOpen = true) => {
+    if (disabled.value) {
+      return;
+    }
+
+    isActive.value = true;
+
+    if (shouldOpen) {
+      open();
+    }
+  };
+
+  const deactivate = () => {
+    isActive.value = false;
+
+    setTimeout(() => {
+      if (!isActive.value) {
+        close();
+
+        if (clearOnBlur.value) {
+          clearSearch();
+        }
+      }
+    }, 1);
+  };
+
+  const handleFocusIn = (e) => {
+    if ((e.target.closest('[data-tags]') && e.target.nodeName !== 'INPUT') || e.target.closest('[data-clear]')) {
+      return;
+    }
+

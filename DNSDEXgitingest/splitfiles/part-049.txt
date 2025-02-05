@@ -1,0 +1,523 @@
+    activate(mouseClicked.value);
+  };
+
+  const handleFocusOut = () => {
+    deactivate();
+  };
+
+  const handleCaretClick = () => {
+    deactivate();
+    blur();
+  };
+
+  /* istanbul ignore next */
+  const handleMousedown = (e) => {
+    mouseClicked.value = true;
+
+    if (isOpen.value && (e.target.isEqualNode(wrapper.value) || e.target.isEqualNode(tags.value))) {
+      setTimeout(() => {
+        deactivate();
+      }, 0);
+    } else if (document.activeElement.isEqualNode(wrapper.value) && !isOpen.value) {
+      activate();    
+    }
+
+    setTimeout(() => {
+      mouseClicked.value = false;
+    }, 0);
+  };
+
+  return {
+    multiselect,
+    wrapper,
+    tags,
+    tabindex,
+    isActive,
+    mouseClicked,
+    blur,
+    focus,
+    activate,
+    deactivate,
+    handleFocusIn,
+    handleFocusOut,
+    handleCaretClick,
+    handleMousedown,
+  };
+}
+
+================================================
+File: resources/js/Components/Multiselect/composables/useOptions.js
+================================================
+import { computed, getCurrentInstance, ref, toRefs, watch } from 'vue';
+
+import arraysEqual from './../utils/arraysEqual';
+import isNullish from './../utils/isNullish';
+import isObject from './../utils/isObject';
+import normalize from './../utils/normalize';
+
+export default function useOptions (props, context, dep)
+{
+  const { 
+    options, mode, trackBy: trackBy_, limit, hideSelected, createTag, createOption: createOption_, label,
+    appendNewTag, appendNewOption: appendNewOption_, multipleLabel, object, loading, delay, resolveOnLoad,
+    minChars, filterResults, clearOnSearch, clearOnSelect, valueProp, allowAbsent, groupLabel,
+    canDeselect, max, strict, closeOnSelect, closeOnDeselect, groups: groupped, reverse, infinite,
+    groupOptions, groupHideEmpty, groupSelect, onCreate, disabledProp, searchStart, searchFilter,
+  } = toRefs(props);
+
+  const $this = getCurrentInstance().proxy;
+
+  // ============ DEPENDENCIES ============
+
+  const iv = dep.iv;
+  const ev = dep.ev;
+  const search = dep.search;
+  const clearSearch = dep.clearSearch;
+  const update = dep.update;
+  const pointer = dep.pointer;
+  const clearPointer = dep.clearPointer;
+  const focus = dep.focus;
+  const deactivate = dep.deactivate;
+  const close = dep.close;
+  const localize = dep.localize;
+
+  // ================ DATA ================
+
+  // no export
+  // appendedOptions
+  const ap = ref([]);
+
+  // no export
+  // resolvedOptions
+  const ro = ref([]);
+
+  const resolving = ref(false);
+
+  // no export
+  const searchWatcher = ref(null);
+
+  const offset = ref(infinite.value && limit.value === -1 ? 10 : limit.value);
+
+  // ============== COMPUTED ==============
+
+  // no export
+  const createOption = computed(() => {
+    return createTag.value || createOption_.value || false;
+  });
+
+  // no export
+  const appendNewOption = computed(() => {
+    if (appendNewTag.value !== undefined) {
+      return appendNewTag.value;
+    } else if (appendNewOption_.value !== undefined) {
+      return appendNewOption_.value;
+    }
+
+    return true;
+  });
+
+  // no export
+  // extendedOptions
+  const eo = computed(() => {
+    if (groupped.value) {
+      const groups = eg.value || /* istanbul ignore next */ [];
+
+      const eo = [];
+
+      groups.forEach((group) => {
+        optionsToArray(group[groupOptions.value]).forEach((option) => {
+          eo.push(Object.assign({}, option, group[disabledProp.value] ? { [disabledProp.value]: true } : {}));
+        });
+      });
+
+      return eo;
+    } else {
+      let eo = optionsToArray(ro.value || /* istanbul ignore next */ []);
+
+      if (ap.value.length) {
+        eo = eo.concat(ap.value);
+      }
+
+      return eo;
+    }
+  });
+
+  // preFilteredOptions
+  const pfo = computed(() => {
+    let options = eo.value;
+
+    if (reverse.value) {
+      options = options.reverse();
+    }
+
+    if (createdOption.value.length) {
+      options = createdOption.value.concat(options);
+    }
+
+    return filterOptions(options);
+  });
+
+  // filteredOptions
+  const fo = computed(() => {
+    let options = pfo.value;
+
+    if (offset.value > 0) {
+      options = options.slice(0, offset.value);
+    }
+
+    return options;
+  });
+
+  // no export
+  // extendedGroups
+  const eg = computed(() => {
+    if (!groupped.value) {
+      return [];
+    }
+
+    const eg = [];
+    const groups = ro.value || /* istanbul ignore next */ [];
+
+    if (ap.value.length) {
+      eg.push({
+        [groupLabel.value]: ' ',
+        [groupOptions.value]: [...ap.value],
+        __CREATE__: true
+      });
+    }
+
+    return eg.concat(groups);
+  });
+
+  // preFilteredGroups
+  const pfg = computed(() => {
+    let groups = [...eg.value].map(g => ({...g}));
+
+    if (createdOption.value.length) {
+      if (groups[0] && groups[0].__CREATE__) {
+        groups[0][groupOptions.value] = [...createdOption.value, ...groups[0][groupOptions.value]];
+      } else {
+        groups = [{
+          [groupLabel.value]: ' ',
+          [groupOptions.value]: [...createdOption.value],
+          __CREATE__: true
+        }].concat(groups);
+      }
+    }
+
+    return groups;
+  });
+
+  // filteredGroups
+  const fg = computed(() => {
+    if (!groupped.value) {
+      return [];
+    }
+
+    const options = pfg.value;
+
+    return filterGroups((options || /* istanbul ignore next */ []).map((group, index) => {
+      const arrayOptions = optionsToArray(group[groupOptions.value]);
+
+      return {
+        ...group,
+        index,
+        group: true,
+        [groupOptions.value]: filterOptions(arrayOptions, false).map(o => Object.assign({}, o, group[disabledProp.value] ? { [disabledProp.value]: true } : {})),
+        __VISIBLE__: filterOptions(arrayOptions).map(o => Object.assign({}, o, group[disabledProp.value] ? { [disabledProp.value]: true } : {})),
+      };
+      // Difference between __VISIBLE__ and {groupOptions}: visible does not contain selected options when hideSelected=true
+    }));
+  });
+
+  const hasSelected = computed(() => {
+    switch (mode.value) {
+      case 'single':
+        return !isNullish(iv.value[valueProp.value]);
+
+      case 'multiple':
+      case 'tags':
+        return !isNullish(iv.value) && iv.value.length > 0;
+      default :
+      return false;
+    }
+  });
+
+  const multipleLabelText = computed(() => {
+    return multipleLabel.value !== undefined && multipleLabel.value !== undefined
+      ? multipleLabel.value(iv.value, $this)
+      : (iv.value && iv.value.length > 1 ? `${iv.value.length} options selected` : `1 option selected`);
+  });
+
+  const noOptions = computed(() => {
+    return !eo.value.length && !resolving.value && !createdOption.value.length;
+  });
+
+
+  const noResults = computed(() => {
+    return eo.value.length > 0 && fo.value.length === 0 && ((search.value && groupped.value) || !groupped.value);
+  });
+
+  // no export
+  const createdOption = computed(() => {
+    if (createOption.value === false || !search.value) {
+      return [];
+    }
+
+    if (getOptionByTrackBy(search.value) !== -1) {
+      return [];
+    }
+
+    return [{
+      [valueProp.value]: search.value,
+      [trackBy.value]: search.value,
+      [label.value]: search.value,
+      __CREATE__: true,
+    }];
+  });
+
+  const trackBy = computed(() => {
+    return trackBy_.value || label.value;
+  });
+
+  // no export
+  const nullValue = computed(() => {
+    switch (mode.value) {
+      case 'single':
+        return null;
+
+      case 'multiple':
+      case 'tags':
+        return [];
+      default: return null;
+    }
+  });
+
+  const busy = computed(() => {
+    return loading.value || resolving.value;
+  });
+
+  // =============== METHODS ==============
+
+  /**
+   * @param {array|object|string|number} option 
+   */
+  const select = (option) => {
+    if (typeof option !== 'object') {
+      option = getOption(option);
+    }
+
+    switch (mode.value) {
+      case 'single':
+        update(option);
+        break;
+
+      case 'multiple':
+      case 'tags':
+        update((iv.value).concat(option));
+        break;
+    }
+
+    context.emit('select', finalValue(option), option, $this);
+  };
+
+  const deselect = (option) => {
+    if (typeof option !== 'object') {
+      option = getOption(option);
+    }
+
+    switch (mode.value) {
+      case 'single':
+        clear();
+        break;
+
+      case 'tags':
+      case 'multiple':
+        update(Array.isArray(option)
+          ? iv.value.filter(v => option.map(o => o[valueProp.value]).indexOf(v[valueProp.value]) === -1)
+          : iv.value.filter(v => v[valueProp.value] !== option[valueProp.value]));
+        break;
+    }
+
+    context.emit('deselect', finalValue(option), option, $this);
+  };
+
+  // no export
+  const finalValue = (option) => {
+    return object.value ? option : option[valueProp.value];
+  };
+
+  const remove = (option) => {
+    deselect(option);
+  };
+
+  const handleTagRemove = (option, e) => {
+    if (e.button !== 0) {
+      e.preventDefault();
+      return;
+    }
+
+    remove(option);
+  };
+
+  const clear = () => {
+    context.emit('clear', $this);
+    update(nullValue.value);
+  };
+
+  const isSelected = (option) => {
+    if (option.group !== undefined) {
+      return mode.value === 'single' ? false : areAllSelected(option[groupOptions.value]) && option[groupOptions.value].length;
+    }
+
+    switch (mode.value) {
+      case 'single':
+        return !isNullish(iv.value) && iv.value[valueProp.value] === option[valueProp.value];
+
+      case 'tags':
+      case 'multiple':
+        return !isNullish(iv.value) && iv.value.map(o => o[valueProp.value]).indexOf(option[valueProp.value]) !== -1;
+    }
+  };
+
+  const isDisabled = (option) => {
+    return option[disabledProp.value] === true;
+  };
+
+  const isMax = () => {
+    if (max.value === undefined || max.value === -1 || (!hasSelected.value && max.value > 0)) {
+      return false;
+    }
+    
+    return iv.value.length >= max.value;
+  };
+
+  const handleOptionClick = (option) => {
+    if (isDisabled(option)) {
+      return;
+    }
+
+    if (onCreate.value && onCreate.value && !isSelected(option) && option.__CREATE__) {
+      option = { ...option };
+      delete option.__CREATE__;
+
+      option = onCreate.value(option, $this);
+      
+      if (option instanceof Promise) {
+        resolving.value = true;
+        option.then((result) => {
+          resolving.value = false;
+          handleOptionSelect(result);
+        });
+
+        return;
+      } 
+    }
+
+    handleOptionSelect(option);
+  };
+
+  const handleOptionSelect = (option) => {
+    if (option.__CREATE__) {
+      option = { ...option };
+      delete option.__CREATE__;
+    }
+    
+    switch (mode.value) {
+      case 'single':
+        if (option && isSelected(option)) {
+          if (canDeselect.value) {
+            deselect(option);
+          }
+
+          if (closeOnDeselect.value) {
+            clearPointer();
+            close();
+          }
+          return;
+        }
+
+        if (option) {
+          handleOptionAppend(option);
+        }
+
+        /* istanbul ignore else */
+        if (clearOnSelect.value) {
+          clearSearch();
+        }
+
+        if (closeOnSelect.value) {
+          clearPointer();
+          close();
+        }
+
+        if (option) {
+          select(option);
+        }
+        break;
+
+      case 'multiple':
+        if (option && isSelected(option)) {
+          deselect(option);
+
+          if (closeOnDeselect.value) {
+            clearPointer();
+            close();
+          }
+          return;
+        }
+
+        if (isMax()) {
+          context.emit('max', $this);
+          return;
+        }
+
+        if (option) {
+          handleOptionAppend(option);
+          select(option);
+        }
+
+        if (clearOnSelect.value) {
+          clearSearch();
+        }
+
+        if (hideSelected.value) {
+          clearPointer();
+        }
+
+        if (closeOnSelect.value) {
+          close();
+        }
+        break;
+
+      case 'tags':
+        if (option && isSelected(option)) {
+          deselect(option);
+
+          if (closeOnDeselect.value) {
+            clearPointer();
+            close();
+          }
+          return;
+        }
+
+        if (isMax()) {
+          context.emit('max', $this);
+          return;
+        }
+
+        if (option) {
+          handleOptionAppend(option);
+        }
+
+        if (clearOnSelect.value) {
+          clearSearch();
+        }
+
+        if (option) {
+          select(option);
+        }
+
+        if (hideSelected.value) {
+          clearPointer();
+        }

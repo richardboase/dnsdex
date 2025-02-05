@@ -1,0 +1,523 @@
+
+
+================================================
+File: resources/js/Layouts/GuestLayout.vue
+================================================
+<script setup>
+import ApplicationLogo from '@/Components/ApplicationLogo.vue';
+import { Link } from '@inertiajs/vue3';
+</script>
+
+<template>
+    <div
+        class="flex min-h-screen flex-col items-center bg-gray-100 pt-6 sm:justify-center sm:pt-0"
+    >
+        <div>
+            <Link href="/">
+                <ApplicationLogo class="h-20 w-20 fill-current text-gray-500" />
+            </Link>
+        </div>
+
+        <div
+            class="mt-6 w-full overflow-hidden bg-white px-6 py-4 shadow-md sm:max-w-md sm:rounded-lg"
+        >
+            <slot />
+        </div>
+    </div>
+</template>
+
+
+================================================
+File: resources/js/Layouts/AppLayout/FlashMessages.vue
+================================================
+<script setup>
+import { computed } from "vue";
+
+import {
+    CheckCircleIcon,
+    InformationCircleIcon,
+    XCircleIcon,
+    XMarkIcon,
+} from "@heroicons/vue/24/outline";
+import { usePage } from "@inertiajs/vue3";
+
+// Check if there are any messages to display
+const hasMessages = computed(() => {
+    const flash = usePage().props.flash;
+    return flash.success || flash.error || flash.info;
+});
+
+// Dismiss functions using Inertia
+const dismiss = (type) => {
+    const props = { ...usePage().props };
+    if (props.flash) {
+        props.flash[type] = null;
+    }
+};
+
+const dismissSuccess = () => dismiss("success");
+const dismissError = () => dismiss("error");
+const dismissInfo = () => dismiss("info");
+</script>
+
+<template>
+    <div v-if="hasMessages" aria-live="assertive"
+        class="z-50 mt-12 pointer-events-none fixed inset-0 flex items-start px-4 py-6 sm:p-6">
+        <div class="flex w-full flex-col items-center space-y-4 sm:items-end">
+            <!-- Success Message -->
+            <transition enter-active-class="transform ease-out duration-300 transition"
+                enter-from-class="translate-y-2 opacity-0 sm:translate-y-0 sm:translate-x-2"
+                enter-to-class="translate-y-0 opacity-100 sm:translate-x-0"
+                leave-active-class="transition ease-in duration-100" leave-from-class="opacity-100"
+                leave-to-class="opacity-0">
+                <div v-if="$page.props.flash.success"
+                    class="pointer-events-auto w-full max-w-sm overflow-hidden rounded-lg bg-green-50 shadow-lg ring-1 ring-black ring-opacity-5">
+                    <div class="p-4">
+                        <div class="flex items-center">
+                            <div class="flex-shrink-0">
+                                <CheckCircleIcon class="h-6 w-6 text-green-400" aria-hidden="true" />
+                            </div>
+                            <div class="ml-3 w-0 flex-1">
+                                <p class="text-sm font-medium text-green-800">
+                                    {{ $page.props.flash.success }}
+                                </p>
+                            </div>
+                            <div class="ml-4 flex flex-shrink-0">
+                                <button type="button"
+                                    class="inline-flex rounded-md bg-green-50 text-green-500 hover:text-green-600 focus:outline-none focus:ring-2 focus:ring-green-500 focus:ring-offset-2"
+                                    @click="dismissSuccess">
+                                    <span class="sr-only">Close</span>
+                                    <XMarkIcon class="h-5 w-5" aria-hidden="true" />
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </transition>
+
+            <!-- Error Message -->
+            <transition enter-active-class="transform ease-out duration-300 transition"
+                enter-from-class="translate-y-2 opacity-0 sm:translate-y-0 sm:translate-x-2"
+                enter-to-class="translate-y-0 opacity-100 sm:translate-x-0"
+                leave-active-class="transition ease-in duration-100" leave-from-class="opacity-100"
+                leave-to-class="opacity-0">
+                <div v-if="$page.props.flash.error"
+                    class="pointer-events-auto w-full max-w-sm overflow-hidden rounded-lg bg-red-50 shadow-lg ring-1 ring-black ring-opacity-5">
+                    <div class="p-4">
+                        <div class="flex items-center">
+                            <div class="flex-shrink-0">
+                                <XCircleIcon class="h-6 w-6 text-red-400" aria-hidden="true" />
+                            </div>
+                            <div class="ml-3 w-0 flex-1">
+                                <p class="text-sm font-medium text-red-800">
+                                    {{ $page.props.flash.error }}
+                                </p>
+                            </div>
+                            <div class="ml-4 flex flex-shrink-0">
+                                <button type="button"
+                                    class="inline-flex rounded-md bg-red-50 text-red-500 hover:text-red-600 focus:outline-none focus:ring-2 focus:ring-red-500 focus:ring-offset-2"
+                                    @click="dismissError">
+                                    <span class="sr-only">Close</span>
+                                    <XMarkIcon class="h-5 w-5" aria-hidden="true" />
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </transition>
+
+            <!-- Info Message -->
+            <transition enter-active-class="transform ease-out duration-300 transition"
+                enter-from-class="translate-y-2 opacity-0 sm:translate-y-0 sm:translate-x-2"
+                enter-to-class="translate-y-0 opacity-100 sm:translate-x-0"
+                leave-active-class="transition ease-in duration-100" leave-from-class="opacity-100"
+                leave-to-class="opacity-0">
+                <div v-if="$page.props.flash.info"
+                    class="pointer-events-auto w-full max-w-sm overflow-hidden rounded-lg bg-blue-50 shadow-lg ring-1 ring-black ring-opacity-5">
+                    <div class="p-4">
+                        <div class="flex items-center">
+                            <div class="flex-shrink-0">
+                                <InformationCircleIcon class="h-6 w-6 text-blue-400" aria-hidden="true" />
+                            </div>
+                            <div class="ml-3 w-0 flex-1">
+                                <p class="text-sm font-medium text-blue-800">
+                                    {{ $page.props.flash.info }}
+                                </p>
+                            </div>
+                            <div class="ml-4 flex flex-shrink-0">
+                                <button type="button"
+                                    class="inline-flex rounded-md bg-blue-50 text-blue-500 hover:text-blue-600 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2"
+                                    @click="dismissInfo">
+                                    <span class="sr-only">Close</span>
+                                    <XMarkIcon class="h-5 w-5" aria-hidden="true" />
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </transition>
+        </div>
+    </div>
+</template>
+
+
+================================================
+File: resources/js/Layouts/AppLayout/Footer.vue
+================================================
+<script setup>
+	import { Link } from "@inertiajs/vue3";
+	import { BookOpenCheckIcon, LucideSend } from "lucide-vue-next";
+	import { DiscordIcon, XIcon, YouTubeIcon } from "vue3-simple-icons";
+
+	import ApplicationLogo from "@/Components/ApplicationLogo.vue";
+	import PrimaryButton from "@/Components/PrimaryButton.vue";
+</script>
+<template>
+	<footer class="bg-gray-800 text-gray-300">
+		<div class="bg-gradient-to-b from-primary/15 via-black to-black">
+			<div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
+				<div class="grid grid-cols-2 md:grid-cols-6 gap-8">
+					<!-- Brand Column -->
+					<div class="space-y-4 col-span-2">
+						<Link class="flex items-center" href="/">
+							<ApplicationLogo
+								class="block h-8 w-auto font-semibold" />
+						</Link>
+
+						<p class="text-sm font-semibold">
+							{{ $t("Great memes for great fun.") }}
+						</p>
+					</div>
+					<!-- Explore Column -->
+					<div>
+						<ul class="space-y-4">
+							<li>
+								<Link
+									href="/"
+									class="text-sm font-semibold hover:text-primary transition-colors">
+									{{ $t("Explore") }}
+								</Link>
+							</li>
+							<li>
+								<Link
+									href="/mine"
+									class="text-sm font-semibold hover:text-primary transition-colors">
+									{{ $t("My Memes") }}
+								</Link>
+							</li>
+							<li>
+								<aside
+									href="#"
+									class="text-sm font-semibold hover:text-primary transition-colors">
+									{{ $t("Rewards") }}
+								</aside>
+							</li>
+							<li>
+								<a
+									href="#"
+									class="text-sm font-semibold hover:text-primary transition-colors">
+									{{ $t("Contributions") }}
+								</a>
+							</li>
+						</ul>
+					</div>
+					<!-- Resources Column -->
+					<div>
+						<ul class="space-y-4">
+							<li>
+								<Link
+									href="/privacy"
+									class="text-sm font-semibold hover:text-primary transition-colors">
+									{{ $t("Policy") }}
+								</Link>
+							</li>
+							<li>
+								<Link
+									href="/terms"
+									class="text-sm font-semibold hover:text-primary transition-colors">
+									{{ $t("Terms") }}
+								</Link>
+							</li>
+							<li>
+								<Link
+									href="#"
+									class="text-sm font-semibold hover:text-primary transition-colors">
+									{{ $t("How it works") }}
+								</Link>
+							</li>
+							<li v-if="$page.props.links.documentation">
+								<a
+									:href="$page.props.links.documentation"
+									class="inline-flex items-center space-x-2 text-sm font-semibold hover:text-primary transition-colors">
+									<BookOpenCheckIcon class="w-5 h-5" />
+									<span>{{ $t("Docs") }}</span>
+								</a>
+							</li>
+						</ul>
+					</div>
+					<!-- Social & Subscribe Column -->
+					<div>
+						<ul class="space-y-4">
+							<li v-if="$page.props.links.twitter">
+								<a
+									:href="$page.props.links.twitter"
+									class="inline-flex items-center space-x-2 text-sm font-semibold hover:text-primary transition-colors">
+									<XIcon class="w-4 h-4" />
+									<span>{{ $t("Twitter") }}</span>
+								</a>
+							</li>
+							<li v-if="$page.props.links.tgGroup">
+								<a
+									:href="$page.props.links.tgGroup"
+									class="inline-flex items-center space-x-2 text-sm font-semibold hover:text-primary transition-colors">
+									<LucideSend class="w-5 h-5" />
+
+									<span>{{ $t("Telegram") }}</span>
+								</a>
+							</li>
+
+							<li v-if="$page.props.links.discord">
+								<a
+									:href="$page.props.links.discord"
+									class="inline-flex items-center space-x-2 text-sm font-semibold hover:text-primary transition-colors">
+									<DiscordIcon class="w-5 h-5" />
+									<span>Discord</span>
+								</a>
+							</li>
+							<li v-if="$page.props.links.youtube">
+								<a
+									:href="$page.props.links.youtube"
+									class="inline-flex items-center space-x-2 text-sm font-semibold hover:text-primary transition-colors">
+									<YouTubeIcon class="w-5 h-5" />
+									<span>Discord</span>
+								</a>
+							</li>
+						</ul>
+					</div>
+					<div class="space-y-4">
+						<h3 class="text-white font-medium">
+							{{ $t("Subscribe to notifications:") }}
+						</h3>
+						<!-- Social Links -->
+
+						<!-- Telegram Bot Button -->
+						<PrimaryButton class="w-full justify-center">
+							<svg
+								class="w-5 h-5 mr-2"
+								viewBox="0 0 24 24"
+								fill="currentColor">
+								<path
+									d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm4.64 6.8c-.15 1.58-.8 5.42-1.13 7.19-.14.75-.42 1-.68 1.03-.58.05-1.02-.38-1.58-.75-.88-.58-1.38-.94-2.23-1.5-.99-.65-.35-1.01.22-1.59.15-.15 2.71-2.48 2.76-2.69.01-.03.01-.14-.07-.2-.08-.06-.19-.04-.27-.02-.12.02-1.93 1.23-5.46 3.62-.52.36-.99.53-1.41.52-.46-.01-1.35-.26-2.01-.47-.81-.26-1.45-.4-1.4-.85.03-.22.46-.45 1.3-.68 5.09-2.22 8.49-3.68 10.19-4.4.73-.3 1.81-.76 2.21-.77.13 0 .41.03.6.19.17.14.22.34.25.49.02.12.03.77-.03 1.21z" />
+							</svg>
+							{{ $t("Telegram bot") }}
+						</PrimaryButton>
+					</div>
+				</div>
+			</div>
+		</div>
+	</footer>
+</template>
+
+
+================================================
+File: resources/js/Layouts/AppLayout/HowItWorksModal.vue
+================================================
+<script setup>
+	import { Link } from "@inertiajs/vue3";
+	import { DollarSign, LineChart, Lock, Rocket } from "lucide-vue-next";
+
+	import ApplicationLogo from "@/Components/ApplicationLogo.vue";
+	import { Dialog, DialogContent } from "@/Components/ui/dialog";
+	import ModalListItem from "@/Layouts/AppLayout/ModalListItem.vue";
+
+	defineProps({
+		show: Boolean,
+	});
+	defineEmits(["update:show"]);
+</script>
+
+<template>
+	<Dialog :open="show" @update:open="(val) => $emit('update:show', val)">
+		<DialogContent class="max-h-screen overflow-x-auto sm:max-w-3xl">
+			<div class="text-white">
+				<Link class="flex sm:mb-4 items-center justify-center" href="/">
+					<ApplicationLogo class="block h-6 w-auto font-semibold" />
+				</Link>
+				<header class="text-center mb-6">
+					<h1 class="text-4xl font-bold">
+						{{ $t("Fair Launch Protocol") }}
+					</h1>
+					<p class="text-gray-300">
+						{{
+							$t("No pre-sale, no insiders, maximum transparency")
+						}}
+					</p>
+				</header>
+			</div>
+			<div
+				class="bg-gradient-to-br from-gray-900 to-gray-800 text-white p-6">
+				<div class="max-w-3xl mx-auto">
+					<div class="grid gap-6">
+						<div class="bg-gray-800 rounded-lg p-4 shadow-lg">
+							<h2 class="text-xl font-semibold mb-4">
+								{{ $t("Key Features") }}
+							</h2>
+							<ul class="space-y-3 grid sm:grid-cols-2">
+								<li class="flex items-center">
+									<span
+										class="w-2 h-2 bg-green-400 rounded-full mr-2"></span>
+									<span>{{ $t("Max 1B supply") }}</span>
+								</li>
+								<li class="flex items-center">
+									<span
+										class="w-2 h-2 bg-green-400 rounded-full mr-2"></span>
+									<span>
+										{{
+											$t("Ownership renounced, immutable")
+										}}
+									</span>
+								</li>
+								<li class="flex items-center">
+									<span
+										class="w-2 h-2 bg-green-400 rounded-full mr-2"></span>
+									<span>
+										{{
+											$t("Fully audited smart contracts")
+										}}
+									</span>
+								</li>
+								<li class="flex items-center">
+									<span
+										class="w-2 h-2 bg-green-400 rounded-full mr-2"></span>
+									<span>
+										{{ $t("Buy and sell at any time") }}
+									</span>
+								</li>
+							</ul>
+						</div>
+					</div>
+
+					<div class="mt-8 grid gap-6 sm:grid-cols-2">
+						<div class="bg-gray-800 rounded-lg p-2 shadow-lg">
+							<h2
+								class="text-xl font-semibold mb-4 flex items-center">
+								<LineChart class="w-5 h-5 mr-2" />
+								{{ $t("Wen Moon?") }}
+							</h2>
+							<div class="space-y-4">
+								<p class="text-gray-300">
+									{{ $t("Migration triggers at:") }}
+								</p>
+								<ul class="space-y-2">
+									<ModalListItem
+										v-for="chainId in $page.props
+											.activeChains"
+										:key="chainId"
+										:rate="$page.props.usdRates[chainId]"
+										:config="$page.props.evm[chainId]" />
+								</ul>
+							</div>
+						</div>
+						<div
+							class="bg-gray-800 rounded-lg p-2 shadow-lg text-center">
+							<Lock
+								class="w-8 h-8 mx-auto mb-4 text-purple-400" />
+							<h3 class="font-semibold mb-2">
+								{{ $t("Locked Liquidity") }}
+							</h3>
+							<p class="text-sm text-gray-300">
+								{{ $t("All liquidity is locked forever") }}
+							</p>
+						</div>
+
+						<div
+							class="bg-gray-800 rounded-lg p-2 shadow-lg text-center">
+							<DollarSign
+								class="w-8 h-8 mx-auto mb-4 text-green-400" />
+							<h3 class="font-semibold mb-2">
+								{{ $t("Launch, Lock & Earn") }}
+							</h3>
+							<p class="text-sm text-gray-300">
+								{{
+									$t(
+										"Launch on Uniswap and earn LP rewards for life!",
+									)
+								}}
+							</p>
+						</div>
+
+						<div
+							class="bg-gray-800 rounded-lg p-2 shadow-lg text-center">
+							<Rocket
+								class="w-8 h-8 mx-auto mb-4 text-blue-400" />
+							<h3 class="font-semibold mb-2">
+								{{ $t("Enhanced Token Info") }}
+							</h3>
+							<p class="text-sm text-gray-300">
+								{{
+									$t(
+										"Free Enhanced Token Info for better DEX Tools visibility",
+									)
+								}}
+							</p>
+						</div>
+					</div>
+				</div>
+			</div>
+		</DialogContent>
+	</Dialog>
+</template>
+
+
+================================================
+File: resources/js/Layouts/AppLayout/ModalListItem.vue
+================================================
+<script setup>
+	import { useBillions } from "@/hooks";
+
+	defineProps({
+		rate: Number,
+		config: Object,
+	});
+</script>
+<template>
+	<li class="flex items-center text-yellow-400">
+		<DollarSign class="w-4 h-4 mr-2" />
+		{{ config.bondingTarget }} {{ config.symbol }} (~${{
+			useBillions(config.bondingTarget * rate)
+		}})
+	</li>
+</template>
+
+
+================================================
+File: resources/js/Layouts/AppLayout/TopNav.vue
+================================================
+<script setup>
+import { ref } from "vue";
+
+import { Link } from "@inertiajs/vue3";
+import { BookOpenText } from "lucide-vue-next";
+import { TelegramIcon, XIcon } from "vue3-simple-icons";
+
+import ApplicationLogo from "@/Components/ApplicationLogo.vue";
+import BaseButton from "@/Components/BaseButton.vue";
+import PrimaryButton from "@/Components/PrimaryButton.vue";
+import HowItWorksModal from "@/Layouts/AppLayout/HowItWorksModal.vue";
+import AuthLink from "@/Pages/Auth/AuthLink.vue";
+import Web3Auth from "@/Pages/Auth/Web3Auth.vue";
+const isMobileMenuOpen = ref(false);
+const showHowItworks = ref(false);
+</script>
+<template>
+    <nav class="bg-gray-800 border-b border-gray-700">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div class="flex items-center justify-between h-16">
+                <!-- Logo and Brand -->
+                <div class="flex-shrink-0 flex items-center lg:space-x-8">
+                    <Link
+                        class="flex items-center"
+                        href="/"
+                    >
+                    <ApplicationLogo class="block h-5 w-auto font-semibold" />
+                    </Link>

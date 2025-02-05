@@ -1,0 +1,523 @@
+        ];
+    }
+}
+
+
+================================================
+File: app/Observers/TradeObserver.php
+================================================
+<?php
+
+namespace App\Observers;
+
+use App\Models\Trade;
+use App\Events\NewTradeEvent;
+use App\Services\CandleService;
+
+class TradeObserver
+{
+    protected $candleService;
+
+    public function __construct(CandleService $candleService)
+    {
+        $this->candleService = $candleService;
+    }
+
+    /**
+     * Handle the Trade "created" event.
+     */
+    public function created(Trade $trade): void
+    {
+        
+        NewTradeEvent::dispatch($trade);
+        // Update current period candles
+        $this->candleService->updateCurrentPeriod($trade);
+    }
+}
+
+
+================================================
+File: app/Policies/LaunchpadPolicy.php
+================================================
+<?php
+
+namespace App\Policies;
+
+use App\Models\Launchpad;
+use App\Models\User;
+use Illuminate\Auth\Access\HandlesAuthorization;
+
+class LaunchpadPolicy
+{
+    use HandlesAuthorization;
+	
+	public function before(User $user)
+	{
+		if ($user->isAdmin()) {
+			return true;
+		}
+	}
+	
+	 /**
+     * Determine whether the user can view any models.
+     *
+     * @param  \App\Models\User  $user
+     * @return mixed
+     */
+    public function viewAny(User $user): bool
+    {
+        return $user->hasPermission('viewany.launchpad');
+    }
+
+    /**
+     * Determine whether the user can view the DocLaunchpad.
+     *
+     * @param  \App\Models\User  $user
+     * @param  \App\Models\Launchpad  $launchpad
+     * @return bool
+     */
+    public function view(User $user, Launchpad $launchpad): bool
+    {
+		return $user->hasPermission('view.launchpad');
+    }
+
+    /**
+     * Determine whether the user can create DocDummyPluralModel.
+     *
+     * @param  \App\Models\User  $user
+     * @return bool
+     */
+    public function create(User $user): bool
+    {
+		return $user->hasPermission('create.launchpad');
+    }
+
+    /**
+     * Determine whether the user can update the DocLaunchpad.
+     *
+     * @param  \App\Models\User  $user
+     * @param  \App\Models\Launchpad  $launchpad
+     * @return bool
+     */
+    public function update(User $user, Launchpad $launchpad): bool
+    {
+        return $user->hasPermission('update.launchpad') || $user->id == $launchpad->user_id;
+    }
+
+    /**
+     * Determine whether the user can delete the DocLaunchpad.
+     *
+     * @param  \App\Models\User  $user
+     * @param  \App\Models\Launchpad  $launchpad
+     * @return bool
+     */
+    public function delete(User $user, Launchpad $launchpad): bool
+    {
+        return  $user->hasPermission('delete.launchpad') || $user->id == $launchpad->user_id;
+    }
+
+    /**
+     * Determine whether the user can restore the DocLaunchpad.
+     *
+     * @param  \App\Models\User  $user
+     * @param  \App\Models\Launchpad  $launchpad
+     * @return bool
+     */
+    public function restore(User $user, Launchpad $launchpad): bool
+    {
+         return $user->hasPermission('restore.launchpad') || $user->id == $launchpad->user_id;
+    }
+
+    /**
+     * Determine whether the user can permanently delete the DocLaunchpad.
+     *
+     * @param  \App\Models\User  $user
+     * @param  \App\Models\Launchpad  $launchpad
+     * @return bool
+     */
+    public function forceDelete(User $user, Launchpad $launchpad): bool
+    {
+        return $user->hasPermission('forcedelete.launchpad') || $user->id == $launchpad->user_id;		
+    }
+}
+
+================================================
+File: app/Policies/MsgPolicy.php
+================================================
+<?php
+
+namespace App\Policies;
+
+use App\Models\Msg;
+use App\Models\User;
+use Illuminate\Auth\Access\HandlesAuthorization;
+
+class MsgPolicy
+{
+    use HandlesAuthorization;
+	
+	public function before(User $user)
+	{
+		if ($user->isAdmin()) {
+			return true;
+		}
+	}
+	
+	 /**
+     * Determine whether the user can view any models.
+     *
+     * @param  \App\Models\User  $user
+     * @return mixed
+     */
+    public function viewAny(User $user): bool
+    {
+        return $user->hasPermission('viewany.msg');
+    }
+
+    /**
+     * Determine whether the user can view the DocMsg.
+     *
+     * @param  \App\Models\User  $user
+     * @param  \App\Models\Msg  $msg
+     * @return bool
+     */
+    public function view(User $user, Msg $msg): bool
+    {
+		return $user->hasPermission('view.msg');
+    }
+
+    /**
+     * Determine whether the user can create DocDummyPluralModel.
+     *
+     * @param  \App\Models\User  $user
+     * @return bool
+     */
+    public function create(User $user): bool
+    {
+		return $user->hasPermission('create.msg');
+    }
+
+    /**
+     * Determine whether the user can update the DocMsg.
+     *
+     * @param  \App\Models\User  $user
+     * @param  \App\Models\Msg  $msg
+     * @return bool
+     */
+    public function update(User $user, Msg $msg): bool
+    {
+        return $user->hasPermission('update.msg') || $user->id == $msg->user_id;
+    }
+
+    /**
+     * Determine whether the user can delete the DocMsg.
+     *
+     * @param  \App\Models\User  $user
+     * @param  \App\Models\Msg  $msg
+     * @return bool
+     */
+    public function delete(User $user, Msg $msg): bool
+    {
+        return  $user->hasPermission('delete.msg') || $user->id == $msg->user_id;
+    }
+
+    /**
+     * Determine whether the user can restore the DocMsg.
+     *
+     * @param  \App\Models\User  $user
+     * @param  \App\Models\Msg  $msg
+     * @return bool
+     */
+    public function restore(User $user, Msg $msg): bool
+    {
+         return $user->hasPermission('restore.msg') || $user->id == $msg->user_id;
+    }
+
+    /**
+     * Determine whether the user can permanently delete the DocMsg.
+     *
+     * @param  \App\Models\User  $user
+     * @param  \App\Models\Msg  $msg
+     * @return bool
+     */
+    public function forceDelete(User $user, Msg $msg): bool
+    {
+        return $user->hasPermission('forcedelete.msg') || $user->id == $msg->user_id;		
+    }
+}
+
+================================================
+File: app/Providers/AppServiceProvider.php
+================================================
+<?php
+
+namespace App\Providers;
+
+use App\Models\Trade;
+use App\Observers\TradeObserver;
+use Illuminate\Http\Resources\Json\JsonResource;
+use Illuminate\Support\Facades\Vite;
+use Illuminate\Support\ServiceProvider;
+
+class AppServiceProvider extends ServiceProvider
+{
+    /**
+     * Register any application services.
+     */
+    public function register(): void
+    {
+        //
+    }
+
+    /**
+     * Bootstrap any application services.
+     */
+    public function boot(): void
+    {
+        JsonResource::withoutWrapping();
+        Vite::prefetch(concurrency: 3);
+        Trade::observe(TradeObserver::class);
+    }
+}
+
+
+================================================
+File: app/Services/CandleService.php
+================================================
+<?php
+
+namespace App\Services;
+
+use App\Http\Resources\TradeCandle as ResourcesTradeCandle;
+use App\Models\Trade;
+use App\Models\TradeCandle;
+use App\Models\Launchpad;
+use Carbon\Carbon;
+use Illuminate\Support\Facades\DB;
+
+class CandleService
+{
+    private array $timeframes = [
+        '1' => 60,
+        '5' => 300,
+        '15' => 900,
+        '30' => 1800,
+        '60' => 3600,
+        '240' => 14400,
+        'D' => 86400,
+        'W' => 604800
+    ];
+
+    /**
+     * Update candles for all timeframes for a specific period
+     */
+    public function updateCandles(Launchpad $launchpad, Carbon $from, Carbon $to): void
+    {
+        foreach ($this->timeframes as $timeframe => $seconds) {
+            $this->updateCandlesForTimeframe($launchpad, $timeframe, $from, $to);
+        }
+    }
+
+    /**
+     * Update candles for a specific timeframe
+     */
+    private function updateCandlesForTimeframe(Launchpad $launchpad, string $timeframe, Carbon $from, Carbon $to): void
+    {
+        $timeframeSeconds = $this->timeframes[$timeframe];
+        DB::statement("SET SESSION sql_mode=(SELECT REPLACE(@@sql_mode,'ONLY_FULL_GROUP_BY',''))");
+        // Get all trades within the period
+        $candles = DB::table('trades')
+            ->select([
+                DB::raw("FLOOR(UNIX_TIMESTAMP(created_at) / $timeframeSeconds) * $timeframeSeconds as timestamp"),
+                DB::raw('MIN(amount) as low'),
+                DB::raw('MAX(amount) as high'),
+                DB::raw('FIRST_VALUE(amount) OVER (PARTITION BY FLOOR(UNIX_TIMESTAMP(created_at) / ' . $timeframeSeconds . ') ORDER BY created_at ASC) as open'),
+                DB::raw('FIRST_VALUE(amount) OVER (PARTITION BY FLOOR(UNIX_TIMESTAMP(created_at) / ' . $timeframeSeconds . ') ORDER BY created_at DESC) as close'),
+                DB::raw('SUM(qty) as volume'),
+                DB::raw('COUNT(*) as trades_count')
+            ])
+            ->where('launchpad_id', $launchpad->id)
+            ->whereBetween('created_at', [$from, $to])
+            ->groupBy(DB::raw("FLOOR(UNIX_TIMESTAMP(created_at) / $timeframeSeconds) * $timeframeSeconds"))
+            ->get();
+
+        foreach ($candles as $candle) {
+            TradeCandle::updateOrCreate(
+                [
+                    'launchpad_id' => $launchpad->id,
+                    'timeframe' => $timeframe,
+                    'timestamp' => Carbon::createFromTimestamp($candle->timestamp),
+                ],
+                [
+                    'open' => $candle->open,
+                    'high' => $candle->high,
+                    'low' => $candle->low,
+                    'close' => $candle->close,
+                    'volume' => $candle->volume,
+                    'trades_count' => $candle->trades_count,
+                ]
+            );
+        }
+    }
+
+    /**
+     * Update current period candle
+     */
+    public function updateCurrentPeriod(Trade $trade): void
+    {
+        $now = Carbon::now();
+
+        foreach ($this->timeframes as $timeframe => $seconds) {
+            $periodStart = Carbon::createFromTimestamp(floor($now->timestamp / $seconds) * $seconds);
+            $periodEnd = $periodStart->copy()->addSeconds($seconds);
+            $this->updateCandlesForTimeframe($trade->launchpad, $timeframe, $periodStart, $periodEnd);
+        }
+    }
+
+    /**
+     * Get candles for TradingView
+     */
+    public function getCandles(Launchpad $launchpad, string $timeframe, Carbon $from, Carbon $to)
+    {
+        // Get historical completed candles from the database
+        $candles = TradeCandle::where('launchpad_id', $launchpad->id)
+            ->where('timeframe', $timeframe)
+            ->whereBetween('timestamp', [$from, $to])
+            ->orderBy('timestamp')
+            ->get();
+
+        // For the current period, calculate in real-time
+        $currentPeriodStart = $this->getCurrentPeriodStart($timeframe);
+        if ($to > $currentPeriodStart) {
+            $currentCandle = $this->calculateCurrentCandle($launchpad, $timeframe, $currentPeriodStart);
+            if ($currentCandle) {
+                $candles->push($currentCandle);
+            }
+        }
+
+        return ResourcesTradeCandle::collection($candles);
+    }
+
+    /**
+     * Calculate the current incomplete candle
+     */
+    private function calculateCurrentCandle(Launchpad $launchpad, string $timeframe, Carbon $from): ?TradeCandle
+    {
+        $trades = Trade::where('launchpad_id', $launchpad->id)
+            ->where('created_at', '>=', $from)
+            ->get();
+
+        if ($trades->isEmpty()) {
+            return null;
+        }
+
+        return new TradeCandle([
+            'launchpad_id' => $launchpad->id,
+            'timeframe' => $timeframe,
+            'timestamp' => $from,
+            'open' => $trades->first()->amount,
+            'high' => $trades->max('amount'),
+            'low' => $trades->min('amount'),
+            'close' => $trades->last()->amount,
+            'volume' => $trades->sum('qty'),
+            'trades_count' => $trades->count(),
+        ]);
+    }
+
+    /**
+     * Get the start of the current period
+     */
+    private function getCurrentPeriodStart(string $timeframe): Carbon
+    {
+        $seconds = $this->timeframes[$timeframe] ?? 3600;
+        return Carbon::createFromTimestamp(floor(Carbon::now()->timestamp / $seconds) * $seconds);
+    }
+}
+
+
+================================================
+File: app/Services/Rate.php
+================================================
+<?php
+
+namespace App\Services;
+
+use App\Models\Rate as ModelsRate;
+use Cache;
+use Exception;
+use Illuminate\Support\Facades\Http;
+
+class Rate
+{
+
+    /**
+     * call the coincap api
+     */
+
+    public static function api($path)
+    {
+
+        $token = config('env.coincap_apikey');
+        $response = Http::withToken($token)->get("https://api.coincap.io/v2/$path");
+        if (!$response->successful()) {
+            throw new \Exception("Failed to fetch api for $path");
+        }
+        return $response->json('data', []);
+    }
+
+    /**
+     * cache the coincap symbols for easy retriviels
+     */
+    public static function  symbols()
+    {
+        return Cache::remember('--rates--symbols--', 60 * 60, function () {
+            $assets =  [];
+            foreach (static::api('assets') as $asset) {
+                $assets[$asset['symbol']] = floatval($asset['priceUsd']);
+            }
+            foreach (static::api('rates') as $asset) {
+                $assets[$asset['symbol']] = floatval($asset['rateUsd']);
+            }
+            return $assets;
+        });
+    }
+
+    /**
+     * update the rates table for the chain currencies
+     */
+    public static function update()
+    {
+        $siteCurrency = 'USD';
+        $assets = collect(static::api('assets'))->flatMap(function ($asset) {
+            return [$asset['symbol'] => floatval($asset['priceUsd'])];
+        });
+        $rates = collect(static::api('rates'))->flatMap(function ($asset) {
+            return [$asset['symbol'] => floatval($asset['rateUsd'])];
+        });
+        ModelsRate::pluck('symbol')
+            ->unique()
+            ->each(function ($symbol) use ($assets, $rates, $siteCurrency) {
+                $rate = $assets[$symbol] ?? $rates[$symbol] ?? null;
+                if (!$rate) return;
+                if ($siteCurrency != 'USD') {
+                    $conversionRate = $rates[$siteCurrency];
+                    if (!$conversionRate) return;
+                    $rate *= $conversionRate;
+                }
+                ModelsRate::where('symbol', $symbol)->update(['usd_rate' => $rate]);
+            });
+    }
+}
+
+
+================================================
+File: app/Services/TokenHolderService.php
+================================================
+<?php
+
+namespace App\Services;
+
+use App\Models\Launchpad;
+use App\Models\Holder;
+use App\Models\User;
+use Illuminate\Support\Facades\Http;

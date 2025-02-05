@@ -1,0 +1,523 @@
+</template>
+
+
+================================================
+File: resources/js/Components/ui/accordion/AccordionItem.vue
+================================================
+<script setup>
+import { cn } from '@/lib/utils';
+import { AccordionItem, useForwardProps } from 'radix-vue';
+import { computed } from 'vue';
+
+const props = defineProps({
+  disabled: { type: Boolean, required: false },
+  value: { type: String, required: true },
+  asChild: { type: Boolean, required: false },
+  as: { type: null, required: false },
+  class: { type: null, required: false },
+});
+
+const delegatedProps = computed(() => {
+  const { class: _, ...delegated } = props;
+
+  return delegated;
+});
+
+const forwardedProps = useForwardProps(delegatedProps);
+</script>
+
+<template>
+  <AccordionItem v-bind="forwardedProps" :class="cn('border-b', props.class)">
+    <slot />
+  </AccordionItem>
+</template>
+
+
+================================================
+File: resources/js/Components/ui/accordion/AccordionTrigger.vue
+================================================
+<script setup>
+import { cn } from '@/lib/utils';
+import { ChevronDown } from 'lucide-vue-next';
+import { AccordionHeader, AccordionTrigger } from 'radix-vue';
+import { computed } from 'vue';
+
+const props = defineProps({
+  asChild: { type: Boolean, required: false },
+  as: { type: null, required: false },
+  class: { type: null, required: false },
+});
+
+const delegatedProps = computed(() => {
+  const { class: _, ...delegated } = props;
+
+  return delegated;
+});
+</script>
+
+<template>
+  <AccordionHeader class="flex">
+    <AccordionTrigger
+      v-bind="delegatedProps"
+      :class="
+        cn(
+          'flex flex-1 items-center justify-between py-4 font-medium transition-all hover:underline [&[data-state=open]>svg]:rotate-180',
+          props.class,
+        )
+      "
+    >
+      <slot />
+      <slot name="icon">
+        <ChevronDown
+          class="h-4 w-4 shrink-0 transition-transform duration-200"
+        />
+      </slot>
+    </AccordionTrigger>
+  </AccordionHeader>
+</template>
+
+
+================================================
+File: resources/js/Components/ui/accordion/index.js
+================================================
+export { default as Accordion } from './Accordion.vue';
+export { default as AccordionContent } from './AccordionContent.vue';
+export { default as AccordionItem } from './AccordionItem.vue';
+export { default as AccordionTrigger } from './AccordionTrigger.vue';
+
+
+================================================
+File: resources/js/Components/ui/alert/Alert.vue
+================================================
+<script setup>
+import { cn } from '@/lib/utils';
+import { alertVariants } from '.';
+
+const props = defineProps({
+  class: { type: null, required: false },
+  variant: { type: null, required: false },
+});
+</script>
+
+<template>
+  <div :class="cn(alertVariants({ variant }), props.class)" role="alert">
+    <slot />
+  </div>
+</template>
+
+
+================================================
+File: resources/js/Components/ui/alert/AlertDescription.vue
+================================================
+<script setup>
+import { cn } from '@/lib/utils';
+
+const props = defineProps({
+  class: { type: null, required: false },
+});
+</script>
+
+<template>
+  <div :class="cn('text-sm [&_p]:leading-relaxed', props.class)">
+    <slot />
+  </div>
+</template>
+
+
+================================================
+File: resources/js/Components/ui/alert/AlertTitle.vue
+================================================
+<script setup>
+import { cn } from '@/lib/utils';
+
+const props = defineProps({
+  class: { type: null, required: false },
+});
+</script>
+
+<template>
+  <h5 :class="cn('mb-1 font-medium leading-none tracking-tight', props.class)">
+    <slot />
+  </h5>
+</template>
+
+
+================================================
+File: resources/js/Components/ui/alert/index.js
+================================================
+import { cva } from 'class-variance-authority';
+
+export { default as Alert } from './Alert.vue';
+export { default as AlertDescription } from './AlertDescription.vue';
+export { default as AlertTitle } from './AlertTitle.vue';
+
+export const alertVariants = cva(
+  'relative w-full rounded-lg border border-gray-200 p-4 [&>svg~*]:pl-7 [&>svg+div]:translate-y-[-3px] [&>svg]:absolute [&>svg]:left-4 [&>svg]:top-4 [&>svg]:text-gray-950 dark:border-gray-800 dark:[&>svg]:text-gray-50',
+  {
+    variants: {
+      variant: {
+        default: 'bg-white text-gray-950 dark:bg-gray-950 dark:text-gray-50',
+        destructive:
+          'border-red-500/50 text-red-500 dark:border-red-500 [&>svg]:text-red-500 dark:border-red-900/50 dark:text-red-900 dark:dark:border-red-900 dark:[&>svg]:text-red-900',
+      },
+    },
+    defaultVariants: {
+      variant: 'default',
+    },
+  },
+);
+
+
+================================================
+File: resources/js/Components/ui/alert-dialog/AlertDialog.vue
+================================================
+<script setup>
+import { AlertDialogRoot, useForwardPropsEmits } from 'radix-vue';
+
+const props = defineProps({
+  open: { type: Boolean, required: false },
+  defaultOpen: { type: Boolean, required: false },
+});
+const emits = defineEmits(['update:open']);
+
+const forwarded = useForwardPropsEmits(props, emits);
+</script>
+
+<template>
+  <AlertDialogRoot v-bind="forwarded">
+    <slot />
+  </AlertDialogRoot>
+</template>
+
+
+================================================
+File: resources/js/Components/ui/alert-dialog/AlertDialogAction.vue
+================================================
+<script setup>
+import { buttonVariants } from '@/Components/ui/button';
+import { cn } from '@/lib/utils';
+import { AlertDialogAction } from 'radix-vue';
+import { computed } from 'vue';
+
+const props = defineProps({
+  asChild: { type: Boolean, required: false },
+  as: { type: null, required: false },
+  class: { type: null, required: false },
+});
+
+const delegatedProps = computed(() => {
+  const { class: _, ...delegated } = props;
+
+  return delegated;
+});
+</script>
+
+<template>
+  <AlertDialogAction
+    v-bind="delegatedProps"
+    :class="cn(buttonVariants(), props.class)"
+  >
+    <slot />
+  </AlertDialogAction>
+</template>
+
+
+================================================
+File: resources/js/Components/ui/alert-dialog/AlertDialogCancel.vue
+================================================
+<script setup>
+import { buttonVariants } from '@/Components/ui/button';
+import { cn } from '@/lib/utils';
+import { AlertDialogCancel } from 'radix-vue';
+import { computed } from 'vue';
+
+const props = defineProps({
+  asChild: { type: Boolean, required: false },
+  as: { type: null, required: false },
+  class: { type: null, required: false },
+});
+
+const delegatedProps = computed(() => {
+  const { class: _, ...delegated } = props;
+
+  return delegated;
+});
+</script>
+
+<template>
+  <AlertDialogCancel
+    v-bind="delegatedProps"
+    :class="
+      cn(buttonVariants({ variant: 'outline' }), 'mt-2 sm:mt-0', props.class)
+    "
+  >
+    <slot />
+  </AlertDialogCancel>
+</template>
+
+
+================================================
+File: resources/js/Components/ui/alert-dialog/AlertDialogContent.vue
+================================================
+<script setup>
+import { cn } from '@/lib/utils';
+import {
+  AlertDialogContent,
+  AlertDialogOverlay,
+  AlertDialogPortal,
+  useForwardPropsEmits,
+} from 'radix-vue';
+import { computed } from 'vue';
+
+const props = defineProps({
+  forceMount: { type: Boolean, required: false },
+  trapFocus: { type: Boolean, required: false },
+  disableOutsidePointerEvents: { type: Boolean, required: false },
+  asChild: { type: Boolean, required: false },
+  as: { type: null, required: false },
+  class: { type: null, required: false },
+});
+const emits = defineEmits([
+  'escapeKeyDown',
+  'pointerDownOutside',
+  'focusOutside',
+  'interactOutside',
+  'openAutoFocus',
+  'closeAutoFocus',
+]);
+
+const delegatedProps = computed(() => {
+  const { class: _, ...delegated } = props;
+
+  return delegated;
+});
+
+const forwarded = useForwardPropsEmits(delegatedProps, emits);
+</script>
+
+<template>
+  <AlertDialogPortal>
+    <AlertDialogOverlay
+      class="fixed inset-0 z-50 bg-black/80 data-[state=open]:animate-in data-[state=closed]:animate-out data-[state=closed]:fade-out-0 data-[state=open]:fade-in-0"
+    />
+    <AlertDialogContent
+      v-bind="forwarded"
+      :class="
+        cn(
+          'fixed left-1/2 top-1/2 z-50 grid w-full max-w-lg -translate-x-1/2 -translate-y-1/2 gap-4 border border-gray-200 bg-white p-6 shadow-lg duration-200 data-[state=open]:animate-in data-[state=closed]:animate-out data-[state=closed]:fade-out-0 data-[state=open]:fade-in-0 data-[state=closed]:zoom-out-95 data-[state=open]:zoom-in-95 data-[state=closed]:slide-out-to-left-1/2 data-[state=closed]:slide-out-to-top-[48%] data-[state=open]:slide-in-from-left-1/2 data-[state=open]:slide-in-from-top-[48%] sm:rounded-lg dark:border-gray-800 dark:bg-gray-950',
+          props.class,
+        )
+      "
+    >
+      <slot />
+    </AlertDialogContent>
+  </AlertDialogPortal>
+</template>
+
+
+================================================
+File: resources/js/Components/ui/alert-dialog/AlertDialogDescription.vue
+================================================
+<script setup>
+import { cn } from '@/lib/utils';
+import { AlertDialogDescription } from 'radix-vue';
+import { computed } from 'vue';
+
+const props = defineProps({
+  asChild: { type: Boolean, required: false },
+  as: { type: null, required: false },
+  class: { type: null, required: false },
+});
+
+const delegatedProps = computed(() => {
+  const { class: _, ...delegated } = props;
+
+  return delegated;
+});
+</script>
+
+<template>
+  <AlertDialogDescription
+    v-bind="delegatedProps"
+    :class="cn('text-sm text-gray-500 dark:text-gray-400', props.class)"
+  >
+    <slot />
+  </AlertDialogDescription>
+</template>
+
+
+================================================
+File: resources/js/Components/ui/alert-dialog/AlertDialogFooter.vue
+================================================
+<script setup>
+import { cn } from '@/lib/utils';
+
+const props = defineProps({
+  class: { type: null, required: false },
+});
+</script>
+
+<template>
+  <div
+    :class="
+      cn(
+        'flex flex-col-reverse sm:flex-row sm:justify-end sm:gap-x-2',
+        props.class,
+      )
+    "
+  >
+    <slot />
+  </div>
+</template>
+
+
+================================================
+File: resources/js/Components/ui/alert-dialog/AlertDialogHeader.vue
+================================================
+<script setup>
+import { cn } from '@/lib/utils';
+
+const props = defineProps({
+  class: { type: null, required: false },
+});
+</script>
+
+<template>
+  <div
+    :class="cn('flex flex-col gap-y-2 text-center sm:text-left', props.class)"
+  >
+    <slot />
+  </div>
+</template>
+
+
+================================================
+File: resources/js/Components/ui/alert-dialog/AlertDialogTitle.vue
+================================================
+<script setup>
+import { cn } from '@/lib/utils';
+import { AlertDialogTitle } from 'radix-vue';
+import { computed } from 'vue';
+
+const props = defineProps({
+  asChild: { type: Boolean, required: false },
+  as: { type: null, required: false },
+  class: { type: null, required: false },
+});
+
+const delegatedProps = computed(() => {
+  const { class: _, ...delegated } = props;
+
+  return delegated;
+});
+</script>
+
+<template>
+  <AlertDialogTitle
+    v-bind="delegatedProps"
+    :class="cn('text-lg font-semibold', props.class)"
+  >
+    <slot />
+  </AlertDialogTitle>
+</template>
+
+
+================================================
+File: resources/js/Components/ui/alert-dialog/AlertDialogTrigger.vue
+================================================
+<script setup>
+import { AlertDialogTrigger } from 'radix-vue';
+
+const props = defineProps({
+  asChild: { type: Boolean, required: false },
+  as: { type: null, required: false },
+});
+</script>
+
+<template>
+  <AlertDialogTrigger v-bind="props">
+    <slot />
+  </AlertDialogTrigger>
+</template>
+
+
+================================================
+File: resources/js/Components/ui/alert-dialog/index.js
+================================================
+export { default as AlertDialog } from './AlertDialog.vue';
+export { default as AlertDialogAction } from './AlertDialogAction.vue';
+export { default as AlertDialogCancel } from './AlertDialogCancel.vue';
+export { default as AlertDialogContent } from './AlertDialogContent.vue';
+export { default as AlertDialogDescription } from './AlertDialogDescription.vue';
+export { default as AlertDialogFooter } from './AlertDialogFooter.vue';
+export { default as AlertDialogHeader } from './AlertDialogHeader.vue';
+export { default as AlertDialogTitle } from './AlertDialogTitle.vue';
+export { default as AlertDialogTrigger } from './AlertDialogTrigger.vue';
+
+
+================================================
+File: resources/js/Components/ui/aspect-ratio/AspectRatio.vue
+================================================
+<script setup>
+import { AspectRatio } from 'radix-vue';
+
+const props = defineProps({
+  ratio: { type: Number, required: false },
+  asChild: { type: Boolean, required: false },
+  as: { type: null, required: false },
+});
+</script>
+
+<template>
+  <AspectRatio v-bind="props">
+    <slot />
+  </AspectRatio>
+</template>
+
+
+================================================
+File: resources/js/Components/ui/aspect-ratio/index.js
+================================================
+export { default as AspectRatio } from './AspectRatio.vue';
+
+
+================================================
+File: resources/js/Components/ui/avatar/Avatar.vue
+================================================
+<script setup>
+import { cn } from '@/lib/utils';
+import { AvatarRoot } from 'radix-vue';
+import { avatarVariant } from '.';
+
+const props = defineProps({
+  class: { type: null, required: false },
+  size: { type: null, required: false, default: 'sm' },
+  shape: { type: null, required: false, default: 'circle' },
+});
+</script>
+
+<template>
+  <AvatarRoot :class="cn(avatarVariant({ size, shape }), props.class)">
+    <slot />
+  </AvatarRoot>
+</template>
+
+
+================================================
+File: resources/js/Components/ui/avatar/AvatarFallback.vue
+================================================
+<script setup>
+import { AvatarFallback } from 'radix-vue';
+
+const props = defineProps({
+  delayMs: { type: Number, required: false },
+  asChild: { type: Boolean, required: false },
+  as: { type: null, required: false },
+});
+</script>
+
+<template>
+  <AvatarFallback v-bind="props">
+    <slot />
+  </AvatarFallback>
+</template>

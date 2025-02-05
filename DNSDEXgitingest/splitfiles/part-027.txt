@@ -1,0 +1,523 @@
+
+EXPOSE 80/tcp
+
+ENTRYPOINT ["start-container"]
+
+
+================================================
+File: docker/8.3/php.ini
+================================================
+[PHP]
+post_max_size = 100M
+upload_max_filesize = 100M
+variables_order = EGPCS
+pcov.directory = .
+
+
+================================================
+File: docker/8.3/start-container
+================================================
+#!/usr/bin/env bash
+
+if [ "$SUPERVISOR_PHP_USER" != "root" ] && [ "$SUPERVISOR_PHP_USER" != "sail" ]; then
+    echo "You should set SUPERVISOR_PHP_USER to either 'sail' or 'root'."
+    exit 1
+fi
+
+if [ ! -z "$WWWUSER" ]; then
+    usermod -u $WWWUSER sail
+fi
+
+if [ ! -d /.composer ]; then
+    mkdir /.composer
+fi
+
+chmod -R ugo+rw /.composer
+
+if [ $# -gt 0 ]; then
+    if [ "$SUPERVISOR_PHP_USER" = "root" ]; then
+        exec "$@"
+    else
+        exec gosu $WWWUSER "$@"
+    fi
+else
+    exec /usr/bin/supervisord -c /etc/supervisor/conf.d/supervisord.conf
+fi
+
+
+================================================
+File: docker/8.3/supervisord.conf
+================================================
+[supervisord]
+nodaemon=true
+user=root
+logfile=/var/log/supervisor/supervisord.log
+pidfile=/var/run/supervisord.pid
+
+[program:php]
+command=%(ENV_SUPERVISOR_PHP_COMMAND)s
+user=%(ENV_SUPERVISOR_PHP_USER)s
+environment=LARAVEL_SAIL="1"
+stdout_logfile=/dev/stdout
+stdout_logfile_maxbytes=0
+stderr_logfile=/dev/stderr
+stderr_logfile_maxbytes=0
+
+[program:reverb]
+command=php /var/www/html/artisan reverb:start --host="0.0.0.0" --port=8080
+autostart=true
+autorestart=true
+user=%(ENV_SUPERVISOR_PHP_USER)s
+redirect_stderr=true
+stdout_logfile=/var/www/html/storage/logs/reverb.log
+
+
+================================================
+File: docker/8.4/Dockerfile
+================================================
+FROM ubuntu:24.04
+
+LABEL maintainer="Taylor Otwell"
+
+ARG WWWGROUP
+ARG NODE_VERSION=22
+ARG MYSQL_CLIENT="mysql-client"
+ARG POSTGRES_VERSION=17
+
+WORKDIR /var/www/html
+
+ENV DEBIAN_FRONTEND=noninteractive
+ENV TZ=UTC
+ENV SUPERVISOR_PHP_COMMAND="/usr/bin/php -d variables_order=EGPCS /var/www/html/artisan serve --host=0.0.0.0 --port=80"
+ENV SUPERVISOR_PHP_USER="sail"
+
+RUN ln -snf /usr/share/zoneinfo/$TZ /etc/localtime && echo $TZ > /etc/timezone
+
+RUN echo "Acquire::http::Pipeline-Depth 0;" > /etc/apt/apt.conf.d/99custom && \
+    echo "Acquire::http::No-Cache true;" >> /etc/apt/apt.conf.d/99custom && \
+    echo "Acquire::BrokenProxy    true;" >> /etc/apt/apt.conf.d/99custom
+
+RUN apt-get update && apt-get upgrade -y \
+    && mkdir -p /etc/apt/keyrings \
+    && apt-get install -y gnupg gosu curl ca-certificates zip unzip git supervisor sqlite3 libcap2-bin libpng-dev python3 dnsutils librsvg2-bin fswatch ffmpeg nano  \
+    && curl -sS 'https://keyserver.ubuntu.com/pks/lookup?op=get&search=0x14aa40ec0831756756d7f66c4f4ea0aae5267a6c' | gpg --dearmor | tee /etc/apt/keyrings/ppa_ondrej_php.gpg > /dev/null \
+    && echo "deb [signed-by=/etc/apt/keyrings/ppa_ondrej_php.gpg] https://ppa.launchpadcontent.net/ondrej/php/ubuntu noble main" > /etc/apt/sources.list.d/ppa_ondrej_php.list \
+    && apt-get update \
+    && apt-get install -y php8.4-cli php8.4-dev \
+       php8.4-pgsql php8.4-sqlite3 php8.4-gd \
+       php8.4-curl php8.4-mongodb \
+       php8.4-imap php8.4-mysql php8.4-mbstring \
+       php8.4-xml php8.4-zip php8.4-bcmath php8.4-soap \
+       php8.4-intl php8.4-readline \
+       php8.4-ldap \
+       php8.4-msgpack php8.4-igbinary php8.4-redis \
+#       php8.4-swoole \
+       php8.4-memcached php8.4-pcov php8.4-imagick php8.4-xdebug \
+    && curl -sLS https://getcomposer.org/installer | php -- --install-dir=/usr/bin/ --filename=composer \
+    && curl -fsSL https://deb.nodesource.com/gpgkey/nodesource-repo.gpg.key | gpg --dearmor -o /etc/apt/keyrings/nodesource.gpg \
+    && echo "deb [signed-by=/etc/apt/keyrings/nodesource.gpg] https://deb.nodesource.com/node_$NODE_VERSION.x nodistro main" > /etc/apt/sources.list.d/nodesource.list \
+    && apt-get update \
+    && apt-get install -y nodejs \
+    && npm install -g npm \
+    && npm install -g pnpm \
+    && npm install -g bun \
+    && curl -sS https://dl.yarnpkg.com/debian/pubkey.gpg | gpg --dearmor | tee /etc/apt/keyrings/yarn.gpg >/dev/null \
+    && echo "deb [signed-by=/etc/apt/keyrings/yarn.gpg] https://dl.yarnpkg.com/debian/ stable main" > /etc/apt/sources.list.d/yarn.list \
+    && curl -sS https://www.postgresql.org/media/keys/ACCC4CF8.asc | gpg --dearmor | tee /etc/apt/keyrings/pgdg.gpg >/dev/null \
+    && echo "deb [signed-by=/etc/apt/keyrings/pgdg.gpg] http://apt.postgresql.org/pub/repos/apt noble-pgdg main" > /etc/apt/sources.list.d/pgdg.list \
+    && apt-get update \
+    && apt-get install -y yarn \
+    && apt-get install -y $MYSQL_CLIENT \
+    && apt-get install -y postgresql-client-$POSTGRES_VERSION \
+    && apt-get -y autoremove \
+    && apt-get clean \
+    && rm -rf /var/lib/apt/lists/* /tmp/* /var/tmp/*
+
+RUN setcap "cap_net_bind_service=+ep" /usr/bin/php8.4
+
+RUN groupadd --force -g $WWWGROUP sail
+RUN useradd -ms /bin/bash --no-user-group -g $WWWGROUP -u 1337 sail
+
+COPY start-container /usr/local/bin/start-container
+COPY supervisord.conf /etc/supervisor/conf.d/supervisord.conf
+COPY php.ini /etc/php/8.4/cli/conf.d/99-sail.ini
+RUN chmod +x /usr/local/bin/start-container
+
+EXPOSE 80/tcp
+
+ENTRYPOINT ["start-container"]
+
+
+================================================
+File: docker/8.4/php.ini
+================================================
+[PHP]
+post_max_size = 100M
+upload_max_filesize = 100M
+variables_order = EGPCS
+pcov.directory = .
+
+
+================================================
+File: docker/8.4/start-container
+================================================
+#!/usr/bin/env bash
+
+if [ "$SUPERVISOR_PHP_USER" != "root" ] && [ "$SUPERVISOR_PHP_USER" != "sail" ]; then
+    echo "You should set SUPERVISOR_PHP_USER to either 'sail' or 'root'."
+    exit 1
+fi
+
+if [ ! -z "$WWWUSER" ]; then
+    usermod -u $WWWUSER sail
+fi
+
+if [ ! -d /.composer ]; then
+    mkdir /.composer
+fi
+
+chmod -R ugo+rw /.composer
+
+if [ $# -gt 0 ]; then
+    if [ "$SUPERVISOR_PHP_USER" = "root" ]; then
+        exec "$@"
+    else
+        exec gosu $WWWUSER "$@"
+    fi
+else
+    exec /usr/bin/supervisord -c /etc/supervisor/conf.d/supervisord.conf
+fi
+
+
+================================================
+File: docker/8.4/supervisord.conf
+================================================
+[supervisord]
+nodaemon=true
+user=root
+logfile=/var/log/supervisor/supervisord.log
+pidfile=/var/run/supervisord.pid
+
+[program:php]
+command=%(ENV_SUPERVISOR_PHP_COMMAND)s
+user=%(ENV_SUPERVISOR_PHP_USER)s
+environment=LARAVEL_SAIL="1"
+stdout_logfile=/dev/stdout
+stdout_logfile_maxbytes=0
+stderr_logfile=/dev/stderr
+stderr_logfile_maxbytes=0
+
+[program:reverb]
+command=php /var/www/html/artisan reverb:start --host="0.0.0.0" --port=8080
+autostart=true
+autorestart=true
+user=%(ENV_SUPERVISOR_PHP_USER)s
+redirect_stderr=true
+stdout_logfile=/var/www/html/storage/logs/reverb.log
+
+
+================================================
+File: docker/mariadb/create-testing-database.sh
+================================================
+#!/usr/bin/env bash
+
+/usr/bin/mariadb --user=root --password="$MYSQL_ROOT_PASSWORD" <<-EOSQL
+    CREATE DATABASE IF NOT EXISTS testing;
+    GRANT ALL PRIVILEGES ON \`testing%\`.* TO '$MYSQL_USER'@'%';
+EOSQL
+
+
+================================================
+File: docker/mysql/create-testing-database.sh
+================================================
+#!/usr/bin/env bash
+
+mysql --user=root --password="$MYSQL_ROOT_PASSWORD" <<-EOSQL
+    CREATE DATABASE IF NOT EXISTS testing;
+    GRANT ALL PRIVILEGES ON \`testing%\`.* TO '$MYSQL_USER'@'%';
+EOSQL
+
+
+================================================
+File: docker/pgsql/create-testing-database.sql
+================================================
+SELECT 'CREATE DATABASE testing'
+WHERE NOT EXISTS (SELECT FROM pg_database WHERE datname = 'testing')\gexec
+
+
+================================================
+File: evm/BondingCurve.json
+================================================
+{"addresses":{"56":"0x0F41309c196F043d347F7a9e58d1583740238765","8453":"0x6dA6337C2C80c303A49805fb854c858D4A2447Ba","42161":"0x40e8eFCeF03ae3C7006f8d1FA50E137EFD0465D4","59144":"0x78fE1b65D62217D5097fe7696305410681b3Ef70","81457":"0x33a2c94A53904774f5D83e51554D5C52eE8F3564","11155111":"0x7Eb9A051392c771cF1Cf5482450B263628cbF6cc"},"abi":[{"inputs":[],"name":"AlreadyFinalized","type":"error"},{"inputs":[],"name":"BondingTargetReached","type":"error"},{"inputs":[],"name":"CannotFinalizeYet","type":"error"},{"inputs":[],"name":"ContributionTooLow","type":"error"},{"inputs":[],"name":"FailedCall","type":"error"},{"inputs":[],"name":"InitializationFailed","type":"error"},{"inputs":[{"internalType":"uint256","name":"balance","type":"uint256"},{"internalType":"uint256","name":"needed","type":"uint256"}],"name":"InsufficientBalance","type":"error"},{"inputs":[],"name":"InsufficientETH","type":"error"},{"inputs":[],"name":"InsufficientTokens","type":"error"},{"inputs":[],"name":"InvalidInitialization","type":"error"},{"inputs":[],"name":"InvalidPhase","type":"error"},{"inputs":[],"name":"NoFeesToWithdraw","type":"error"},{"inputs":[],"name":"NotInitializing","type":"error"},{"inputs":[{"internalType":"address","name":"owner","type":"address"}],"name":"OwnableInvalidOwner","type":"error"},{"inputs":[{"internalType":"address","name":"account","type":"address"}],"name":"OwnableUnauthorizedAccount","type":"error"},{"inputs":[],"name":"PreBondingTargetReached","type":"error"},{"inputs":[],"name":"ReentrancyGuardReentrantCall","type":"error"},{"inputs":[{"internalType":"address","name":"token","type":"address"}],"name":"SafeERC20FailedOperation","type":"error"},{"inputs":[],"name":"SlippageExceeded","type":"error"},{"inputs":[],"name":"TokensLocked","type":"error"},{"inputs":[],"name":"TokensNotLocked","type":"error"},{"inputs":[],"name":"TransferFailed","type":"error"},{"inputs":[],"name":"ZeroAddress","type":"error"},{"anonymous":false,"inputs":[{"indexed":true,"internalType":"address","name":"uniswapPool","type":"address"},{"indexed":true,"internalType":"uint256","name":"lpTokenId","type":"uint256"}],"name":"CurveFinalized","type":"event"},{"anonymous":false,"inputs":[{"indexed":false,"internalType":"uint256","name":"amount","type":"uint256"}],"name":"FeesWithdrawn","type":"event"},{"anonymous":false,"inputs":[{"indexed":false,"internalType":"uint64","name":"version","type":"uint64"}],"name":"Initialized","type":"event"},{"anonymous":false,"inputs":[{"indexed":true,"internalType":"address","name":"previousOwner","type":"address"},{"indexed":true,"internalType":"address","name":"newOwner","type":"address"}],"name":"OwnershipTransferStarted","type":"event"},{"anonymous":false,"inputs":[{"indexed":true,"internalType":"address","name":"previousOwner","type":"address"},{"indexed":true,"internalType":"address","name":"newOwner","type":"address"}],"name":"OwnershipTransferred","type":"event"},{"anonymous":false,"inputs":[{"indexed":false,"internalType":"uint256","name":"totalContributed","type":"uint256"},{"indexed":false,"internalType":"uint256","name":"totalTokens","type":"uint256"}],"name":"PreBondingCompleted","type":"event"},{"anonymous":false,"inputs":[{"indexed":true,"internalType":"address","name":"contributor","type":"address"},{"indexed":false,"internalType":"uint256","name":"amount","type":"uint256"},{"indexed":false,"internalType":"uint256","name":"tokenAmount","type":"uint256"}],"name":"PreBondingContribution","type":"event"},{"anonymous":false,"inputs":[{"indexed":true,"internalType":"address","name":"buyer","type":"address"},{"indexed":false,"internalType":"uint256","name":"ethAmount","type":"uint256"},{"indexed":false,"internalType":"uint256","name":"tokenAmount","type":"uint256"}],"name":"TokensPurchased","type":"event"},{"anonymous":false,"inputs":[{"indexed":true,"internalType":"address","name":"seller","type":"address"},{"indexed":false,"internalType":"uint256","name":"tokenAmount","type":"uint256"},{"indexed":false,"internalType":"uint256","name":"ethAmount","type":"uint256"},{"indexed":false,"internalType":"uint256","name":"fee","type":"uint256"}],"name":"TokensSold","type":"event"},{"anonymous":false,"inputs":[{"indexed":true,"internalType":"address","name":"account","type":"address"}],"name":"TokensUnlocked","type":"event"},{"inputs":[],"name":"acceptOwnership","outputs":[],"stateMutability":"nonpayable","type":"function"},{"inputs":[],"name":"accumulatedFees","outputs":[{"internalType":"uint256","name":"","type":"uint256"}],"stateMutability":"view","type":"function"},{"inputs":[{"internalType":"uint256","name":"minTokens","type":"uint256"}],"name":"buyTokens","outputs":[{"internalType":"uint256","name":"tokensToReceive","type":"uint256"}],"stateMutability":"payable","type":"function"},{"inputs":[],"name":"contributePreBonding","outputs":[],"stateMutability":"payable","type":"function"},{"inputs":[{"internalType":"address","name":"","type":"address"}],"name":"contributions","outputs":[{"internalType":"uint256","name":"","type":"uint256"}],"stateMutability":"view","type":"function"},{"inputs":[],"name":"currentPhase","outputs":[{"internalType":"enum BondingCurve.Phase","name":"","type":"uint8"}],"stateMutability":"view","type":"function"},{"inputs":[],"name":"ethReserve","outputs":[{"internalType":"uint256","name":"","type":"uint256"}],"stateMutability":"view","type":"function"},{"inputs":[],"name":"finalizeCurve","outputs":[],"stateMutability":"nonpayable","type":"function"},{"inputs":[],"name":"getBondingCurveSettings","outputs":[{"components":[{"internalType":"uint256","name":"virtualEth","type":"uint256"},{"internalType":"uint256","name":"preBondingTarget","type":"uint256"},{"internalType":"uint256","name":"bondingTarget","type":"uint256"},{"internalType":"uint256","name":"minContribution","type":"uint256"},{"internalType":"uint24","name":"poolFee","type":"uint24"},{"internalType":"uint24","name":"sellFee","type":"uint24"},{"internalType":"address","name":"uniswapV3Factory","type":"address"},{"internalType":"address","name":"positionManager","type":"address"},{"internalType":"address","name":"weth","type":"address"},{"internalType":"address","name":"feeTo","type":"address"}],"internalType":"struct IFactory.BondingCurveSettings","name":"","type":"tuple"}],"stateMutability":"view","type":"function"},{"inputs":[{"internalType":"address","name":"token_","type":"address"},{"internalType":"address","name":"lock_","type":"address"},{"internalType":"address","name":"owner_","type":"address"},{"components":[{"internalType":"uint256","name":"virtualEth","type":"uint256"},{"internalType":"uint256","name":"preBondingTarget","type":"uint256"},{"internalType":"uint256","name":"bondingTarget","type":"uint256"},{"internalType":"uint256","name":"minContribution","type":"uint256"},{"internalType":"uint24","name":"poolFee","type":"uint24"},{"internalType":"uint24","name":"sellFee","type":"uint24"},{"internalType":"address","name":"uniswapV3Factory","type":"address"},{"internalType":"address","name":"positionManager","type":"address"},{"internalType":"address","name":"weth","type":"address"},{"internalType":"address","name":"feeTo","type":"address"}],"internalType":"struct IFactory.BondingCurveSettings","name":"settings_","type":"tuple"}],"name":"initialize","outputs":[],"stateMutability":"nonpayable","type":"function"},{"inputs":[],"name":"isFinalized","outputs":[{"internalType":"bool","name":"","type":"bool"}],"stateMutability":"view","type":"function"},{"inputs":[],"name":"lockContract","outputs":[{"internalType":"address","name":"","type":"address"}],"stateMutability":"view","type":"function"},{"inputs":[],"name":"lpTokenId","outputs":[{"internalType":"uint256","name":"","type":"uint256"}],"stateMutability":"view","type":"function"},{"inputs":[{"internalType":"address","name":"","type":"address"},{"internalType":"address","name":"","type":"address"},{"internalType":"uint256","name":"","type":"uint256"},{"internalType":"bytes","name":"","type":"bytes"}],"name":"onERC721Received","outputs":[{"internalType":"bytes4","name":"","type":"bytes4"}],"stateMutability":"pure","type":"function"},{"inputs":[],"name":"owner","outputs":[{"internalType":"address","name":"","type":"address"}],"stateMutability":"view","type":"function"},{"inputs":[],"name":"pendingOwner","outputs":[{"internalType":"address","name":"","type":"address"}],"stateMutability":"view","type":"function"},{"inputs":[],"name":"preBondingTokens","outputs":[{"internalType":"uint256","name":"","type":"uint256"}],"stateMutability":"view","type":"function"},{"inputs":[],"name":"renounceOwnership","outputs":[],"stateMutability":"nonpayable","type":"function"},{"inputs":[{"internalType":"uint256","name":"tokenAmount","type":"uint256"},{"internalType":"uint256","name":"minETH","type":"uint256"}],"name":"sellTokens","outputs":[{"internalType":"uint256","name":"ethToReceive","type":"uint256"},{"internalType":"uint256","name":"fee","type":"uint256"}],"stateMutability":"nonpayable","type":"function"},{"inputs":[],"name":"token","outputs":[{"internalType":"contract IToken","name":"","type":"address"}],"stateMutability":"view","type":"function"},{"inputs":[{"internalType":"address","name":"","type":"address"}],"name":"tokenAllocations","outputs":[{"internalType":"uint256","name":"","type":"uint256"}],"stateMutability":"view","type":"function"},{"inputs":[{"internalType":"address","name":"","type":"address"}],"name":"tokenLocks","outputs":[{"internalType":"bool","name":"","type":"bool"}],"stateMutability":"view","type":"function"},{"inputs":[],"name":"tokenReserve","outputs":[{"internalType":"uint256","name":"","type":"uint256"}],"stateMutability":"view","type":"function"},{"inputs":[],"name":"totalETHCollected","outputs":[{"internalType":"uint256","name":"","type":"uint256"}],"stateMutability":"view","type":"function"},{"inputs":[],"name":"totalPreBondingContributions","outputs":[{"internalType":"uint256","name":"","type":"uint256"}],"stateMutability":"view","type":"function"},{"inputs":[{"internalType":"address","name":"newOwner","type":"address"}],"name":"transferOwnership","outputs":[],"stateMutability":"nonpayable","type":"function"},{"inputs":[],"name":"uniswapPool","outputs":[{"internalType":"address","name":"","type":"address"}],"stateMutability":"view","type":"function"},{"inputs":[{"internalType":"address","name":"recipient","type":"address"}],"name":"withdrawTokenAllocation","outputs":[],"stateMutability":"nonpayable","type":"function"},{"stateMutability":"payable","type":"receive"}]}
+
+================================================
+File: evm/Factory.json
+================================================
+{"addresses":{"56":"0x669E0621f7ab400D98cb3ce078D3b0A0A66c55CA","8453":"0xffd3A178d30d63CB679409C0b3d0BB786C953f5F","42161":"0x0b84e04a3C10f87BDCEef953875e28f3F286f466","59144":"0x0Ab27eeA9b5297F19626d44B46B6f76e45d7c588","81457":"0x411cbB2840619a95fc5d8e249390c307C8757342","11155111":"0xDb9ecFed2f0f607df3CB937cA518Bd1BF1a5944C"},"abi":[{"inputs":[],"stateMutability":"nonpayable","type":"constructor"},{"inputs":[],"name":"FailedDeployment","type":"error"},{"inputs":[],"name":"FeeWithdrawalFailed","type":"error"},{"inputs":[],"name":"InitializationFailed","type":"error"},{"inputs":[{"internalType":"uint256","name":"balance","type":"uint256"},{"internalType":"uint256","name":"needed","type":"uint256"}],"name":"InsufficientBalance","type":"error"},{"inputs":[{"internalType":"uint256","name":"provided","type":"uint256"},{"internalType":"uint256","name":"required","type":"uint256"}],"name":"InsufficientDeploymentFee","type":"error"},{"inputs":[],"name":"InvalidDeploymentParameters","type":"error"},{"inputs":[],"name":"InvalidInitialization","type":"error"},{"inputs":[],"name":"NoFeesToWithdraw","type":"error"},{"inputs":[],"name":"NotInitializing","type":"error"},{"inputs":[{"internalType":"address","name":"owner","type":"address"}],"name":"OwnableInvalidOwner","type":"error"},{"inputs":[{"internalType":"address","name":"account","type":"address"}],"name":"OwnableUnauthorizedAccount","type":"error"},{"inputs":[],"name":"ReentrancyGuardReentrantCall","type":"error"},{"inputs":[],"name":"RefundFailed","type":"error"},{"inputs":[],"name":"TokenMintingFailed","type":"error"},{"inputs":[],"name":"Unauthorized","type":"error"},{"inputs":[],"name":"ZeroAddress","type":"error"},{"anonymous":false,"inputs":[{"indexed":false,"internalType":"uint256","name":"virtualEth","type":"uint256"},{"indexed":false,"internalType":"uint256","name":"preBondingTarget","type":"uint256"},{"indexed":false,"internalType":"uint256","name":"bondingTarget","type":"uint256"},{"indexed":false,"internalType":"uint256","name":"minContribution","type":"uint256"},{"indexed":false,"internalType":"uint24","name":"poolFee","type":"uint24"}],"name":"BondingCurveSettingsUpdated","type":"event"},{"anonymous":false,"inputs":[{"indexed":true,"internalType":"address","name":"bondingCurveAddress","type":"address"},{"indexed":true,"internalType":"address","name":"tokenAddress","type":"address"},{"indexed":true,"internalType":"address","name":"owner","type":"address"},{"indexed":false,"internalType":"string","name":"name","type":"string"},{"indexed":false,"internalType":"string","name":"symbol","type":"string"}],"name":"BondingCurveSystemDeployed","type":"event"},{"anonymous":false,"inputs":[{"indexed":false,"internalType":"uint256","name":"oldFee","type":"uint256"},{"indexed":false,"internalType":"uint256","name":"newFee","type":"uint256"}],"name":"DeploymentFeeUpdated","type":"event"},{"anonymous":false,"inputs":[{"indexed":true,"internalType":"address","name":"recipient","type":"address"},{"indexed":false,"internalType":"uint256","name":"amount","type":"uint256"}],"name":"FeesWithdrawn","type":"event"},{"anonymous":false,"inputs":[{"indexed":false,"internalType":"uint64","name":"version","type":"uint64"}],"name":"Initialized","type":"event"},{"anonymous":false,"inputs":[{"indexed":true,"internalType":"address","name":"previousOwner","type":"address"},{"indexed":true,"internalType":"address","name":"newOwner","type":"address"}],"name":"OwnershipTransferStarted","type":"event"},{"anonymous":false,"inputs":[{"indexed":true,"internalType":"address","name":"previousOwner","type":"address"},{"indexed":true,"internalType":"address","name":"newOwner","type":"address"}],"name":"OwnershipTransferred","type":"event"},{"inputs":[],"name":"acceptOwnership","outputs":[],"stateMutability":"nonpayable","type":"function"},{"inputs":[{"internalType":"string","name":"name","type":"string"},{"internalType":"string","name":"symbol","type":"string"}],"name":"deployBondingCurveSystem","outputs":[{"internalType":"address","name":"tokenAddress","type":"address"},{"internalType":"address","name":"bondingCurveAddress","type":"address"}],"stateMutability":"payable","type":"function"},{"inputs":[{"internalType":"address","name":"token","type":"address"}],"name":"getBondingCurveForToken","outputs":[{"internalType":"address","name":"","type":"address"}],"stateMutability":"view","type":"function"},{"inputs":[],"name":"getBondingCurveImplementation","outputs":[{"internalType":"address","name":"","type":"address"}],"stateMutability":"view","type":"function"},{"inputs":[],"name":"getBondingCurveSettings","outputs":[{"components":[{"internalType":"uint256","name":"virtualEth","type":"uint256"},{"internalType":"uint256","name":"preBondingTarget","type":"uint256"},{"internalType":"uint256","name":"bondingTarget","type":"uint256"},{"internalType":"uint256","name":"minContribution","type":"uint256"},{"internalType":"uint24","name":"poolFee","type":"uint24"},{"internalType":"uint24","name":"sellFee","type":"uint24"},{"internalType":"address","name":"uniswapV3Factory","type":"address"},{"internalType":"address","name":"positionManager","type":"address"},{"internalType":"address","name":"weth","type":"address"},{"internalType":"address","name":"feeTo","type":"address"}],"internalType":"struct IFactory.BondingCurveSettings","name":"","type":"tuple"}],"stateMutability":"view","type":"function"},{"inputs":[],"name":"getDeploymentFee","outputs":[{"internalType":"uint256","name":"","type":"uint256"}],"stateMutability":"view","type":"function"},{"inputs":[],"name":"getLockContract","outputs":[{"internalType":"address","name":"","type":"address"}],"stateMutability":"view","type":"function"},{"inputs":[{"internalType":"address","name":"bondingCurve","type":"address"}],"name":"getTokenForBondingCurve","outputs":[{"internalType":"address","name":"","type":"address"}],"stateMutability":"view","type":"function"},{"inputs":[],"name":"getTokenImplementation","outputs":[{"internalType":"address","name":"","type":"address"}],"stateMutability":"view","type":"function"},{"inputs":[{"internalType":"uint256","name":"factoryFees","type":"uint256"},{"internalType":"address","name":"owner","type":"address"},{"internalType":"address","name":"tokenImpl","type":"address"},{"internalType":"address","name":"bondingCurveImpl","type":"address"},{"internalType":"address","name":"lockContractAddr","type":"address"},{"components":[{"internalType":"uint256","name":"virtualEth","type":"uint256"},{"internalType":"uint256","name":"preBondingTarget","type":"uint256"},{"internalType":"uint256","name":"bondingTarget","type":"uint256"},{"internalType":"uint256","name":"minContribution","type":"uint256"},{"internalType":"uint24","name":"poolFee","type":"uint24"},{"internalType":"uint24","name":"sellFee","type":"uint24"},{"internalType":"address","name":"uniswapV3Factory","type":"address"},{"internalType":"address","name":"positionManager","type":"address"},{"internalType":"address","name":"weth","type":"address"},{"internalType":"address","name":"feeTo","type":"address"}],"internalType":"struct IFactory.BondingCurveSettings","name":"initialSettings","type":"tuple"}],"name":"initialize","outputs":[],"stateMutability":"nonpayable","type":"function"},{"inputs":[],"name":"owner","outputs":[{"internalType":"address","name":"","type":"address"}],"stateMutability":"view","type":"function"},{"inputs":[],"name":"pendingOwner","outputs":[{"internalType":"address","name":"","type":"address"}],"stateMutability":"view","type":"function"},{"inputs":[],"name":"renounceOwnership","outputs":[],"stateMutability":"nonpayable","type":"function"},{"inputs":[{"internalType":"address","name":"newOwner","type":"address"}],"name":"transferOwnership","outputs":[],"stateMutability":"nonpayable","type":"function"},{"inputs":[{"components":[{"internalType":"uint256","name":"virtualEth","type":"uint256"},{"internalType":"uint256","name":"preBondingTarget","type":"uint256"},{"internalType":"uint256","name":"bondingTarget","type":"uint256"},{"internalType":"uint256","name":"minContribution","type":"uint256"},{"internalType":"uint24","name":"poolFee","type":"uint24"},{"internalType":"uint24","name":"sellFee","type":"uint24"},{"internalType":"address","name":"uniswapV3Factory","type":"address"},{"internalType":"address","name":"positionManager","type":"address"},{"internalType":"address","name":"weth","type":"address"},{"internalType":"address","name":"feeTo","type":"address"}],"internalType":"struct IFactory.BondingCurveSettings","name":"newSettings","type":"tuple"}],"name":"updateBondingCurveSettings","outputs":[],"stateMutability":"nonpayable","type":"function"},{"inputs":[{"internalType":"uint256","name":"newFee","type":"uint256"}],"name":"updateDeploymentFee","outputs":[],"stateMutability":"nonpayable","type":"function"},{"inputs":[{"internalType":"address","name":"recipient","type":"address"}],"name":"withdrawFees","outputs":[],"stateMutability":"nonpayable","type":"function"},{"stateMutability":"payable","type":"receive"}]}
+
+================================================
+File: evm/Foundry.json
+================================================
+{"addresses":{"56":"0x06ec3A71CF9871282Ff0Bf3E438c720B76c2829a","8453":"0x3FDB218441A8530F058a1Ec2998ab9594cbEB352","42161":"0xcf7fb1051258076f11869081E72c1A840a02c4D6","59144":"0x795ae69c9f244c6c94aaa1bc02c740b7e6d459a0","81457":"0x9769EAE83303b213FEEC233C5c95ceBC05a5C4BD","11155111":"0xB2A3d4E68276a08BcF35eB60c4F8E10cB6Ea9177"},"abi":[{"inputs":[{"internalType":"address","name":"_factoryImpl","type":"address"},{"internalType":"address","name":"_lockImpl","type":"address"},{"internalType":"address","name":"_tokenImpl","type":"address"},{"internalType":"address","name":"_bondingCurveImpl","type":"address"},{"internalType":"uint256","name":"_initialFee","type":"uint256"}],"stateMutability":"nonpayable","type":"constructor"},{"inputs":[],"name":"EnforcedPause","type":"error"},{"inputs":[],"name":"ExpectedPause","type":"error"},{"inputs":[],"name":"FailedDeployment","type":"error"},{"inputs":[{"internalType":"string","name":"operation","type":"string"}],"name":"FeeOperationFailed","type":"error"},{"inputs":[{"internalType":"string","name":"contractType","type":"string"}],"name":"InitializationFailed","type":"error"},{"inputs":[{"internalType":"uint256","name":"balance","type":"uint256"},{"internalType":"uint256","name":"needed","type":"uint256"}],"name":"InsufficientBalance","type":"error"},{"inputs":[{"internalType":"uint256","name":"provided","type":"uint256"},{"internalType":"uint256","name":"required","type":"uint256"}],"name":"InsufficientDeploymentFee","type":"error"},{"inputs":[{"internalType":"string","name":"providedType","type":"string"}],"name":"InvalidImplementationType","type":"error"},{"inputs":[],"name":"NoFeesToWithdraw","type":"error"},{"inputs":[{"internalType":"address","name":"owner","type":"address"}],"name":"OwnableInvalidOwner","type":"error"},{"inputs":[{"internalType":"address","name":"account","type":"address"}],"name":"OwnableUnauthorizedAccount","type":"error"},{"inputs":[],"name":"ReentrancyGuardReentrantCall","type":"error"},{"inputs":[],"name":"ZeroAddress","type":"error"},{"anonymous":false,"inputs":[{"indexed":false,"internalType":"uint256","name":"oldFee","type":"uint256"},{"indexed":false,"internalType":"uint256","name":"newFee","type":"uint256"}],"name":"DeploymentFeeUpdated","type":"event"},{"anonymous":false,"inputs":[{"indexed":true,"internalType":"address","name":"recipient","type":"address"},{"indexed":false,"internalType":"uint256","name":"amount","type":"uint256"}],"name":"FeesWithdrawn","type":"event"},{"anonymous":false,"inputs":[{"indexed":true,"internalType":"string","name":"implementationType","type":"string"},{"indexed":true,"internalType":"address","name":"oldImplementation","type":"address"},{"indexed":true,"internalType":"address","name":"newImplementation","type":"address"}],"name":"ImplementationUpdated","type":"event"},{"anonymous":false,"inputs":[{"indexed":true,"internalType":"address","name":"previousOwner","type":"address"},{"indexed":true,"internalType":"address","name":"newOwner","type":"address"}],"name":"OwnershipTransferred","type":"event"},{"anonymous":false,"inputs":[{"indexed":false,"internalType":"address","name":"account","type":"address"}],"name":"Paused","type":"event"},{"anonymous":false,"inputs":[{"indexed":true,"internalType":"address","name":"factoryAddress","type":"address"},{"indexed":true,"internalType":"address","name":"lockAddress","type":"address"},{"indexed":true,"internalType":"address","name":"owner","type":"address"}],"name":"SystemDeployed","type":"event"},{"anonymous":false,"inputs":[{"indexed":false,"internalType":"address","name":"account","type":"address"}],"name":"Unpaused","type":"event"},{"inputs":[{"internalType":"address","name":"owner","type":"address"},{"internalType":"uint256","name":"factoryFees","type":"uint256"},{"components":[{"internalType":"uint256","name":"virtualEth","type":"uint256"},{"internalType":"uint256","name":"preBondingTarget","type":"uint256"},{"internalType":"uint256","name":"bondingTarget","type":"uint256"},{"internalType":"uint256","name":"minContribution","type":"uint256"},{"internalType":"uint24","name":"poolFee","type":"uint24"},{"internalType":"uint24","name":"sellFee","type":"uint24"},{"internalType":"address","name":"uniswapV3Factory","type":"address"},{"internalType":"address","name":"positionManager","type":"address"},{"internalType":"address","name":"weth","type":"address"},{"internalType":"address","name":"feeTo","type":"address"}],"internalType":"struct IFactory.BondingCurveSettings","name":"settings","type":"tuple"}],"name":"deploySystem","outputs":[{"internalType":"address","name":"factoryAddress","type":"address"},{"internalType":"address","name":"lockAddress","type":"address"}],"stateMutability":"payable","type":"function"},{"inputs":[],"name":"getBondingCurveImplementation","outputs":[{"internalType":"address","name":"","type":"address"}],"stateMutability":"view","type":"function"},{"inputs":[],"name":"getDeploymentFee","outputs":[{"internalType":"uint256","name":"","type":"uint256"}],"stateMutability":"view","type":"function"},{"inputs":[],"name":"getFactoryImplementation","outputs":[{"internalType":"address","name":"","type":"address"}],"stateMutability":"view","type":"function"},{"inputs":[],"name":"getLockImplementation","outputs":[{"internalType":"address","name":"","type":"address"}],"stateMutability":"view","type":"function"},{"inputs":[],"name":"getTokenImplementation","outputs":[{"internalType":"address","name":"","type":"address"}],"stateMutability":"view","type":"function"},{"inputs":[{"internalType":"address","name":"cloneAddress","type":"address"}],"name":"isDeployedClone","outputs":[{"internalType":"bool","name":"","type":"bool"}],"stateMutability":"view","type":"function"},{"inputs":[],"name":"owner","outputs":[{"internalType":"address","name":"","type":"address"}],"stateMutability":"view","type":"function"},{"inputs":[],"name":"pause","outputs":[],"stateMutability":"nonpayable","type":"function"},{"inputs":[],"name":"paused","outputs":[{"internalType":"bool","name":"","type":"bool"}],"stateMutability":"view","type":"function"},{"inputs":[],"name":"renounceOwnership","outputs":[],"stateMutability":"nonpayable","type":"function"},{"inputs":[{"internalType":"address","name":"newOwner","type":"address"}],"name":"transferOwnership","outputs":[],"stateMutability":"nonpayable","type":"function"},{"inputs":[],"name":"unpause","outputs":[],"stateMutability":"nonpayable","type":"function"},{"inputs":[{"internalType":"uint256","name":"newFee","type":"uint256"}],"name":"updateDeploymentFee","outputs":[],"stateMutability":"nonpayable","type":"function"},{"inputs":[{"internalType":"string","name":"implementationType","type":"string"},{"internalType":"address","name":"newImplementation","type":"address"}],"name":"updateImplementation","outputs":[],"stateMutability":"nonpayable","type":"function"},{"inputs":[{"internalType":"address","name":"recipient","type":"address"}],"name":"withdrawFees","outputs":[],"stateMutability":"nonpayable","type":"function"},{"stateMutability":"payable","type":"receive"}]}
+
+================================================
+File: evm/Lock.json
+================================================
+{"addresses":{"56":"0x9522Dd1885AC3c5F573cdDAEF2d0D600d230BA63","8453":"0xb1CB966EebA70d18Af80d8E6BBC7E649D8A2c8e2","42161":"0x394F0Fc8029898FB054ffcdB667a2C530Da671dD","59144":"0x1d51b3be97dc11098c571f59717c49c8c3b45b21","81457":"0x4268C392b7f22d3D36956e91A63b563B73204f23","11155111":"0x0eb154CeE53e49B3749f3E0b59c2189d0C638B01"},"abi":[{"inputs":[{"internalType":"address","name":"_positionManager","type":"address"}],"stateMutability":"nonpayable","type":"constructor"},{"inputs":[],"name":"InvalidInitialization","type":"error"},{"inputs":[],"name":"LockPeriodNotEnded","type":"error"},{"inputs":[],"name":"NFTAlreadyLocked","type":"error"},{"inputs":[],"name":"NFTNotLocked","type":"error"},{"inputs":[],"name":"NotInitializing","type":"error"},{"inputs":[],"name":"NotNFTOwner","type":"error"},{"inputs":[{"internalType":"address","name":"owner","type":"address"}],"name":"OwnableInvalidOwner","type":"error"},{"inputs":[{"internalType":"address","name":"account","type":"address"}],"name":"OwnableUnauthorizedAccount","type":"error"},{"inputs":[],"name":"ReentrancyGuardReentrantCall","type":"error"},{"anonymous":false,"inputs":[{"indexed":true,"internalType":"address","name":"owner","type":"address"},{"indexed":true,"internalType":"uint256","name":"tokenId","type":"uint256"},{"indexed":false,"internalType":"uint256","name":"amount0","type":"uint256"},{"indexed":false,"internalType":"uint256","name":"amount1","type":"uint256"}],"name":"FeesClaimed","type":"event"},{"anonymous":false,"inputs":[{"indexed":false,"internalType":"uint64","name":"version","type":"uint64"}],"name":"Initialized","type":"event"},{"anonymous":false,"inputs":[{"indexed":true,"internalType":"address","name":"owner","type":"address"},{"indexed":true,"internalType":"uint256","name":"tokenId","type":"uint256"}],"name":"NFTLocked","type":"event"},{"anonymous":false,"inputs":[{"indexed":true,"internalType":"address","name":"owner","type":"address"},{"indexed":true,"internalType":"uint256","name":"tokenId","type":"uint256"},{"indexed":false,"internalType":"address","name":"to","type":"address"}],"name":"NFTUnlocked","type":"event"},{"anonymous":false,"inputs":[{"indexed":true,"internalType":"address","name":"previousOwner","type":"address"},{"indexed":true,"internalType":"address","name":"newOwner","type":"address"}],"name":"OwnershipTransferStarted","type":"event"},{"anonymous":false,"inputs":[{"indexed":true,"internalType":"address","name":"previousOwner","type":"address"},{"indexed":true,"internalType":"address","name":"newOwner","type":"address"}],"name":"OwnershipTransferred","type":"event"},{"inputs":[],"name":"LOCK_DURATION","outputs":[{"internalType":"uint256","name":"","type":"uint256"}],"stateMutability":"view","type":"function"},{"inputs":[],"name":"UNISWAP_V3_POSITION_MANAGER","outputs":[{"internalType":"address","name":"","type":"address"}],"stateMutability":"view","type":"function"},{"inputs":[],"name":"acceptOwnership","outputs":[],"stateMutability":"nonpayable","type":"function"},{"inputs":[{"internalType":"uint256","name":"tokenId","type":"uint256"}],"name":"checkAvailableFees","outputs":[{"internalType":"uint256","name":"amount0","type":"uint256"},{"internalType":"uint256","name":"amount1","type":"uint256"}],"stateMutability":"view","type":"function"},{"inputs":[{"internalType":"uint256","name":"tokenId","type":"uint256"}],"name":"claimFees","outputs":[{"internalType":"uint256","name":"amount0","type":"uint256"},{"internalType":"uint256","name":"amount1","type":"uint256"}],"stateMutability":"nonpayable","type":"function"},{"inputs":[{"internalType":"address","name":"owner","type":"address"}],"name":"getNFTsByOwner","outputs":[{"internalType":"uint256[]","name":"","type":"uint256[]"}],"stateMutability":"view","type":"function"},{"inputs":[{"internalType":"uint256","name":"tokenId","type":"uint256"}],"name":"getRemainingLockTime","outputs":[{"internalType":"uint256","name":"","type":"uint256"}],"stateMutability":"view","type":"function"},{"inputs":[],"name":"initialize","outputs":[],"stateMutability":"nonpayable","type":"function"},{"inputs":[{"internalType":"uint256","name":"tokenId","type":"uint256"}],"name":"isNFTLocked","outputs":[{"internalType":"bool","name":"","type":"bool"}],"stateMutability":"view","type":"function"},{"inputs":[{"internalType":"uint256","name":"tokenId","type":"uint256"},{"internalType":"address","name":"owner","type":"address"}],"name":"lockNFT","outputs":[],"stateMutability":"nonpayable","type":"function"},{"inputs":[{"internalType":"uint256","name":"","type":"uint256"}],"name":"lockedNFTs","outputs":[{"internalType":"address","name":"owner","type":"address"},{"internalType":"uint256","name":"tokenId","type":"uint256"},{"internalType":"bool","name":"isLocked","type":"bool"},{"internalType":"uint256","name":"lockedAt","type":"uint256"}],"stateMutability":"view","type":"function"},{"inputs":[{"internalType":"address","name":"","type":"address"},{"internalType":"address","name":"","type":"address"},{"internalType":"uint256","name":"","type":"uint256"},{"internalType":"bytes","name":"","type":"bytes"}],"name":"onERC721Received","outputs":[{"internalType":"bytes4","name":"","type":"bytes4"}],"stateMutability":"pure","type":"function"},{"inputs":[],"name":"owner","outputs":[{"internalType":"address","name":"","type":"address"}],"stateMutability":"view","type":"function"},{"inputs":[{"internalType":"address","name":"","type":"address"},{"internalType":"uint256","name":"","type":"uint256"}],"name":"ownerNFTs","outputs":[{"internalType":"uint256","name":"","type":"uint256"}],"stateMutability":"view","type":"function"},{"inputs":[],"name":"pendingOwner","outputs":[{"internalType":"address","name":"","type":"address"}],"stateMutability":"view","type":"function"},{"inputs":[],"name":"positionManager","outputs":[{"internalType":"contract INonfungiblePositionManager","name":"","type":"address"}],"stateMutability":"view","type":"function"},{"inputs":[],"name":"renounceOwnership","outputs":[],"stateMutability":"nonpayable","type":"function"},{"inputs":[{"internalType":"address","name":"newOwner","type":"address"}],"name":"transferOwnership","outputs":[],"stateMutability":"nonpayable","type":"function"},{"inputs":[{"internalType":"uint256","name":"tokenId","type":"uint256"},{"internalType":"address","name":"to","type":"address"}],"name":"unlockNFT","outputs":[],"stateMutability":"nonpayable","type":"function"}]}
+
+================================================
+File: lang/en.json
+================================================
+{
+    " :name  Factory Disabled!": " :name  Factory Disabled!",
+    " :name  Holder Disabled!": " :name  Holder Disabled!",
+    " :name  Launchpad Disabled!": " :name  Launchpad Disabled!",
+    " :name  Poolstat Disabled!": " :name  Poolstat Disabled!",
+    " :name  Promo Disabled!": " :name  Promo Disabled!",
+    " :name  Rate Disabled!": " :name  Rate Disabled!",
+    " :name  User Disabled!": " :name  User Disabled!",
+    " :name Factory Enabled !": " :name Factory Enabled !",
+    " :name Holder Enabled !": " :name Holder Enabled !",
+    " :name Launchpad Enabled !": " :name Launchpad Enabled !",
+    " :name Poolstat Enabled !": " :name Poolstat Enabled !",
+    " :name Promo Enabled !": " :name Promo Enabled !",
+    " :name Rate Enabled !": " :name Rate Enabled !",
+    " :name User Enabled !": " :name User Enabled !",
+    "A next sync event may reload the trade!": "A next sync event may reload the trade!",
+    "Active": "Active",
+    "active": "active",
+    "Add Project Links": "Add Project Links",
+    "Address": "Address",
+    "Address verified successfully": "Address verified successfully",
+    "All liquidity is locked forever": "All liquidity is locked forever",
+    "Amount": "Amount",
+    "Animation": "Animation",
+    "Approve Tokens": "Approve Tokens",
+    "Are you sure about deleting {factory} ?": "Are you sure about deleting {factory} ?",
+    "Are you sure about deleting {holder} ?": "Are you sure about deleting {holder} ?",
+    "Are you sure about deleting {launchpad} ?": "Are you sure about deleting {launchpad} ?",
+    "Are you sure about deleting {msg} ?": "Are you sure about deleting {msg} ?",
+    "Are you sure about deleting {promo} ?": "Are you sure about deleting {promo} ?",
+    "Are you sure about deleting {trade} ?": "Are you sure about deleting {trade} ?",
+    "Are you sure you would like to delete this User?": "Are you sure you would like to delete this User?",
+    "Available Holders": "Available Holders",
+    "Available Launchpads": "Available Launchpads",
+    "Available Messages in the group chat": "Available Messages in the group chat",
+    "Back ": "Back ",
+    "Back to holders list": "Back to holders list",
+    "Back to promos list": "Back to promos list",
+    "Banned": "Banned",
+    "before everyone else!": "before everyone else!",
+    "BUY": "BUY",
+    "Buy and sell at any time": "Buy and sell at any time",
+    "Cancel": "Cancel",
+    "Chainid": "Chainid",
+    "Claim fees": "Claim fees",
+    "Claim Uniswap fees": "Claim Uniswap fees",
+    "Code resent successfully !": "Code resent successfully !",
+    "Connect Wallet": "Connect Wallet",
+    "Continue": "Continue",
+    "Contract": "Contract",
+    "Contributions": "Contributions",
+    "Copy": "Copy",
+    "Create New Factory": "Create New Factory",
+    "Create New Holders": "Create New Holders",
+    "Create New Promo": "Create New Promo",
+    "Creator": "Creator",
+    "Date & time": "Date & time",
+    "days": "days",
+    "Delete": "Delete",
+    "Delete User": "Delete User",
+    "Deploy Factory": "Deploy Factory",
+    "Deploy Launchpad": "Deploy Launchpad",
+    "Description": "Description",
+    "Disable": "Disable",
+    "Discord": "Discord",
+    "Discover the next trending meme": "Discover the next trending meme",
+    "Docs": "Docs",
+    "Enable Chat": "Enable Chat",
+    "Enable Featured Launchpads": "Enable Featured Launchpads",
+    "End Date & time": "End Date & time",
+    "Ends At": "Ends At",
+    "Enhanced Token Info": "Enhanced Token Info",
+    "Explore": "Explore",
+    "Factories are used to deploy the launchpads and collect fees": "Factories are used to deploy the launchpads and collect fees",
+    "Fair Launch Protocol": "Fair Launch Protocol",
+    "FDV": "FDV",
+    "Featured": "Featured",
+    "Finalize Launchpad": "Finalize Launchpad",
+    "font": "font",
+    "Free Enhanced Token Info for better DEX Tools visibility": "Free Enhanced Token Info for better DEX Tools visibility",
+    "Fully audited smart contracts": "Fully audited smart contracts",
+    "Great memes for great fun.": "Great memes for great fun.",
+    "hours": "hours",
+    "How Does it work": "How Does it work",
+    "How it works": "How it works",
+    "Image": "Image",
+    "Image promos are rotated on the landing page": "Image promos are rotated on the landing page",
+    "Initial": "Initial",
+    "Invalid signature": "Invalid signature",
+    "Its Recommended to Disable the factory Instead": "Its Recommended to Disable the factory Instead",
+    "Its Recommended to Disable the holder Instead": "Its Recommended to Disable the holder Instead",
+    "Its Recommended to Disable the launchpad Instead": "Its Recommended to Disable the launchpad Instead",
+    "Its Recommended to Disable the msg Instead": "Its Recommended to Disable the msg Instead",
+    "Its Recommended to Disable the promo Instead": "Its Recommended to Disable the promo Instead",
+    "Key Features": "Key Features",
+    "King": "King",
+    "Launch": "Launch",
+    "Launch a new token": "Launch a new token",
+    "Launch Meme": "Launch Meme",
+    "Launch Meme Token": "Launch Meme Token",
+    "Launch on Uniswap and earn LP rewards for life!": "Launch on Uniswap and earn LP rewards for life!",
+    "Launch your meme": "Launch your meme",
+    "Launch, Lock & Earn": "Launch, Lock & Earn",
+    "Launched": "Launched",
+    "Launchpad Finalized": "Launchpad Finalized",
+    "Launchpad Id": "Launchpad Id",
+    "Launchpads": "Launchpads",
+    "Lock": "Lock",
+    "Locked Liquidity": "Locked Liquidity",
+    "Logo": "Logo",
+    "Manage Factories": "Manage Factories",
+    "Manage Holders": "Manage Holders",
+    "Manage Image Promotions": "Manage Image Promotions",
+    "Manage Launchpads": "Manage Launchpads",
+    "Manage Messages": "Manage Messages",
+    "Manage Trades": "Manage Trades",
+    "MARKET CAP": "MARKET CAP",
+    "Max 1B supply": "Max 1B supply",
+    "Message": "Message",
+    "Migration DEX": "Migration DEX",
+    "Migration triggers at:": "Migration triggers at:",
+    "min": "min",
+    "MODERATION": "MODERATION",
+    "months": "months",
+    "My Launchpads": "My Launchpads",
+    "My Memes": "My Memes",
+    "Name": "Name",
+    "No authentication code found in session": "No authentication code found in session",
+    "No pre-sale, no insiders, maximum transparency": "No pre-sale, no insiders, maximum transparency",
+    "OTP has been resent to your contact.": "OTP has been resent to your contact.",
+    "Ownership renounced, immutable": "Ownership renounced, immutable",
+    "Place trade": "Place trade",
+    "Please wait :seconds seconds before requesting another OTP.": "Please wait :seconds seconds before requesting another OTP.",
+    "Policy": "Policy",
+    "Prebond": "Prebond",
+    "Prebond Purchase": "Prebond Purchase",
+    "PRICE": "PRICE",
+    "Qty": "Qty",
+    "Reload": "Reload",
+    "Resend": "Resend",
+    "RESET": "RESET",
+    "Rewards": "Rewards",
+    "Save Holder": "Save Holder",
+    "Save Promo": "Save Promo",
+    "sec": "sec",
+    "SELL": "SELL",
+    "SLIPPAGE": "SLIPPAGE",
+    "Starts At": "Starts At",
+    "Status": "Status",
+    "Subscribe to notifications:": "Subscribe to notifications:",
+    "Supports png, jpeg or svg": "Supports png, jpeg or svg",
+    "Swap on Uniswap": "Swap on Uniswap",
+    "Symbol": "Symbol",
+    "Telegram": "Telegram",
+    "Telegram Alerts": "Telegram Alerts",
+    "Telegram bot": "Telegram bot",
+    "Terms": "Terms",
+    "The reseller will most likely lose money": "The reseller will most likely lose money",
+    "Theses are registered users on the site": "Theses are registered users on the site",
+    "This Action will remove the factory from the database and cannot be undone": "This Action will remove the factory from the database and cannot be undone",
+    "This Action will remove the holder from the database and cannot be undone": "This Action will remove the holder from the database and cannot be undone",
+    "This Action will remove the launchpad from the database and cannot be undone": "This Action will remove the launchpad from the database and cannot be undone",
+    "This Action will remove the msg from the database and cannot be undone": "This Action will remove the msg from the database and cannot be undone",
+    "This Action will remove the promo from the database and cannot be undone": "This Action will remove the promo from the database and cannot be undone",
+    "This Action will remove the trade from the database but the trade record will remain on the blockchain": "This Action will remove the trade from the database but the trade record will remain on the blockchain",
+    "Token created": "Token created",
+    "Token Logo": "Token Logo",
+    "Trades": "Trades",
+    "Twitter": "Twitter",
+    "Txid": "Txid",
+    "Type": "Type",
+    "Unlock Liquidity": "Unlock Liquidity",
+    "Update Factory Label ": "Update Factory Label ",
+    "Update Holder": "Update Holder",
+    "Update launchpads config": "Update launchpads config",
+    "Update Rpc Setting": "Update Rpc Setting",
+    "Update Site Config": "Update Site Config",
+    "Update Website links": "Update Website links",
+    "Upload to server": "Upload to server",
+    "Url": "Url",
+    "User": "User",
+    "User Id": "User Id",
+    "Users": "Users",
+    "Validation failed": "Validation failed",
+    "Verification failed": "Verification failed",
+    "Verify": "Verify",
+    "Version": "Version",
+    "View Trades on the bonding curve, updated every five minutes": "View Trades on the bonding curve, updated every five minutes",
+    "Website": "Website",
+    "Wen Moon?": "Wen Moon?",
+    "Withdraw Prebond Allocation": "Withdraw Prebond Allocation",
+    "years": "years",
+    "You receive min.": "You receive min.",
+    "You spend min.": "You spend min."
+}
+
+
+================================================
+File: lang/en/auth.php
+================================================
+<?php
+
+return [
+
+    /*
+    |--------------------------------------------------------------------------
+    | Authentication Language Lines
+    |--------------------------------------------------------------------------
+    |
+    | The following language lines are used during authentication for various
+    | messages that we need to display to the user. You are free to modify
+    | these language lines according to your application's requirements.
+    |
+    */
+
+    'failed' => 'These credentials do not match our records.',
+    'password' => 'The provided password is incorrect.',
+    'throttle' => 'Too many login attempts. Please try again in :seconds seconds.',
+
+];
+
+
+================================================
+File: lang/en/pagination.php
+================================================
+<?php
+
+return [
+
+    /*
+    |--------------------------------------------------------------------------
+    | Pagination Language Lines
+    |--------------------------------------------------------------------------
+    |
+    | The following language lines are used by the paginator library to build
+    | the simple pagination links. You are free to change them to anything
+    | you want to customize your views to better match your application.
+    |
+    */
+
+    'previous' => 'Prev',
+    'next' => 'Next',
+
+];
+
+
+================================================
+File: lang/en/passwords.php
+================================================
+<?php
+
+return [
+

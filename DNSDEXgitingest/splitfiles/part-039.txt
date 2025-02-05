@@ -1,0 +1,523 @@
+	@apply h-5;
+}
+
+
+================================================
+File: resources/css/vcalendar-theme.css
+================================================
+:root {
+  /* Update base grays to match custom palette */
+  --vc-gray-50: #fafafa;
+  --vc-gray-100: #f5f5f5;
+  --vc-gray-200: #e5e5e5;
+  --vc-gray-300: #d4d4d4;
+  --vc-gray-400: #a3a3a3;
+  --vc-gray-500: #737373;
+  --vc-gray-600: #525252;
+  --vc-gray-700: #404040;
+  --vc-gray-800: #262626;
+  --vc-gray-850: #1f1f1f;
+  --vc-gray-900: #171717;
+  --vc-gray-950: #0a0a0a;
+
+  /* Add primary colors */
+  --vc-primary: #ffbe1a;
+  --vc-primary-dark: #e6aa17;
+}
+
+.vc-gray {
+  --vc-accent-50: var(--vc-gray-50);
+  --vc-accent-100: var(--vc-gray-100);
+  --vc-accent-200: var(--vc-gray-200);
+  --vc-accent-300: var(--vc-gray-300);
+  --vc-accent-400: var(--vc-gray-400);
+  --vc-accent-500: var(--vc-gray-500);
+  --vc-accent-600: var(--vc-gray-600);
+  --vc-accent-700: var(--vc-gray-700);
+  --vc-accent-800: var(--vc-gray-800);
+  --vc-accent-900: var(--vc-gray-900);
+}
+
+.vc-dark {
+  /* Base */
+  --vc-color: var(--vc-gray-50);
+  --vc-bg: var(--vc-gray-850);
+  --vc-border: var(--vc-gray-700);
+  --vc-hover-bg: hsla(0, 0%, 45%, 0.3);
+  --vc-focus-ring: 0 0 0 2px rgba(255, 190, 26, 0.4); /* Updated to primary color */
+  
+  /* Calendar header */
+  --vc-header-arrow-color: var(--vc-gray-300);
+  --vc-header-arrow-hover-bg: var(--vc-gray-700);
+  --vc-header-title-color: var(--vc-gray-100);
+  
+  /* Calendar weekdays */
+  --vc-weekday-color: var(--vc-gray-400);
+  
+  /* Calendar weeknumbers */
+  --vc-weeknumber-color: var(--vc-gray-500);
+  
+  /* Calendar nav */
+  --vc-nav-hover-bg: var(--vc-gray-700);
+  --vc-nav-title-color: var(--vc-gray-100);
+  --vc-nav-item-hover-box-shadow: none;
+  --vc-nav-item-active-color: var(--vc-gray-900); /* Dark text for contrast with primary bg */
+  --vc-nav-item-active-bg: var(--vc-primary);
+  --vc-nav-item-active-box-shadow: none;
+  --vc-nav-item-current-color: var(--vc-primary);
+  
+  /* Calendar day popover */
+  --vc-day-popover-container-color: var(--vc-gray-700);
+  --vc-day-popover-container-bg: var(--vc-gray-850);
+  --vc-day-popover-container-border: var(--vc-gray-600);
+  --vc-day-popover-header-color: var(--vc-gray-300);
+  
+  /* Popover content */
+  --vc-popover-content-color: var(--vc-gray-100);
+  --vc-popover-content-bg: var(--vc-gray-800);
+  --vc-popover-content-border: var(--vc-gray-700);
+  
+  /* Time picker */
+  --vc-time-picker-border: var(--vc-gray-700);
+  --vc-time-weekday-color: var(--vc-gray-400);
+  --vc-time-month-color: var(--vc-primary);
+  --vc-time-day-color: var(--vc-primary);
+  --vc-time-year-color: var(--vc-gray-500);
+  
+  /* Time select group */
+  --vc-time-select-group-bg: var(--vc-gray-800);
+  --vc-time-select-group-border: var(--vc-gray-700);
+  --vc-time-select-group-icon-color: var(--vc-primary);
+  
+  /* Base select */
+  --vc-select-color: var(--vc-gray-200);
+  --vc-select-bg: var(--vc-gray-800);
+  --vc-select-hover-bg: var(--vc-gray-700);
+  
+  /* Calendar day */
+  --vc-day-content-hover-bg: var(--vc-hover-bg);
+  --vc-day-content-disabled-color: var(--vc-gray-600);
+
+  /* Calendar attributes */
+  &.vc-attr,
+  & .vc-attr {
+    --vc-content-color: var(--vc-primary);
+    --vc-highlight-outline-bg: var(--vc-gray-850);
+    --vc-highlight-outline-border: var(--vc-primary);
+    --vc-highlight-outline-content-color: var(--vc-primary);
+    --vc-highlight-light-bg: rgba(255, 190, 26, 0.15); /* Semi-transparent primary */
+    --vc-highlight-light-content-color: var(--vc-primary);
+    --vc-highlight-solid-bg: var(--vc-primary);
+    --vc-highlight-solid-content-color: var(--vc-gray-900); /* Dark text for contrast */
+    --vc-dot-bg: var(--vc-primary);
+    --vc-bar-bg: var(--vc-primary);
+  }
+}
+
+================================================
+File: resources/js/app.js
+================================================
+/* eslint-disable import/order */
+import '../css/app.css';
+import './bootstrap';
+
+import { createApp, h } from 'vue';
+
+import { useWagmiAdapter } from '@/lib/wagmi.js';
+import { createInertiaApp } from '@inertiajs/vue3';
+import { QueryClient, VueQueryPlugin } from '@tanstack/vue-query';
+import { WagmiPlugin } from '@wagmi/vue';
+import { resolvePageComponent } from 'laravel-vite-plugin/inertia-helpers';
+import "tippy.js/dist/tippy.css";
+import "tippy.js/themes/light.css";
+import "v-calendar/dist/style.css";
+import { createI18n } from "vue-i18n";
+import VueTippy from "vue-tippy";
+import { ZiggyVue } from '../../vendor/tightenco/ziggy';
+import "../css/vcalendar-theme.css";
+import messages from "./vue-i18n-locales.generated.js";
+
+const appName = import.meta.env.VITE_APP_NAME || 'Laravel';
+const queryClient = new QueryClient();
+createInertiaApp({
+    title: (title) => `${title} - ${appName}`,
+    resolve: (name) =>
+        resolvePageComponent(
+            `./Pages/${name}.vue`,
+            import.meta.glob('./Pages/**/*.vue'),
+        ),
+    setup({ el, App, props, plugin }) {
+        const i18n = createI18n({
+            locale: props.initialPage.props.locale,
+            fallbackLocale: "en", // set fallback locale
+            messages, // set locale messages,
+            legacy: false,
+        });
+        const adapter = useWagmiAdapter(props.initialPage.props);
+        const app = createApp({ render: () => h(App, props) })
+            .use(plugin)
+            .use(ZiggyVue)
+            .use(WagmiPlugin, { config: adapter.wagmiConfig })
+            .use(VueQueryPlugin, { queryClient })
+            .use(i18n)
+            .use(VueTippy)
+            .mount(el);
+        return app;
+    },
+    progress: {
+        color: '#f5f5f3',
+    },
+});
+
+
+================================================
+File: resources/js/bootstrap.js
+================================================
+import axios from 'axios';
+window.axios = axios;
+
+window.axios.defaults.headers.common['X-Requested-With'] = 'XMLHttpRequest';
+
+/**
+ * Echo exposes an expressive API for subscribing to channels and listening
+ * for events that are broadcast by Laravel. Echo and event broadcasting
+ * allow your team to quickly build robust real-time web applications.
+ */
+
+import './echo';
+
+
+================================================
+File: resources/js/echo.js
+================================================
+import Echo from 'laravel-echo';
+import Pusher from 'pusher-js';
+window.Pusher = Pusher;
+
+window.Echo = new Echo({
+    broadcaster: 'reverb',
+    key: import.meta.env.VITE_REVERB_APP_KEY,
+    wsHost: import.meta.env.VITE_REVERB_HOST,
+    wsPort: import.meta.env.VITE_REVERB_PORT ?? 80,
+    wssPort: import.meta.env.VITE_REVERB_PORT ?? 443,
+    forceTLS: (import.meta.env.VITE_REVERB_SCHEME ?? 'https') === 'https',
+    enabledTransports: ['ws', 'wss'],
+});
+
+
+================================================
+File: resources/js/install.js
+================================================
+/* eslint-disable import/order */
+import '../css/app.css';
+import './bootstrap';
+
+import { createApp, h } from 'vue';
+
+import { createInertiaApp } from '@inertiajs/vue3';
+import { resolvePageComponent } from 'laravel-vite-plugin/inertia-helpers';
+import "tippy.js/dist/tippy.css";
+import "tippy.js/themes/light.css";
+import "v-calendar/dist/style.css";
+import { createI18n } from "vue-i18n";
+import VueTippy from "vue-tippy";
+import { ZiggyVue } from '../../vendor/tightenco/ziggy';
+import "../css/vcalendar-theme.css";
+import messages from "./vue-i18n-locales.generated.js";
+
+const appName = import.meta.env.VITE_APP_NAME || 'Laravel';
+
+createInertiaApp({
+    title: (title) => `${title} - ${appName}`,
+    resolve: (name) =>
+        resolvePageComponent(
+            `./Pages/${name}.vue`,
+            import.meta.glob('./Pages/**/*.vue'),
+        ),
+    setup({ el, App, props, plugin }) {
+        const i18n = createI18n({
+            locale: props.initialPage.props.locale,
+            fallbackLocale: "en", // set fallback locale
+            messages, // set locale messages,
+            legacy: false,
+        });
+
+        const app = createApp({ render: () => h(App, props) })
+            .use(plugin)
+            .use(ZiggyVue)
+            .use(i18n)
+            .use(VueTippy)
+            .mount(el);
+        return app;
+    },
+    progress: {
+        color: '#f5f5f3',
+    },
+});
+
+
+================================================
+File: resources/js/vue-i18n-locales.generated.js
+================================================
+export default {
+    "en": {
+        " {name}  Factory Disabled!": " {name}  Factory Disabled!",
+        " {name}  Holder Disabled!": " {name}  Holder Disabled!",
+        " {name}  Launchpad Disabled!": " {name}  Launchpad Disabled!",
+        " {name}  Poolstat Disabled!": " {name}  Poolstat Disabled!",
+        " {name}  Promo Disabled!": " {name}  Promo Disabled!",
+        " {name}  Rate Disabled!": " {name}  Rate Disabled!",
+        " {name}  User Disabled!": " {name}  User Disabled!",
+        " {name} Factory Enabled !": " {name} Factory Enabled !",
+        " {name} Holder Enabled !": " {name} Holder Enabled !",
+        " {name} Launchpad Enabled !": " {name} Launchpad Enabled !",
+        " {name} Poolstat Enabled !": " {name} Poolstat Enabled !",
+        " {name} Promo Enabled !": " {name} Promo Enabled !",
+        " {name} Rate Enabled !": " {name} Rate Enabled !",
+        " {name} User Enabled !": " {name} User Enabled !",
+        "A next sync event may reload the trade!": "A next sync event may reload the trade!",
+        "Active": "Active",
+        "active": "active",
+        "Add Project Links": "Add Project Links",
+        "Address": "Address",
+        "Address verified successfully": "Address verified successfully",
+        "All liquidity is locked forever": "All liquidity is locked forever",
+        "Amount": "Amount",
+        "Animation": "Animation",
+        "Approve Tokens": "Approve Tokens",
+        "Are you sure about deleting {factory} ?": "Are you sure about deleting {factory} ?",
+        "Are you sure about deleting {holder} ?": "Are you sure about deleting {holder} ?",
+        "Are you sure about deleting {launchpad} ?": "Are you sure about deleting {launchpad} ?",
+        "Are you sure about deleting {msg} ?": "Are you sure about deleting {msg} ?",
+        "Are you sure about deleting {promo} ?": "Are you sure about deleting {promo} ?",
+        "Are you sure about deleting {trade} ?": "Are you sure about deleting {trade} ?",
+        "Are you sure you would like to delete this User?": "Are you sure you would like to delete this User?",
+        "Available Holders": "Available Holders",
+        "Available Launchpads": "Available Launchpads",
+        "Available Messages in the group chat": "Available Messages in the group chat",
+        "Back ": "Back ",
+        "Back to holders list": "Back to holders list",
+        "Back to promos list": "Back to promos list",
+        "Banned": "Banned",
+        "before everyone else!": "before everyone else!",
+        "BUY": "BUY",
+        "Buy and sell at any time": "Buy and sell at any time",
+        "Cancel": "Cancel",
+        "Chainid": "Chainid",
+        "Claim fees": "Claim fees",
+        "Claim Uniswap fees": "Claim Uniswap fees",
+        "Code resent successfully !": "Code resent successfully !",
+        "Connect Wallet": "Connect Wallet",
+        "Continue": "Continue",
+        "Contract": "Contract",
+        "Contributions": "Contributions",
+        "Copy": "Copy",
+        "Create New Factory": "Create New Factory",
+        "Create New Holders": "Create New Holders",
+        "Create New Promo": "Create New Promo",
+        "Creator": "Creator",
+        "Date & time": "Date & time",
+        "days": "days",
+        "Delete": "Delete",
+        "Delete User": "Delete User",
+        "Deploy Factory": "Deploy Factory",
+        "Deploy Launchpad": "Deploy Launchpad",
+        "Description": "Description",
+        "Disable": "Disable",
+        "Discord": "Discord",
+        "Discover the next trending meme": "Discover the next trending meme",
+        "Docs": "Docs",
+        "Enable Chat": "Enable Chat",
+        "Enable Featured Launchpads": "Enable Featured Launchpads",
+        "End Date & time": "End Date & time",
+        "Ends At": "Ends At",
+        "Enhanced Token Info": "Enhanced Token Info",
+        "Explore": "Explore",
+        "Factories are used to deploy the launchpads and collect fees": "Factories are used to deploy the launchpads and collect fees",
+        "Fair Launch Protocol": "Fair Launch Protocol",
+        "FDV": "FDV",
+        "Featured": "Featured",
+        "Finalize Launchpad": "Finalize Launchpad",
+        "font": "font",
+        "Free Enhanced Token Info for better DEX Tools visibility": "Free Enhanced Token Info for better DEX Tools visibility",
+        "Fully audited smart contracts": "Fully audited smart contracts",
+        "Great memes for great fun.": "Great memes for great fun.",
+        "hours": "hours",
+        "How Does it work": "How Does it work",
+        "How it works": "How it works",
+        "Image": "Image",
+        "Image promos are rotated on the landing page": "Image promos are rotated on the landing page",
+        "Initial": "Initial",
+        "Invalid signature": "Invalid signature",
+        "Its Recommended to Disable the factory Instead": "Its Recommended to Disable the factory Instead",
+        "Its Recommended to Disable the holder Instead": "Its Recommended to Disable the holder Instead",
+        "Its Recommended to Disable the launchpad Instead": "Its Recommended to Disable the launchpad Instead",
+        "Its Recommended to Disable the msg Instead": "Its Recommended to Disable the msg Instead",
+        "Its Recommended to Disable the promo Instead": "Its Recommended to Disable the promo Instead",
+        "Key Features": "Key Features",
+        "King": "King",
+        "Launch": "Launch",
+        "Launch a new token": "Launch a new token",
+        "Launch Meme": "Launch Meme",
+        "Launch Meme Token": "Launch Meme Token",
+        "Launch on Uniswap and earn LP rewards for life!": "Launch on Uniswap and earn LP rewards for life!",
+        "Launch your meme": "Launch your meme",
+        "Launch, Lock & Earn": "Launch, Lock & Earn",
+        "Launched": "Launched",
+        "Launchpad Finalized": "Launchpad Finalized",
+        "Launchpad Id": "Launchpad Id",
+        "Launchpads": "Launchpads",
+        "Lock": "Lock",
+        "Locked Liquidity": "Locked Liquidity",
+        "Logo": "Logo",
+        "Manage Factories": "Manage Factories",
+        "Manage Holders": "Manage Holders",
+        "Manage Image Promotions": "Manage Image Promotions",
+        "Manage Launchpads": "Manage Launchpads",
+        "Manage Messages": "Manage Messages",
+        "Manage Trades": "Manage Trades",
+        "MARKET CAP": "MARKET CAP",
+        "Max 1B supply": "Max 1B supply",
+        "Message": "Message",
+        "Migration DEX": "Migration DEX",
+        "Migration triggers at:": "Migration triggers at:",
+        "min": "min",
+        "MODERATION": "MODERATION",
+        "months": "months",
+        "My Launchpads": "My Launchpads",
+        "My Memes": "My Memes",
+        "Name": "Name",
+        "No authentication code found in session": "No authentication code found in session",
+        "No pre-sale, no insiders, maximum transparency": "No pre-sale, no insiders, maximum transparency",
+        "OTP has been resent to your contact.": "OTP has been resent to your contact.",
+        "Ownership renounced, immutable": "Ownership renounced, immutable",
+        "Place trade": "Place trade",
+        "Please wait {seconds} seconds before requesting another OTP.": "Please wait {seconds} seconds before requesting another OTP.",
+        "Policy": "Policy",
+        "Prebond": "Prebond",
+        "Prebond Purchase": "Prebond Purchase",
+        "PRICE": "PRICE",
+        "Qty": "Qty",
+        "Reload": "Reload",
+        "Resend": "Resend",
+        "RESET": "RESET",
+        "Rewards": "Rewards",
+        "Save Holder": "Save Holder",
+        "Save Promo": "Save Promo",
+        "sec": "sec",
+        "SELL": "SELL",
+        "SLIPPAGE": "SLIPPAGE",
+        "Starts At": "Starts At",
+        "Status": "Status",
+        "Subscribe to notifications:": "Subscribe to notifications:",
+        "Supports png, jpeg or svg": "Supports png, jpeg or svg",
+        "Swap on Uniswap": "Swap on Uniswap",
+        "Symbol": "Symbol",
+        "Telegram": "Telegram",
+        "Telegram Alerts": "Telegram Alerts",
+        "Telegram bot": "Telegram bot",
+        "Terms": "Terms",
+        "The reseller will most likely lose money": "The reseller will most likely lose money",
+        "Theses are registered users on the site": "Theses are registered users on the site",
+        "This Action will remove the factory from the database and cannot be undone": "This Action will remove the factory from the database and cannot be undone",
+        "This Action will remove the holder from the database and cannot be undone": "This Action will remove the holder from the database and cannot be undone",
+        "This Action will remove the launchpad from the database and cannot be undone": "This Action will remove the launchpad from the database and cannot be undone",
+        "This Action will remove the msg from the database and cannot be undone": "This Action will remove the msg from the database and cannot be undone",
+        "This Action will remove the promo from the database and cannot be undone": "This Action will remove the promo from the database and cannot be undone",
+        "This Action will remove the trade from the database but the trade record will remain on the blockchain": "This Action will remove the trade from the database but the trade record will remain on the blockchain",
+        "Token created": "Token created",
+        "Token Logo": "Token Logo",
+        "Trades": "Trades",
+        "Twitter": "Twitter",
+        "Txid": "Txid",
+        "Type": "Type",
+        "Unlock Liquidity": "Unlock Liquidity",
+        "Update Factory Label ": "Update Factory Label ",
+        "Update Holder": "Update Holder",
+        "Update launchpads config": "Update launchpads config",
+        "Update Rpc Setting": "Update Rpc Setting",
+        "Update Site Config": "Update Site Config",
+        "Update Website links": "Update Website links",
+        "Upload to server": "Upload to server",
+        "Url": "Url",
+        "User": "User",
+        "User Id": "User Id",
+        "Users": "Users",
+        "Validation failed": "Validation failed",
+        "Verification failed": "Verification failed",
+        "Verify": "Verify",
+        "Version": "Version",
+        "View Trades on the bonding curve, updated every five minutes": "View Trades on the bonding curve, updated every five minutes",
+        "Website": "Website",
+        "Wen Moon?": "Wen Moon?",
+        "Withdraw Prebond Allocation": "Withdraw Prebond Allocation",
+        "years": "years",
+        "You receive min.": "You receive min.",
+        "You spend min.": "You spend min.",
+        "auth": {
+            "failed": "These credentials do not match our records.",
+            "password": "The provided password is incorrect.",
+            "throttle": "Too many login attempts. Please try again in {seconds} seconds."
+        },
+        "pagination": {
+            "previous": "Prev",
+            "next": "Next"
+        },
+        "passwords": {
+            "reset": "Your password has been reset.",
+            "sent": "We have emailed your password reset link.",
+            "throttled": "Please wait before retrying.",
+            "token": "This password reset token is invalid.",
+            "user": "We can't find a user with that email address."
+        },
+        "validation": {
+            "accepted": "The {attribute} field must be accepted.",
+            "accepted_if": "The {attribute} field must be accepted when {other} is {value}.",
+            "active_url": "The {attribute} field must be a valid URL.",
+            "after": "The {attribute} field must be a date after {date}.",
+            "after_or_equal": "The {attribute} field must be a date after or equal to {date}.",
+            "alpha": "The {attribute} field must only contain letters.",
+            "alpha_dash": "The {attribute} field must only contain letters, numbers, dashes, and underscores.",
+            "alpha_num": "The {attribute} field must only contain letters and numbers.",
+            "array": "The {attribute} field must be an array.",
+            "ascii": "The {attribute} field must only contain single-byte alphanumeric characters and symbols.",
+            "before": "The {attribute} field must be a date before {date}.",
+            "before_or_equal": "The {attribute} field must be a date before or equal to {date}.",
+            "between": {
+                "array": "The {attribute} field must have between {min} and {max} items.",
+                "file": "The {attribute} field must be between {min} and {max} kilobytes.",
+                "numeric": "The {attribute} field must be between {min} and {max}.",
+                "string": "The {attribute} field must be between {min} and {max} characters."
+            },
+            "boolean": "The {attribute} field must be true or false.",
+            "can": "The {attribute} field contains an unauthorized value.",
+            "confirmed": "The {attribute} field confirmation does not match.",
+            "contains": "The {attribute} field is missing a required value.",
+            "current_password": "The password is incorrect.",
+            "date": "The {attribute} field must be a valid date.",
+            "date_equals": "The {attribute} field must be a date equal to {date}.",
+            "date_format": "The {attribute} field must match the format {format}.",
+            "decimal": "The {attribute} field must have {decimal} decimal places.",
+            "declined": "The {attribute} field must be declined.",
+            "declined_if": "The {attribute} field must be declined when {other} is {value}.",
+            "different": "The {attribute} field and {other} must be different.",
+            "digits": "The {attribute} field must be {digits} digits.",
+            "digits_between": "The {attribute} field must be between {min} and {max} digits.",
+            "dimensions": "The {attribute} field has invalid image dimensions.",
+            "distinct": "The {attribute} field has a duplicate value.",
+            "doesnt_end_with": "The {attribute} field must not end with one of the following: {values}.",
+            "doesnt_start_with": "The {attribute} field must not start with one of the following: {values}.",
+            "email": "The {attribute} field must be a valid email address.",
+            "ends_with": "The {attribute} field must end with one of the following: {values}.",
+            "enum": "The selected {attribute} is invalid.",
+            "exists": "The selected {attribute} is invalid.",
+            "extensions": "The {attribute} field must have one of the following extensions: {values}.",
+            "file": "The {attribute} field must be a file.",
+            "filled": "The {attribute} field must have a value.",
+            "gt": {
+                "array": "The {attribute} field must have more than {value} items.",
+                "file": "The {attribute} field must be greater than {value} kilobytes.",
+                "numeric": "The {attribute} field must be greater than {value}.",
+                "string": "The {attribute} field must be greater than {value} characters."
+            },
+            "gte": {

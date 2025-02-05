@@ -1,0 +1,523 @@
+                    <!-- Navigation Links - Desktop -->
+                    <div class="hidden lg:flex lg:items-center lg:space-x-4">
+                        <Link
+                            href="/mine"
+                            class="text-gray-300 hover:text-primary px-3 py-2 text-sm font-medium"
+                            :class="{
+                                'text-primary': $page.props.type == 'mine',
+                            }"
+                        >
+                        {{ $t("My Memes") }}
+                        </Link>
+                        <button
+                            @click="showHowItworks = !showHowItworks"
+                            class="text-gray-300 hover:text-primary px-3 py-2 text-sm font-medium"
+                        >
+                            {{ $t("How it works") }}
+                        </button>
+                    </div>
+                </div>
+
+                <!-- Right Side Actions -->
+                <div class="hidden lg:flex lg:items-center lg:space-x-4">
+                    <!-- Social Links -->
+                    <div class="flex items-center space-x-3">
+                        <BaseButton
+                            url
+                            :href="$page.props.links.twitter ?? '#'"
+                            target="_blank"
+                            size="sm"
+                            outlined
+                            iconMode
+                        >
+                            <XIcon class="w-4 h-4" />
+                        </BaseButton>
+                        <BaseButton
+                            url
+                            :href="$page.props.links.documentation ?? '#'"
+                            target="_blank"
+                            size="sm"
+                            outlined
+                            iconMode
+                        >
+                            <BookOpenText class="w-5 h-5" />
+                        </BaseButton>
+                        <BaseButton
+                            url
+                            :href="$page.props.links.telegram ?? '#'"
+                            target="_blank"
+                            size="sm"
+                            outlined
+                            iconMode
+                        >
+                            <TelegramIcon class="w-4 h-4" />
+                        </BaseButton>
+                    </div>
+
+                    <!-- Action Buttons -->
+                    <PrimaryButton
+                        link
+                        href="/launch"
+                        size="xs"
+                        class="mr-2"
+                    >
+                        {{ $t("Launch Meme") }}
+                    </PrimaryButton>
+                    <Web3Auth />
+                    <AuthLink />
+                </div>
+
+                <!-- Mobile menu button -->
+                <div class="flex lg:hidden">
+                    <button
+                        @click="isMobileMenuOpen = !isMobileMenuOpen"
+                        class="inline-flex items-center justify-center p-2 rounded text-gray-400 hover:text-white hover:bg-gray-700 focus:outline-none"
+                    >
+                        <span class="sr-only">Open main menu</span>
+                        <!-- Icon when menu is closed -->
+                        <svg
+                            v-if="!isMobileMenuOpen"
+                            class="block h-6 w-6"
+                            fill="none"
+                            viewBox="0 0 24 24"
+                            stroke="currentColor"
+                        >
+                            <path
+                                stroke-linecap="round"
+                                stroke-linejoin="round"
+                                stroke-width="2"
+                                d="M4 6h16M4 12h16M4 18h16"
+                            />
+                        </svg>
+                        <!-- Icon when menu is open -->
+                        <svg
+                            v-else
+                            class="block h-6 w-6"
+                            fill="none"
+                            viewBox="0 0 24 24"
+                            stroke="currentColor"
+                        >
+                            <path
+                                stroke-linecap="round"
+                                stroke-linejoin="round"
+                                stroke-width="2"
+                                d="M6 18L18 6M6 6l12 12"
+                            />
+                        </svg>
+                    </button>
+                </div>
+            </div>
+        </div>
+
+        <!-- Mobile menu -->
+        <div
+            v-show="isMobileMenuOpen"
+            class="lg:hidden"
+        >
+            <div class="px-2 pt-2 pb-3 space-y-1">
+                <Link
+                    href="/my-tokens"
+                    class="block px-3 py-2 rounded text-base font-medium text-gray-300 hover:text-primary hover:bg-gray-700"
+                    :class="{
+                        'bg-gray-900 text-primary':
+                            $page.url.startsWith('/my-tokens'),
+                    }"
+                >
+                {{ $t("My Memes") }}
+                </Link>
+                <button
+                    @click="showHowItworks = !showHowItworks"
+                    class="block px-3 py-2 rounded text-base font-medium text-gray-300 hover:text-primary hover:bg-gray-700"
+                >
+                    {{ $t("How it works") }}
+                </button>
+            </div>
+            <!-- Mobile Social Links and Actions -->
+            <div class="pt-4 pb-3 border-t border-gray-700">
+                <div class="px-2 space-y-1">
+                    <!-- Social Links -->
+                    <div class="flex items-center space-x-2 px-3 py-2">
+                        <PrimaryButton
+                            size="sm"
+                            outlined
+                            iconMode
+                        >
+                            <XIcon class="w-4 h-4" />
+                        </PrimaryButton>
+                        <PrimaryButton
+                            size="sm"
+                            outlined
+                            iconMode
+                        >
+                            <BookOpenText class="w-5 h-5" />
+                        </PrimaryButton>
+                        <PrimaryButton
+                            size="sm"
+                            outlined
+                            iconMode
+                        >
+                            <TelegramIcon class="w-4 h-4" />
+                        </PrimaryButton>
+                    </div>
+                    <!-- Action Buttons -->
+                    <div class="space-y-2 px-3">
+                        <PrimaryButton
+                            size="sm"
+                            link
+                            href="/launch"
+                            class="w-full justify-center"
+                        >
+                            {{ $t("Launch Meme") }}
+                        </PrimaryButton>
+
+                        <!-- Action Buttons -->
+                        <Web3Auth
+                            size="sm"
+                            class="flex-col gap-2"
+                            full
+                        />
+                        <AuthLink full />
+                    </div>
+                </div>
+            </div>
+        </div>
+        <HowItWorksModal v-model:show="showHowItworks" />
+    </nav>
+</template>
+
+
+================================================
+File: resources/js/Pages/Privacy.vue
+================================================
+<script setup>
+
+import AppLayout from '@/Layouts/AppLayout.vue';
+</script>
+
+<template>
+    <AppLayout>
+        <div class="min-h-screen bg-white dark:bg-gray-900">
+            <div class="max-w-4xl mx-auto px-4 py-8">
+                <h1 class="text-3xl font-bold text-gray-900 dark:text-white mb-4">Privacy Notice</h1>
+                <p class="text-sm text-gray-600 dark:text-gray-400 mb-8">Last Updated: 1 Jan 2025</p>
+
+                <div class="prose dark:prose-invert max-w-none">
+                    <div class="text-gray-700 dark:text-gray-300 space-y-6">
+                        <p>
+                            This "Privacy Notice" describes the privacy practices of {{ $page.props.appName }} and
+                            {{ $page.props.appName }} Affiliates (collectively, "{{ $page.props.appName }}", "our", "us"
+                            or
+                            "we"), in connection with the Sites and the {{ $page.props.appName }} Platform
+                            (collectively, "Services").
+                        </p>
+
+                        <p>
+                            Please read this Privacy Notice carefully to understand our policies and
+                            practices regarding your information. If you do not agree with our
+                            policies and practices, please do not use the {{ $page.props.appName }} Platform. By
+                            accessing or using the {{ $page.props.appName }} Platform, you acknowledge and agree to
+                            the terms of this Privacy Notice.
+                        </p>
+
+                        <h2 class="text-2xl font-semibold text-gray-800 dark:text-gray-200 mt-8 mb-4">
+                            Personal Data Controller
+                        </h2>
+                        <p>
+                            The term "Personal Data" as used in this policy, describes information
+                            that can be associated with a specific person and can identify that
+                            person.
+                        </p>
+
+                        <h2 class="text-2xl font-semibold text-gray-800 dark:text-gray-200 mt-8 mb-4">
+                            Types of Personal Data Collected
+                        </h2>
+                        <p>
+                            The types of Personal Data that we may collect from you or through third
+                            parties will depend on our interactions with you and may include...
+                        </p>
+
+                        <h2 class="text-2xl font-semibold text-gray-800 dark:text-gray-200 mt-8 mb-4">
+                            Information We Automatically Collect
+                        </h2>
+                        <p>
+                            When you visit the {{ $page.props.appName }} Platform, we may automatically collect
+                            certain information about your device...
+                        </p>
+
+                        <!-- Continue with all sections from the privacy policy -->
+                    </div>
+                </div>
+            </div>
+        </div>
+    </AppLayout>
+</template>
+
+================================================
+File: resources/js/Pages/Terms.vue
+================================================
+<script setup>
+import AppLayout from '@/Layouts/AppLayout.vue'; /* PartiallyEnd: #3632/scriptSetup.vue */
+
+</script>
+
+<template>
+    <AppLayout>
+        <div class="min-h-screen bg-white dark:bg-gray-900">
+            <div class="max-w-4xl mx-auto px-4 py-8">
+                <h1 class="text-3xl font-bold text-gray-900 dark:text-white mb-4">Terms of Use</h1>
+                <p class="text-sm text-gray-600 dark:text-gray-400 mb-8">Last Updated: 27 Jan 2025</p>
+
+                <div class="prose dark:prose-invert max-w-none">
+                    <div class="text-gray-700 dark:text-gray-300 space-y-6">
+                        <p>
+                            These Terms of Use constitute a legally binding agreement between you
+                            ("you" or "your") and {{ $page.props.appName }} ("{{ $page.props.appName }}", "we", "our" or
+                            "us").
+                        </p>
+
+                        <div class="bg-yellow-50 dark:bg-yellow-900 p-4 rounded-lg my-8">
+                            <h2 class="text-xl font-semibold text-yellow-800 dark:text-yellow-200 mb-2">
+                                RISK WARNING
+                            </h2>
+                            <p class="text-yellow-700 dark:text-yellow-300">
+                                The value of Digital Assets can fluctuate significantly and there is a
+                                material risk of economic loss when buying, selling, holding or
+                                investing in Digital Assets. You should therefore consider whether
+                                trading or holding Digital Assets is suitable for you taking into
+                                account your personal circumstances, financial or otherwise.
+                            </p>
+                        </div>
+
+                        <section>
+                            <h2 class="text-2xl font-semibold text-gray-800 dark:text-gray-200 mt-8 mb-4">
+                                1. Introduction
+                            </h2>
+                            <p>1.1. {{ $page.props.appName }} is a platform designed to assist with the creation and
+                                trading of Digital Assets. The {{ $page.props.appName }} group provides users with a
+                                platform to create Digital Assets.</p>
+                            <p>1.2. By using the {{ $page.props.appName }} Platform you are entering into a legally
+                                binding agreement with us. These Terms will govern your use of the
+                                {{ $page.props.appName }} Platform.</p>
+                        </section>
+
+                        <section>
+                            <h2 class="text-2xl font-semibold text-gray-800 dark:text-gray-200 mt-8 mb-4">
+                                2. Eligibility
+                            </h2>
+                            <p>2.1. To be eligible to use the {{ $page.props.appName }} Platform, you must:</p>
+                            <!-- Continue with eligibility content -->
+                        </section>
+
+                        <!-- Continue with all sections from the terms document -->
+
+                        <section>
+                            <h2 class="text-2xl font-semibold text-gray-800 dark:text-gray-200 mt-8 mb-4">
+                                32. Definitions and interpretation
+                            </h2>
+                            <p>In these Terms:</p>
+                            <!-- Continue with definitions -->
+                        </section>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </AppLayout>
+</template>
+
+================================================
+File: resources/js/Pages/Welcome.vue
+================================================
+<!-- eslint-disable import/order -->
+<script setup>
+import { computed, ref } from "vue";
+
+import { router } from "@inertiajs/vue3";
+import { debouncedWatch, useUrlSearchParams } from "@vueuse/core";
+import {
+    AlarmClockCheck,
+    BellPlus,
+    ChartCandlestick,
+    Flame,
+    LoaderCircle,
+    Search,
+    SquareArrowUp,
+} from "lucide-vue-next";
+
+import BaseButton from "@/Components/BaseButton.vue";
+import CollapseTransition from "@/Components/CollapseTransition.vue";
+import FormInput from "@/Components/FormInput.vue";
+import Pagination from "@/Components/Pagination.vue";
+import SmallSwitch from "@/Components/SmallSwitch.vue";
+import { ucfirst } from "@/hooks";
+import { useLaunchpadsData } from "@/hooks/useLaunchpadsData";
+import AppLayout from "@/Layouts/AppLayout.vue";
+import HowItWorksModal from "@/Layouts/AppLayout/HowItWorksModal.vue";
+import AnimationsRow from "@/Pages/Launchpads/AnimationsRow.vue";
+import BarButton from "@/Pages/Launchpads/BarButton.vue";
+import IndexCard from "@/Pages/Launchpads/IndexCard.vue";
+import { useChainId } from "@wagmi/vue";
+
+const props = defineProps({
+    launchpads: [Array, Object],
+    top: Array,
+    usdRates: [Array, Object],
+    type: String,
+});
+const launchpadsList = computed(() => props.launchpads.data);
+const launchpadsInfo = useLaunchpadsData(launchpadsList, props.usdRates);
+const showHowItWorks = ref(false);
+const filters = [
+    { id: "trending", icon: Flame },
+    { id: "top", icon: ChartCandlestick },
+    { id: "rising", icon: SquareArrowUp },
+    { id: "new", icon: BellPlus },
+    { id: "finalized", icon: AlarmClockCheck },
+];
+const params = useUrlSearchParams("history");
+const search = ref(params.search ?? "");
+const chainId = useChainId();
+debouncedWatch(
+    [search],
+    ([search]) => {
+        router.get(
+            window.route("launchpads.index"),
+            { search },
+            {
+                preserveState: true,
+                preserveScroll: true,
+            },
+        );
+    },
+    {
+        maxWait: 700,
+    },
+);
+const animate = ref(true);
+</script>
+
+<template>
+    <AppLayout compact>
+        <template #header>
+            <div class="flex items-center w-full bg-gray-850 h-12 relative overflow-x-hidden">
+                <div class="flex w-full items-center overflow-x-auto [scrollbar-width:none]">
+                    <div class="flex w-full items-center">
+                        <BarButton
+                            v-for="(launch, i) in top"
+                            :key="launch.id"
+                            :launch="launch"
+                            :active="i === 0"
+                        />
+                    </div>
+                </div>
+                <div
+                    class="h-12 w-20 absolute right-0 pointer-events-none bg-gradient-to-r from-transparent via-gray-850/50 to-gray-850">
+                </div>
+            </div>
+        </template>
+        <div class="grid my-8 container">
+            <div
+                v-if="type === 'mine'"
+                class="flex flex-col justify-center"
+            >
+                <h3 class="flex items-center">
+                    <LoaderCircle
+                        v-if="launchpadsInfo.loading.value"
+                        class="w-6 h-6 mr-2 animate-spin"
+                    />
+                    {{ $t("My Launchpads") }}
+                </h3>
+                <div class="flex items-center mt-4 gap-4">
+                    <BaseButton
+                        link
+                        href="/launch"
+                        outlined
+                    >
+                        {{ $t("Launch a new token") }}
+                    </BaseButton>
+                </div>
+            </div>
+            <template v-else>
+                <div class="flex flex-col items-center sm:flex-row sm:items-start justify-center sm:justify-between">
+                    <div class="flex flex-col justify-center items-center sm:items-start">
+                        <h3 class="text-xl font-extralight">
+                            {{ $t("Discover the next trending meme") }}
+                        </h3>
+                        <h3>{{ $t("before everyone else!") }}</h3>
+                        <div class="flex items-center mt-4 gap-4">
+                            <BaseButton
+                                @click="showHowItWorks = !showHowItWorks"
+                                secondary
+                                outlined
+                            >
+                                {{ $t("How Does it work") }}
+                            </BaseButton>
+                            <BaseButton
+                                link
+                                href="/launch"
+                                outlined
+                            >
+                                {{ $t("Launch your meme") }}
+                            </BaseButton>
+                        </div>
+                    </div>
+                    <div class="flex flex-col sm:flex-row sm:items-center gap-3">
+                        <a
+                            v-for="ad in $page.props.ads"
+                            :key="ad.id"
+                            :href="ad.url"
+                        >
+                            <img
+                                class="w-auto h-40 border border-gray-650 rounded"
+                                :src="ad.image"
+                            />
+                        </a>
+                    </div>
+                </div>
+                <div class="flex gap-4 items-center my-8 mx-4 justify-center sm:justify-start sm:mx-[unset] flex-wrap">
+                    <appkit-network-button v-if="chainId" />
+                    <BaseButton
+                        @click="animate = !animate"
+                        size="xss"
+                        class="font-semibold !px-4 py-1"
+                    >
+                        {{ $t("Animation") }}
+                        <SmallSwitch
+                            :modelValue="animate"
+                            class="ml-2"
+                        ></SmallSwitch>
+                    </BaseButton>
+                    <BaseButton
+                        v-for="filter in filters"
+                        :key="filter.id"
+                        :href="route('launchpads.index', {
+                            type: filter.id == 'trending' ? '' : filter.id,
+                        })
+                            "
+                        :secondary="filter.id != type"
+                        link
+                        size="xs"
+                        class="font-semibold !px-4"
+                    >
+                        <component
+                            :is="filter.icon"
+                            class="w-4 h-4 mr-1 -ml-1 inline-flex"
+                        />
+                        {{ ucfirst(filter.id) }}
+                    </BaseButton>
+                    <FormInput
+                        v-model="search"
+                        class="ml-auto sm:max-w-xs w-full"
+                        size="sm"
+                    >
+                        <template #lead>
+                            <Search class="w-4 h-4 ml-1 text-gray-400" />
+                        </template>
+                    </FormInput>
+                </div>
+            </template>
+            <LoaderCircle
+                v-if="type !== 'mine' && launchpadsInfo.loading.value"
+                class="w-8 mt-5 text-white h-8 mr-2 animate-spin"
+            />
+            <CollapseTransition>
+                <AnimationsRow

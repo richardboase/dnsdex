@@ -1,0 +1,523 @@
+													class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+													{{ $t("Launchpads") }}
+												</th>
+
+												<th
+													scope="col"
+													class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+													{{ $t("Contract") }}
+												</th>
+												<th
+													scope="col"
+													class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+													{{ $t("Contract") }}
+												</th>
+												<th
+													scope="col"
+													class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+													{{ $t("Lock") }}
+												</th>
+
+												<th
+													scope="col"
+													class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+													{{ $t("Active") }}
+												</th>
+												<td role="columnheader"></td>
+											</tr>
+										</thead>
+										<tbody role="rowgroup">
+											<tr
+												v-for="factory in factories.data"
+												:key="factory.id"
+												role="row">
+												<td
+													class="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900 dark:text-gray-200">
+													{{ factory.version }}
+												</td>
+												<td
+													class="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900 dark:text-gray-200">
+													<ChainInfo
+														:chainId="
+															factory.chainId
+														" />
+												</td>
+												<td
+													class="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900 dark:text-gray-200">
+													{{
+														factory.launchpads_count
+													}}
+												</td>
+
+												<td
+													class="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900 dark:text-gray-200">
+													<WeCopy
+														after
+														:text="
+															factory.contract
+														">
+														{{
+															shortenAddress(
+																factory.contract,
+															)
+														}}
+													</WeCopy>
+												</td>
+												<td
+													class="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900 dark:text-gray-200">
+													<WeCopy
+														after
+														:text="factory.lock">
+														{{
+															shortenAddress(
+																factory.lock,
+															)
+														}}
+													</WeCopy>
+												</td>
+
+												<td
+													class="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900 dark:text-gray-200">
+													<div
+														class="flex items-center gap-2">
+														<Loading
+															v-if="
+																factory.busy
+															" />
+														<FormSwitch
+															:model-value="
+																factory.active
+															"
+															@update:model-value="
+																toggle(factory)
+															" />
+													</div>
+												</td>
+												<td role="cell">
+													<div
+														class="flex justify-end items-center text-lg">
+														<PrimaryButton
+															:href="
+																route(
+																	'admin.factories.edit',
+																	factory.id,
+																)
+															"
+															link
+															class="mr-3"
+															size="xss">
+															<VueIcon
+																:icon="HiCog"
+																class="w-4 h-4 mr-2 -ml-1" />
+															Manage
+														</PrimaryButton>
+
+														<a
+															href="#"
+															@click.prevent="
+																factoryBeingDeleted =
+																	factory
+															"
+															class="cursor-pointer link p-2 hover:text-red-500">
+															<VueIcon
+																:icon="HiTrash"
+																class="w-4 h-4" />
+														</a>
+													</div>
+												</td>
+											</tr>
+										</tbody>
+									</table>
+								</div>
+								<Pagination :meta="factories.meta" />
+							</div>
+						</div>
+					</div>
+				</div>
+			</div>
+		</main>
+		<ConfirmationModal
+			:show="factoryBeingDeleted"
+			@close="factoryBeingDeleted = null">
+			<template #title>
+				{{
+					$t("Are you sure about deleting {factory} ?", {
+						factory: factoryBeingDeleted.name,
+					})
+				}}
+			</template>
+
+			<template #content>
+				<p>
+					{{
+						$t(
+							"This Action will remove the factory from the database and cannot be undone",
+						)
+					}}
+				</p>
+				<p>
+					{{ $t("Its Recommended to Disable the factory Instead") }}
+				</p>
+			</template>
+
+			<template #footer>
+				<SecondaryButton
+					outlined
+					class="uppercase text-xs font-semibold"
+					@click="factoryBeingDeleted = null">
+					{{ $t("Cancel") }}
+				</SecondaryButton>
+
+				<SecondaryButton
+					class="ml-2 uppercase text-xs font-semibold"
+					v-if="factoryBeingDeleted.active"
+					@click="toggle(factoryBeingDeleted)">
+					<Loading
+						class="!h-5 !w-5 mr-2 -ml-1"
+						v-if="factoryBeingDeleted.busy" />
+					{{ $t("Disable") }}
+				</SecondaryButton>
+
+				<DangerButton
+					class="ml-2 uppercase text-xs font-semibold"
+					@click="deleteFactory"
+					:class="{ 'opacity-25': deleteFactoryForm.processing }"
+					:disabled="deleteFactoryForm.processing">
+					<Loading
+						v-if="deleteFactoryForm.processing"
+						class="!h-4 !w-4 mr-2 -ml-1" />
+					{{ $t("Delete") }}
+				</DangerButton>
+			</template>
+		</ConfirmationModal>
+	</AdminLayout>
+</template>
+
+
+================================================
+File: resources/js/Pages/Admin/Holders/Create.vue
+================================================
+<script setup>
+import { HiArrowLeft } from "oh-vue-icons/icons";
+import Loading from "@/Components/Loading.vue";
+import PrimaryButton from "@/Components/PrimaryButton.vue";
+import AdminLayout from "@/Layouts/AdminLayout.vue";
+import { Link, useForm } from "@inertiajs/vue3";
+import VueIcon from "@/Components/VueIcon.vue";
+import FormInput from "@/Components/FormInput.vue";
+import FormSwitch from "@/Components/FormSwitch.vue";
+defineProps({
+    title:{required:false,type:String},
+});
+const form = useForm({
+		launchpad_id:"",
+		user_id:"",
+		address:"",
+		qty:"",
+		prebond:""
+});
+const save = () => form.post(window.route("admin.holders.store"));
+</script>
+<template>
+	<Head :title="title ?? `New Holder`" />
+	<AdminLayout>
+        <main class="h-full container sm:p-8">
+			<div class="relative h-full flex flex-auto flex-col px-4 sm:px-6 py-12 sm:py-6 md:px-8">
+				<div class="flex flex-col gap-4 h-full">
+					<div class="lg:flex items-center justify-between mb-4 gap-3">
+						<div class="mb-4 lg:mb-0">
+							<h3 class="h3">Add New Holder</h3>
+						</div>
+						<div class="flex flex-col lg:flex-row lg:items-center gap-3">
+							<PrimaryButton
+                                secondary
+                                link
+								:href="route('admin.holders.index')"
+							>
+								
+                                <VueIcon :icon="HiArrowLeft" class="w-4 h-4 -ml-1 mr-2 inline-block" />
+								{{ $t("Back to holders list") }}</PrimaryButton
+							>
+						</div>
+					</div>
+					<div class="card sm:p-12 h-full border-0 card-border">
+						<div class="card-body card-gutterless h-full">
+							<form
+        						class="grid sm:grid-cols-2 lg:grid-cols-4 gap-4"
+        						@submit.prevent="save()">
+        												 
+<FormInput
+    :label="Launchpad_id"
+	v-model="form.launchpad_id"
+	class="col-span-3"
+    :type="number"
+	:error="form.errors.launchpad_id"
+    
+    
+/>
+        
+						 
+<FormInput
+    :label="User_id"
+	v-model="form.user_id"
+	class="col-span-3"
+    :type="number"
+	:error="form.errors.user_id"
+    
+    
+/>
+        
+						 
+<FormInput
+    :label="Address"
+	v-model="form.address"
+	class="col-span-3"
+    :type="text"
+	:error="form.errors.address"
+    
+    
+/>
+        
+						 
+<FormInput
+    :label="Qty"
+	v-model="form.qty"
+	class="col-span-3"
+    :type="text"
+	:error="form.errors.qty"
+    
+    
+/>
+        
+						         <FormSwitch v-model="form.prebond">{{$t('Prebond')}}</FormSwitch>
+        						<div class="pt-5 sm:col-span-2 lg:col-span-4">
+        							<div class="flex items-center gap-3 justify-end">
+        								<PrimaryButton
+                                            secondary
+        									as="button"
+        									:href="route('admin.holders.index')"
+        									type="button"
+                                            link
+                                        >
+        									{{ $t("Cancel") }}
+        								</PrimaryButton>
+        								<PrimaryButton
+        									type="submit"
+        									:disabled="form.processing"
+        									>
+        									<Loading
+        										class="mr-2 -ml-1 inline-block w-5 h-5"
+        										v-if="form.processing" />
+        									{{ $t("Save Holder") }}
+        								</PrimaryButton>
+        							</div>
+        						</div>
+        					</form>
+						</div>
+					</div>
+				</div>
+			</div>
+		</main>
+	</AdminLayout>
+</template>
+
+
+================================================
+File: resources/js/Pages/Admin/Holders/Edit.vue
+================================================
+<script setup>
+import {useI18n} from "vue-i18n";
+import { HiArrowLeft } from "oh-vue-icons/icons";
+import Loading from "@/Components/Loading.vue";
+import PrimaryButton from "@/Components/PrimaryButton.vue";
+import { useForm, Link } from "@inertiajs/vue3";
+import AdminLayout from "@/Layouts/AdminLayout.vue";
+import VueIcon from "@/Components/VueIcon.vue";
+import FormInput from "@/Components/FormInput.vue";
+import FormSwitch from "@/Components/FormSwitch.vue";
+const props = defineProps({
+    title:{required:false,type:String},
+    holder:{type:Object,required:true},
+});
+const form = useForm({
+		launchpad_id:props.holder.launchpad_id,
+		user_id:props.holder.user_id,
+		address:props.holder.address,
+		qty:props.holder.qty,
+		prebond:props.holder.prebond
+});
+const save = () => form.put(window.route("admin.holders.update",props.holder.id));
+</script>
+<template>
+    <AdminLayout>
+        <Head :title="title ?? `Edit Holder` " />
+        <main class="h-full">
+            <div class="relative h-full flex flex-auto flex-col px-4 sm:px-6 py-12 sm:py-6 md:px-8">
+                <div class="flex flex-col gap-4 h-full">
+                    <div class="lg:flex items-center justify-between mb-4 gap-3">
+                        <div class="mb-4 lg:mb-0">
+                            <h3 class="h3">Edit Holder</h3>
+                        </div>
+                        <div class="flex flex-col lg:flex-row lg:items-center gap-3">
+                            <PrimaryButton
+                                secondary
+                                link
+								:href="route('admin.holders.index')"
+							>
+								 <VueIcon :icon="HiArrowLeft" class="w-4 h-4 -ml-1 mr-2 inline-block" />
+								{{ $t("Back to holders list") }}</PrimaryButton
+							>
+                        </div>
+                    </div>
+                    <div class="card h-full border-0 card-border">
+                        <div class="card-body card-gutterless h-full">
+                            <form @submit.prevent="save" class="container lg:w-4/5">
+                                						 
+<FormInput
+    :label="Launchpad_id"
+	v-model="form.launchpad_id"
+	class="col-span-3"
+    :type="number"
+	:error="form.errors.launchpad_id"
+    
+    
+/>
+        
+						 
+<FormInput
+    :label="User_id"
+	v-model="form.user_id"
+	class="col-span-3"
+    :type="number"
+	:error="form.errors.user_id"
+    
+    
+/>
+        
+						 
+<FormInput
+    :label="Address"
+	v-model="form.address"
+	class="col-span-3"
+    :type="text"
+	:error="form.errors.address"
+    
+    
+/>
+        
+						 
+<FormInput
+    :label="Qty"
+	v-model="form.qty"
+	class="col-span-3"
+    :type="text"
+	:error="form.errors.qty"
+    
+    
+/>
+        
+						         <FormSwitch v-model="form.prebond">{{$t('Prebond')}}</FormSwitch>
+                                <div class="pt-12">
+                                    <div class="flex justify-end">
+                                        <PrimaryButton as="button" :href="route('admin.holders.index')"
+                                            type="button" link secondary>
+                                            {{ $t('Cancel') }}
+                                        </PrimaryButton>
+                                        <PrimaryButton type="submit" :disabled="form.processing" class="mt-4" primary>
+                                            <Loading class="mr-2 -ml-1 inline-block w-5 h-5" v-if="form.processing" />
+                                            <span class="text-sm text-white">
+                                                {{ $t("Update Holder") }}
+                                            </span>
+                                        </PrimaryButton>
+                                    </div>
+                                </div>
+                            </form>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </main>
+    </AdminLayout>
+</template>
+
+
+================================================
+File: resources/js/Pages/Admin/Holders/Index.vue
+================================================
+<script setup>
+	import { ref } from "vue";
+
+	import { Head, Link, router, useForm } from "@inertiajs/vue3";
+	import { debouncedWatch, useUrlSearchParams } from "@vueuse/core";
+	import { HiPencil, HiTrash } from "oh-vue-icons/icons";
+
+	import ConfirmationModal from "@/Components/ConfirmationModal.vue";
+	import Loading from "@/Components/Loading.vue";
+	import Pagination from "@/Components/Pagination.vue";
+	import PrimaryButton from "@/Components/PrimaryButton.vue";
+	import SearchInput from "@/Components/SearchInput.vue";
+	import VueIcon from "@/Components/VueIcon.vue";
+	import AdminLayout from "@/Layouts/AdminLayout.vue";
+
+	defineProps({
+		holders: Object,
+		title: { required: false, type: String },
+	});
+
+	const params = useUrlSearchParams("history");
+	const search = ref(params.search ?? "");
+	const deleteHolderForm = useForm({});
+	const holderBeingDeleted = ref(null);
+
+	const deleteHolder = () => {
+		deleteHolderForm.delete(
+			window.route("admin.holders.destroy", holderBeingDeleted.value?.id),
+			{
+				preserveScroll: true,
+				preserveState: true,
+				onSuccess: () => (holderBeingDeleted.value = null),
+			},
+		);
+	};
+	debouncedWatch(
+		[search],
+		([search]) => {
+			router.get(
+				window.route("admin.holders.index"),
+				{ search },
+				{
+					preserveState: true,
+					preserveScroll: true,
+				},
+			);
+		},
+		{
+			maxWait: 700,
+		},
+	);
+
+	const toggle = (holder) => {
+		holder.busy = true;
+		router.put(
+			window.route("admin.holders.toggle", holder.id),
+			{},
+			{
+				preserveScroll: true,
+				preserveState: true,
+				onFinish: () => {
+					holder.busy = false;
+					holderBeingDeleted.value = null;
+				},
+			},
+		);
+	};
+</script>
+<template>
+	<Head :title="title ?? 'Holders'" />
+	<AdminLayout>
+		<main class="h-full">
+			<div
+				class="relative h-full flex flex-auto flex-col px-4 sm:px-6 py-12 sm:py-6 md:px-8">
+				<div class="flex flex-col gap-4 h-full">
+					<div
+						class="lg:flex items-center justify-between mb-4 gap-3">

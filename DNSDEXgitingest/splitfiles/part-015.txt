@@ -1,0 +1,523 @@
+     *
+     */
+    public function trades(): HasMany
+    {
+        return $this->hasMany(Trade::class, 'launchpad_id', 'id');
+    }
+
+    /**
+
+     * Get the trades this model Owns.
+     *
+     */
+    public function holders(): HasMany
+    {
+        return $this->hasMany(Holder::class, 'launchpad_id', 'id');
+    }
+
+    /**
+
+     * Get the msgs this model Owns.
+     *
+     */
+    public function msgs(): HasMany
+    {
+        return $this->hasMany(Msg::class, 'launchpad_id', 'id');
+    }
+
+    /**
+
+     * Get the uploads this model Belongs To.
+     *
+     */
+    public function uploads(): MorphMany
+    {
+        return $this->morphMany(Upload::class, 'uploadable');
+    }
+}
+
+
+================================================
+File: app/Models/Msg.php
+================================================
+<?php
+
+namespace App\Models;
+
+use App\Enums\MsgStatus;
+use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\SoftDeletes;
+use App\Traits\HasUuid;
+use Illuminate\Database\Eloquent\Relations\BelongsTo;
+use Illuminate\Database\Eloquent\Relations\MorphMany;
+
+class Msg extends Model
+{
+    use SoftDeletes;
+    use HasUuid;
+
+    /**
+     * The database table used by the model.
+     *
+     * @var string
+     */
+    protected $table = 'msgs';
+
+    /**
+     * The database primary key value.
+     *
+     * @var string
+     */
+    protected $primaryKey = 'id';
+
+    /**
+     * Attributes that should be cast to native types.
+     *
+     * @var string
+     */
+    protected function casts()
+    {
+        return [
+            'status' => MsgStatus::class,
+            'pinned' => 'boolean'
+        ];
+    }
+
+    /**
+     * Attributes that should be mass-assignable.
+     *
+     * @var array
+     */
+    protected $fillable = [
+        'user_id',
+        'launchpad_id',
+        'uuid',
+        'message',
+        'image',
+        'status',
+        'pinned'
+    ];
+
+
+    /**
+
+     * Get the factory this model Belongs To.
+     *
+     */
+    public function launchpad(): BelongsTo
+    {
+        return $this->belongsTo(Launchpad::class, 'launchpad_id', 'id');
+    }
+
+    /**
+
+     * Get the user this model Belongs To.
+     *
+     */
+    public function user(): BelongsTo
+    {
+        return $this->belongsTo(User::class, 'user_id', 'id');
+    }
+
+    /**
+     * Get the uploads this model Belongs To.
+     *
+     */
+    public function uploads(): MorphMany
+    {
+        return $this->morphMany(Upload::class, 'uploadable');
+    }
+}
+
+
+================================================
+File: app/Models/Poolstat.php
+================================================
+<?php
+
+namespace App\Models;
+
+use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\SoftDeletes;
+
+use Illuminate\Database\Eloquent\Relations\BelongsTo;
+
+class Poolstat extends Model
+{
+    use SoftDeletes;
+
+    /**
+     * The database table used by the model.
+     *
+     * @var string
+     */
+    protected $table = 'poolstats';
+
+    /**
+     * The database primary key value.
+     *
+     * @var string
+     */
+    protected $primaryKey = 'id';
+
+    /**
+     * Attributes that should be cast to native types.
+     *
+     * @var string
+     */
+    protected function casts()
+    {
+        return [
+            'timestamp' => 'datetime'
+        ];
+    }
+
+    /**
+     * Attributes that should be mass-assignable.
+     *
+     * @var array
+     */
+    protected $fillable = [
+        'launchpad_id',
+        'token0_price',
+        'token1_price',
+        'tvl_usd',
+        'volume_24h',
+        'fee_tier',
+        'transactions_24h',
+        'total_transactions',
+        'liquidity',
+        'price_change_1h',
+        'price_change_24h',
+        'price_change_7d',
+        'min_price_24h',
+        'max_price_24h',
+        'timestamp'
+    ];
+
+
+    /**
+
+     * Get the launchpad this model Belongs To.
+     *
+     */
+    public function launchpad(): BelongsTo
+    {
+        return $this->belongsTo(Launchpad::class, 'launchpad_id', 'id');
+    }
+
+    /**
+     * Scope a query to only include latest stats per launchpad.
+     */
+    public function scopeLatest($query)
+    {
+        return $query->whereIn('id', function ($subquery) {
+            $subquery->selectRaw('MAX(id)')
+                ->from('pool_stats')
+                ->groupBy('launchpad_id');
+        });
+    }
+
+    /**
+     * Scope a query to get stats within a time range.
+     */
+    public function scopeTimeBetween($query, $start, $end)
+    {
+        return $query->whereBetween('timestamp', [$start, $end]);
+    }
+
+    /**
+     * Get formatted volume for display
+     */
+    public function getFormattedVolumeAttribute(): string
+    {
+        return '$' . number_format($this->volume_24h, 2);
+    }
+
+    /**
+     * Get formatted TVL for display
+     */
+    public function getFormattedTvlAttribute(): string
+    {
+        return '$' . number_format($this->tvl_usd, 2);
+    }
+
+    /**
+     * Get formatted price changes with + or - prefix
+     */
+    public function getFormattedPriceChange24hAttribute(): string
+    {
+        $prefix = $this->price_change_24h >= 0 ? '+' : '';
+        return $prefix . number_format($this->price_change_24h, 2) . '%';
+    }
+}
+
+
+================================================
+File: app/Models/Promo.php
+================================================
+<?php
+
+namespace App\Models;
+
+use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\Relations\MorphMany;
+use Illuminate\Database\Eloquent\SoftDeletes;
+
+
+class Promo extends Model
+{
+    use SoftDeletes;
+
+    /**
+     * The database table used by the model.
+     *
+     * @var string
+     */
+    protected $table = 'promos';
+
+    /**
+     * The database primary key value.
+     *
+     * @var string
+     */
+    protected $primaryKey = 'id';
+
+    /**
+     * Attributes that should be cast to native types.
+     *
+     * @var string
+     */
+    protected function casts()
+    {
+        return [
+            'starts_at' => 'datetime',
+            'ends_at' => 'datetime',
+            'active' => 'boolean'
+        ];
+    }
+
+    /**
+     * Attributes that should be mass-assignable.
+     *
+     * @var array
+     */
+    protected $fillable = [
+        'name',
+        'image',
+        'url',
+        'starts_at',
+        'ends_at',
+        'active'
+    ];
+
+    /**
+
+     * Get the uploads this model Belongs To.
+     *
+     */
+    public function uploads(): MorphMany
+    {
+        return $this->morphMany(Upload::class, 'uploadable');
+    }
+}
+
+
+================================================
+File: app/Models/Rate.php
+================================================
+<?php
+
+namespace App\Models;
+
+use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\SoftDeletes;
+
+
+class Rate extends Model
+{
+    use SoftDeletes;
+
+	/**
+     * The database table used by the model.
+     *
+     * @var string
+     */
+    protected $table = 'rates';
+
+    /**
+    * The database primary key value.
+    *
+    * @var string
+    */
+    protected $primaryKey = 'id';
+	
+	/**
+     * Attributes that should be cast to native types.
+     *
+     * @var string
+     */
+    
+
+    /**
+     * Attributes that should be mass-assignable.
+     *
+     * @var array
+     */
+    protected $fillable = [
+        'symbol',
+		'chainId',
+		'usd_rate'
+   ];
+
+    
+
+}
+
+
+================================================
+File: app/Models/Setting.php
+================================================
+<?php
+
+namespace App\Models;
+
+use App\Enums\SettingRpc;
+use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\Relations\MorphMany;
+use Illuminate\Database\Eloquent\SoftDeletes;
+
+class Setting extends Model
+{
+    use SoftDeletes;
+
+    /**
+     * The database table used by the model.
+     *
+     * @var string
+     */
+    protected $table = 'settings';
+
+    /**
+     * The database primary key value.
+     *
+     * @var string
+     */
+    protected $primaryKey = 'id';
+
+    /**
+     * Attributes that should be cast to native types.
+     *
+     * @var string
+     */
+    protected function casts()
+    {
+        return [
+            'rpc' => SettingRpc::class,
+            'chat' => 'boolean',
+            'featured' => 'boolean'
+        ];
+    }
+
+    /**
+     * Attributes that should be mass-assignable.
+     *
+     * @var array
+     */
+    protected $fillable = [
+        'logo',
+        'name',
+        'twitter',
+        'youtube',
+        'telegram_group',
+        'telegram_channel',
+        'discord',
+        'documentation',
+        'rpc',
+        'ankr',
+        'infura',
+        'blast',
+        'chat',
+        'featured'
+    ];
+
+    /**
+     * Get the uploads this model Owns.
+     *
+     */
+    public function uploads(): MorphMany
+    {
+        return $this->morphMany(Upload::class, 'uploadable',);
+    }
+}
+
+
+================================================
+File: app/Models/Trade.php
+================================================
+<?php
+
+namespace App\Models;
+
+use App\Enums\TradeType;
+use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\Relations\BelongsTo;
+use Illuminate\Database\Eloquent\SoftDeletes;
+
+class Trade extends Model
+{
+    use SoftDeletes;
+
+    /**
+     * The database table used by the model.
+     *
+     * @var string
+     */
+    protected $table = 'trades';
+
+    /**
+     * The database primary key value.
+     *
+     * @var string
+     */
+    protected $primaryKey = 'id';
+
+    /**
+     * Attributes that should be cast to native types.
+     *
+     * @var string
+     */
+    protected function casts()
+    {
+        return [
+            'type' => TradeType::class
+        ];
+    }
+
+    /**
+     * Attributes that should be mass-assignable.
+     *
+     * @var array
+     */
+    protected $fillable = [
+        'launchpad_id',
+        'txid',
+        'address',
+        'qty',
+        'amount',
+        'usd',
+        'type'
+    ];
+
+
+    /**
+
+     * Get the launchpad this model Belongs To.
+     *
+     */
+    public function launchpad(): BelongsTo
+    {
+        return $this->belongsTo(Launchpad::class, 'launchpad_id', 'id');
+    }
+}
+

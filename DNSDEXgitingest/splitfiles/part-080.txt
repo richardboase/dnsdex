@@ -1,0 +1,523 @@
+					<Loading
+						class="ml-1 -mr-1 inline-flex"
+						v-if="form.processing" />
+					<ArrowRight v-else class="w-4 h-4 ml-1 -mr-1 inline-flex" />
+				</BaseButton>
+			</div>
+		</form>
+	</Layout>
+</template>
+
+
+================================================
+File: resources/js/Pages/Install/Steps/Final.vue
+================================================
+<script setup>
+	import { CheckCircle } from "lucide-vue-next";
+
+	import BaseButton from "@/Components/BaseButton.vue";
+	import Layout from "@/Pages/Install/Layout.vue";
+</script>
+
+<template>
+	<Layout
+		title="Installation Complete"
+		description="Your application has been successfully configured"
+		:current-step="4">
+		<div class="space-y-6">
+			<div class="text-center">
+				<CheckCircle class="w-16 h-16 mx-auto text-green-500 mb-4" />
+
+				<h3
+					class="text-lg font-medium text-gray-900 dark:text-gray-100">
+					Installation Successful!
+				</h3>
+
+				<p class="mt-2 text-sm text-gray-500 dark:text-gray-400">
+					Your application has been successfully configured and is
+					ready to use.
+				</p>
+			</div>
+
+			<div class="prose dark:prose-invert max-w-none">
+				<h4>Next Steps:</h4>
+				<ul>
+					<li>Connect your wallet to access the admin dashboard</li>
+					<li>Configure your site settings</li>
+					<li>Start adding content to your application</li>
+				</ul>
+			</div>
+
+			<div class="flex justify-center">
+				<BaseButton link href="/">Go to Homepage</BaseButton>
+			</div>
+		</div>
+	</Layout>
+</template>
+
+
+================================================
+File: resources/js/Pages/Install/Steps/Permissions.vue
+================================================
+<script setup>
+	import {
+		ArrowLeft,
+		ArrowRight,
+		CheckCircle,
+		XCircle,
+	} from "lucide-vue-next";
+
+	import BaseButton from "@/Components/BaseButton.vue";
+	import Layout from "@/Pages/Install/Layout.vue";
+
+	defineProps({
+		permissions: {
+			type: Object,
+			required: true,
+		},
+		meets_permissions: {
+			type: Boolean,
+			required: true,
+		},
+	});
+</script>
+
+<template>
+	<Layout
+		title="Directory Permissions"
+		description="Checking directory write permissions"
+		:current-step="2">
+		<div class="space-y-6">
+			<div class="divide-y divide-gray-200 dark:divide-gray-700">
+				<div
+					v-for="(isWritable, directory) in permissions"
+					:key="directory"
+					class="flex items-center justify-between py-3">
+					<div class="flex items-center">
+						<span class="text-sm font-medium">{{ directory }}</span>
+					</div>
+					<div class="flex items-center">
+						<CheckCircle
+							v-if="isWritable"
+							class="w-5 h-5 text-green-500" />
+						<XCircle v-else class="w-5 h-5 text-red-500" />
+					</div>
+				</div>
+			</div>
+
+			<div class="flex justify-between">
+				<BaseButton
+					outlined
+					secondary
+					link
+					:href="route('install.requirements')">
+					<ArrowLeft class="w-4 h-4 -ml-1 mr-1 inline-flex" />
+					Back
+				</BaseButton>
+				<BaseButton
+					link
+					:href="route('install.environment')"
+					:disabled="!meets_permissions">
+					Continue to Environment Setup
+					<ArrowRight class="w-4 h-4 ml-1 -mr-1 inline-flex" />
+				</BaseButton>
+			</div>
+
+			<p v-if="!meets_permissions" class="text-sm text-red-500 mt-4">
+				Please ensure all directories are writable before continuing.
+				<br />
+				You may need to run:
+				<code>chmod -R 775 storage bootstrap/cache</code>
+			</p>
+		</div>
+	</Layout>
+</template>
+
+
+================================================
+File: resources/js/Pages/Install/Steps/Requirements.vue
+================================================
+<script setup>
+	import {
+		ArrowLeft,
+		ArrowRight,
+		CheckCircle,
+		XCircle,
+	} from "lucide-vue-next";
+
+	import BaseButton from "@/Components/BaseButton.vue";
+	import Layout from "@/Pages/Install/Layout.vue";
+
+	defineProps({
+		requirements: {
+			type: Object,
+			required: true,
+		},
+		meets_requirements: {
+			type: Boolean,
+			required: true,
+		},
+	});
+</script>
+
+<template>
+	<Layout
+		title="System Requirements"
+		description="Checking your system requirements"
+		:current-step="1">
+		<div class="space-y-6">
+			<div class="divide-y divide-gray-200 dark:divide-gray-700">
+				<div
+					v-for="(met, requirement) in requirements"
+					:key="requirement"
+					class="flex items-center justify-between py-3">
+					<div class="flex items-center">
+						<span class="text-sm font-medium">
+							{{ requirement }}
+						</span>
+					</div>
+					<div class="flex items-center">
+						<CheckCircle
+							v-if="met"
+							class="w-5 h-5 text-green-500" />
+						<XCircle v-else class="w-5 h-5 text-red-500" />
+					</div>
+				</div>
+			</div>
+
+			<div class="flex justify-between">
+				<BaseButton
+					outlined
+					secondary
+					link
+					:href="route('install.index')">
+					<ArrowLeft class="w-4 h-4 -ml-1 mr-1 inline-flex" />
+					Back
+				</BaseButton>
+				<BaseButton
+					link
+					:href="route('install.permissions')"
+					:disabled="!meets_requirements">
+					Continue to Permissions
+					<ArrowRight class="w-4 h-4 ml-1 -mr-1 inline-flex" />
+				</BaseButton>
+			</div>
+
+			<p v-if="!meets_requirements" class="text-sm text-red-500 mt-4">
+				Please ensure all system requirements are met before continuing.
+			</p>
+		</div>
+	</Layout>
+</template>
+
+
+================================================
+File: resources/js/Pages/Install/Steps/Welcome.vue
+================================================
+<script setup>
+	import { ArrowRight } from "lucide-vue-next";
+
+	import BaseButton from "@/Components/BaseButton.vue";
+	import Layout from "@/Pages/Install/Layout.vue";
+</script>
+
+<template>
+	<Layout
+		title="Welcome to Memex Installation"
+		description="Let's get your meme launchpad up and running"
+		:current-step="0">
+		<div class="space-y-6">
+			<div class="prose dark:prose-invert max-w-none">
+				<p class="!text-primary">
+					Before we begin, please ensure you have the following
+					information ready:
+				</p>
+
+				<code>
+					<div class="bg-gray-800 rounded p-4 mt-4">
+						<ul class="space-y-2 list-disc ml-4">
+							<li>Your application URL (domain)</li>
+							<li>
+								CoinCap API Key (from
+								<a
+									class="hover:underline"
+									href="https://coincap.io/api-key">
+									https://coincap.io/api-key
+								</a>
+								)
+							</li>
+							<li>
+								Project ID (from
+								<a
+									class="hover:underline"
+									href="https://cloud.reown.com/">
+									https://cloud.reown.com/
+								</a>
+								)
+							</li>
+							<li>
+								Ankr API Key (from
+								<a
+									class="hover:underline"
+									href="https://www.ankr.com/rpc/projects/">
+									https://www.ankr.com/rpc/projects/
+								</a>
+								)
+							</li>
+							<li>Admin wallet addresses (comma-separated)</li>
+						</ul>
+					</div>
+				</code>
+
+				<p class="mt-4 !text-primary">
+					This installation process will:
+				</p>
+				<ul class="mt-2 space-y-2 list-disc ml-8">
+					<li>Check your system requirements</li>
+					<li>Verify directory permissions</li>
+					<li>Configure your environment settings</li>
+					<li>Set up your application</li>
+				</ul>
+			</div>
+
+			<div class="flex justify-end">
+				<BaseButton outlined link :href="route('install.requirements')">
+					Continue to Requirements
+					<ArrowRight class="w-4 h-4 ml-1 -mr-1 inline-flex" />
+				</BaseButton>
+			</div>
+		</div>
+	</Layout>
+</template>
+
+
+================================================
+File: resources/js/Pages/Launchpads/AnimationsRow.vue
+================================================
+<script setup>
+	import { onMounted, onUnmounted, ref } from "vue";
+
+	import RecentTrade from "./RecentTrade.vue";
+
+	const props = defineProps({
+		initialTrades: { type: Array, default: () => [] },
+	});
+	const recentTrades = ref([...props.initialTrades]);
+	const MAX_TRADES = 3;
+
+	const addTradeToRecent = (trade) => {
+		// Add isNew flag for shake animation
+		trade.isNew = true;
+
+		// Add new trade to the beginning
+		recentTrades.value.unshift({
+			...trade,
+			isNew: true,
+		});
+
+		// Remove isNew flag after animation
+		setTimeout(() => {
+			const index = recentTrades.value.findIndex(
+				(t) => t.id === trade.id,
+			);
+			if (index !== -1) {
+				recentTrades.value[index].isNew = false;
+			}
+		}, 700); // Match shake animation duration
+
+		// Keep only the latest 3 trades
+		if (recentTrades.value.length > MAX_TRADES) {
+			recentTrades.value.pop();
+		}
+	};
+
+	onMounted(() => {
+		window.Echo.channel("trades").listen("NewTradeEvent", addTradeToRecent);
+	});
+
+	onUnmounted(() => {
+		window.Echo.channel("trades").stopListening("NewTradeEvent");
+	});
+</script>
+
+<template>
+	<TransitionGroup
+		name="trade-list"
+		tag="div"
+		class="grid md:grid-cols-3 lg:grid-cols-3 gap-5 w-full">
+		<div
+			v-for="trade in recentTrades"
+			:key="trade.id"
+			:class="[
+				'transition-all duration-500 ease-in-out',
+				trade.isNew ? 'animate-shake' : '',
+			]">
+			<RecentTrade :trade="trade" />
+		</div>
+	</TransitionGroup>
+</template>
+
+<style>
+	.trade-list-move,
+	.trade-list-enter-active,
+	.trade-list-leave-active {
+		transition: all 0.5s ease;
+	}
+
+	.trade-list-enter-from {
+		opacity: 0;
+		transform: translateX(-30px);
+	}
+
+	.trade-list-leave-to {
+		opacity: 0;
+		transform: translateX(30px);
+	}
+
+	@keyframes shake {
+		0% {
+			transform: translateX(0);
+			background-color: #ff0;
+		}
+		10% {
+			transform: translateX(-25px);
+			background-color: #ff0;
+		}
+		20% {
+			transform: translateX(25px);
+			background-color: #ff0;
+		}
+		30% {
+			transform: translateX(-25px);
+		}
+		40% {
+			transform: translateX(25px);
+		}
+		50% {
+			transform: translateX(-25px);
+		}
+		60% {
+			transform: translateX(25px);
+		}
+		70% {
+			transform: translateX(-25px);
+		}
+		80% {
+			transform: translateX(25px);
+		}
+		90% {
+			transform: translateX(-25px);
+		}
+		to {
+			transform: translateX(0);
+		}
+	}
+
+	.animate-shake {
+		animation: shake 0.7s ease-in-out;
+	}
+</style>
+
+
+================================================
+File: resources/js/Pages/Launchpads/BarButton.vue
+================================================
+<script setup>
+	import { Link } from "@inertiajs/vue3";
+	import { UseTimeAgo } from "@vueuse/components";
+	import { Clock } from "lucide-vue-next";
+	import { DateTime } from "luxon";
+
+	import { useBillions } from "@/hooks";
+
+	defineProps({
+		active: Boolean,
+		launch: Object,
+	});
+</script>
+<template>
+	<Link
+		class="px-2"
+		v-if="launch?.contract"
+		:href="route('launchpads.show', { launchpad: launch?.contract })">
+		<div
+			:class="
+				active
+					? 'bg-gray-750 hover:bg-gray-700 '
+					: 'bg-transparent hover:bg-gray-750'
+			"
+			class="flex items-center gap-2 py-1.5 px-3 rounded transition-colors duration-200">
+			<span class="text-gray-500 font-bold">#{{ launch.position }}</span>
+			<img
+				alt="SMOKINCAT"
+				class="block w-4 h-4 rounded-[3px] max-w-[initial]"
+				:src="launch.logo"
+				loading="lazy" />
+			<span
+				class="box-border text-sm font-semibold break-words max-w-32 overflow-hidden text-ellipsis whitespace-nowrap text-transparent bg-clip-text bg-[length:200%] bg-gradient-to-r from-[#ff7700] to-[#f0b90b]">
+				{{ launch.symbol }}
+			</span>
+			<div class="flex items-center text-xs font-semibold text-[#f0b90b]">
+				<svg
+					stroke="currentColor"
+					fill="currentColor"
+					stroke-width="0"
+					viewBox="0 0 448 512"
+					focusable="false"
+					height="1em"
+					width="1em"
+					xmlns="http://www.w3.org/2000/svg">
+					<path
+						d="M349.4 44.6c5.9-13.7 1.5-29.7-10.6-38.5s-28.6-8-39.9 1.8l-256 224c-10 8.8-13.6 22.9-8.9 35.3S50.7 288 64 288H175.5L98.6 467.4c-5.9 13.7-1.5 29.7 10.6 38.5s28.6 8 39.9-1.8l256-224c10-8.8 13.6-22.9 8.9-35.3s-16.6-20.7-30-20.7H272.5L349.4 44.6z"
+						class=""></path>
+				</svg>
+				${{ useBillions(launch.total_volume) }}
+			</div>
+			<span class="text-xs">
+				<span class="text-[#a4cf5e]">
+					{{
+						(
+							((parseFloat(launch.high) -
+								parseFloat(launch.low)) /
+								parseFloat(launch.low)) *
+							100
+						).toFixed(3)
+					}}%
+				</span>
+			</span>
+			<div
+				class="text-[#68D391] uppercase flex items-center tracking-widest text-[10px]">
+				<Clock class="w-3 h-3 mr-0.5" />
+				<UseTimeAgo
+					v-slot="time"
+					:time="
+						DateTime.fromFormat(
+							launch.created_at,
+							'yyyy-MM-dd HH:mm:ss',
+						).toJSDate()
+					">
+					{{ time?.timeAgo }}
+				</UseTimeAgo>
+			</div>
+		</div>
+	</Link>
+</template>
+
+
+================================================
+File: resources/js/Pages/Launchpads/Chat.vue
+================================================
+<!-- LaunchpadChat.vue -->
+<script setup>
+	import { nextTick, onMounted, ref, watch } from "vue";
+
+	import { PaperAirplaneIcon } from "@heroicons/vue/24/outline";
+	import { useForm } from "@inertiajs/vue3";
+	import { MessageSquareHeart } from "lucide-vue-next";
+
+	import BaseButton from "@/Components/BaseButton.vue";
+	import FormInput from "@/Components/FormInput.vue";
+	import Web3Auth from "@/Pages/Auth/Web3Auth.vue";
+
+	const props = defineProps({
+		launchpadId: {

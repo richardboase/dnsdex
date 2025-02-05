@@ -1,0 +1,523 @@
+        'poolFee' => 3000, // 0.3%
+        'sellFee' => 100,
+        'uniswapV3Factory' => "0xc35DADB65012eC5796536bD9864eD8773aBc74C4",
+        'positionManager' => "0x80C7DD17B01855a6D2347444a0FCC36136a314de",
+        'weth' => "0xe5D7C2a44FfDDf6b295A15c148167daaAf5Cf34f",
+        'feeTo' => null,
+    ]
+];
+
+
+================================================
+File: config/filepond.php
+================================================
+<?php
+
+return [
+    /*
+    |--------------------------------------------------------------------------
+    | API middleware
+    |--------------------------------------------------------------------------
+    |
+    | The middleware to append to the filepond API routes
+    |
+    */
+    'middleware' => 'api',
+
+    /*
+    |--------------------------------------------------------------------------
+    | Prefix
+    |--------------------------------------------------------------------------
+    |
+    | The prefix to add to all filepond controller routes
+    |
+    */
+    'route_prefix' => 'filepond',
+
+    /*
+    |--------------------------------------------------------------------------
+    | Temporary Path
+    |--------------------------------------------------------------------------
+    |
+    | When initially uploading the files we store them in this path
+    | By default, it is stored on the local disk which defaults to `/storage/app/{temporary_files_path}`
+    |
+    */
+    'temporary_files_path' => env('FILEPOND_TEMP_PATH', 'filepond'),
+    'temporary_files_disk' => env('FILEPOND_TEMP_DISK', 'local'),
+
+    /*
+    |--------------------------------------------------------------------------
+    | Chunks path
+    |--------------------------------------------------------------------------
+    |
+    | When using chunks, we want to place them inside of this folder.
+    | Make sure it is writeable.
+    | Chunks use the same disk as the temporary files do.
+    |
+    */
+    'chunks_path' => env('FILEPOND_CHUNKS_PATH', 'filepond' . DIRECTORY_SEPARATOR . 'chunks'),
+
+    'input_name' => 'filepond',
+];
+
+
+================================================
+File: config/filesystems.php
+================================================
+<?php
+
+return [
+
+    /*
+    |--------------------------------------------------------------------------
+    | Default Filesystem Disk
+    |--------------------------------------------------------------------------
+    |
+    | Here you may specify the default filesystem disk that should be used
+    | by the framework. The "local" disk, as well as a variety of cloud
+    | based disks are available to your application for file storage.
+    |
+    */
+
+    'default' => env('FILESYSTEM_DISK', 'public'),
+
+    /*
+    |--------------------------------------------------------------------------
+    | Filesystem Disks
+    |--------------------------------------------------------------------------
+    |
+    | Below you may configure as many filesystem disks as necessary, and you
+    | may even configure multiple disks for the same driver. Examples for
+    | most supported storage drivers are configured here for reference.
+    |
+    | Supported drivers: "local", "ftp", "sftp", "s3"
+    |
+    */
+
+    'disks' => [
+
+        'local' => [
+            'driver' => 'local',
+            'root' => storage_path('app/private'),
+            'serve' => true,
+            'throw' => false,
+        ],
+
+        'public' => [
+            'driver' => 'local',
+            'root' => storage_path('app/public'),
+            'url' => env('APP_URL') . '/storage',
+            'visibility' => 'public',
+            'throw' => false,
+        ],
+
+        's3' => [
+            'driver' => 's3',
+            'key' => env('AWS_ACCESS_KEY_ID'),
+            'secret' => env('AWS_SECRET_ACCESS_KEY'),
+            'region' => env('AWS_DEFAULT_REGION'),
+            'bucket' => env('AWS_BUCKET'),
+            'url' => env('AWS_URL'),
+            'endpoint' => env('AWS_ENDPOINT'),
+            'use_path_style_endpoint' => env('AWS_USE_PATH_STYLE_ENDPOINT', false),
+            'throw' => false,
+        ],
+        'do' => [
+            'driver' => 's3',
+            'key' => env('DO_SPACES_KEY'),
+            'secret' => env('DO_SPACES_SECRET'),
+            'endpoint' => env('DO_SPACES_ENDPOINT'),
+            'region' => env('DO_SPACES_REGION'),
+            'bucket' => env('DO_SPACES_BUCKET'),
+            'cdn' => env('DO_SPACES_CDN'),
+            'url' => env('DO_SPACES_CDN'),
+        ],
+        'linode' => [
+            'driver' => 's3',
+            'key' => env('DO_SPACES_KEY'),
+            'secret' => env('DO_SPACES_SECRET'),
+            'endpoint' => env('DO_SPACES_ENDPOINT'),
+            'region' => env('DO_SPACES_REGION'),
+            'bucket' => env('DO_SPACES_BUCKET'),
+            'cdn' => env('DO_SPACES_CDN'),
+            'url' => env('DO_SPACES_CDN'),
+        ],
+
+    ],
+
+    /*
+    |--------------------------------------------------------------------------
+    | Symbolic Links
+    |--------------------------------------------------------------------------
+    |
+    | Here you may configure the symbolic links that will be created when the
+    | `storage:link` Artisan command is executed. The array keys should be
+    | the locations of the links and the values should be their targets.
+    |
+    */
+
+    'links' => [
+        public_path('storage') => storage_path('app/public'),
+    ],
+
+    /**
+     * Disk for profile photos
+     */
+    'profile_photo_disk' => env('PROFILE_PHOTO_DISK', 'public')
+
+];
+
+
+================================================
+File: config/laravel-translatable-string-exporter.php
+================================================
+<?php
+return [
+    // Directories to search in.
+    'directories' => [
+        'app',
+        'resources',
+    ],
+
+    // Directories to exclude from search.
+    //
+    // Please note, these directories should be relative to the ones listed in 'directories'.
+    // For example, if you have 'resources' in 'directories', then to ignore the 'resources/ignored' directory,
+    // you need to add 'ignored' to the 'excluded-directories' list.
+    'excluded-directories' => [],
+
+    // File Patterns to search for.
+    'patterns' => [
+        '*.php',
+        '*.js',
+        '*.vue',
+    ],
+
+    // Indicates whether new lines are allowed in translations.
+    'allow-newlines' => false,
+
+    // Translation function names or a custom transform function.
+    // Example of a custom transform function:
+    // 'transform' => fn ($s) => \strtoupper(\str_replace(["-","_"], " ", $s))
+    // If your function name contains $ escape it using \$ .
+    'functions' => [
+        '__',
+        '_t',
+        '\$t',
+        '@lang',
+    ],
+
+    // Indicates whether you need to sort the translations alphabetically
+    // by original strings (keys).
+    // It helps navigate a translation file and detect possible duplicates.
+    'sort-keys' => true,
+
+    // Indicates whether keys from the persistent-strings file should be also added
+    // to translation files automatically on export if they don't yet exist there.
+    'add-persistent-strings-to-translations' => false,
+
+    // Indicates whether it's necessary to exclude Laravel translation keys
+    // from the resulting language file if they have corresponding translations
+    // in the given language.
+    // This option allows correctly combine two translation approaches:
+    // Laravel translation keys (PHP) and translatable strings (JSON).
+    'exclude-translation-keys' => false,
+
+    // Indicates whether you need to put untranslated strings
+    // at the top of a translation file.
+    // The criterion of whether a string is untranslated is
+    // if its key and value are equivalent.
+    // If sorting is enabled, untranslated and translated strings are sorted separately.
+    'put-untranslated-strings-at-the-top' => false,
+];
+
+
+================================================
+File: config/logging.php
+================================================
+<?php
+
+use Monolog\Handler\NullHandler;
+use Monolog\Handler\StreamHandler;
+use Monolog\Handler\SyslogUdpHandler;
+use Monolog\Processor\PsrLogMessageProcessor;
+
+return [
+
+    /*
+    |--------------------------------------------------------------------------
+    | Default Log Channel
+    |--------------------------------------------------------------------------
+    |
+    | This option defines the default log channel that is utilized to write
+    | messages to your logs. The value provided here should match one of
+    | the channels present in the list of "channels" configured below.
+    |
+    */
+
+    'default' => env('LOG_CHANNEL', 'stack'),
+
+    /*
+    |--------------------------------------------------------------------------
+    | Deprecations Log Channel
+    |--------------------------------------------------------------------------
+    |
+    | This option controls the log channel that should be used to log warnings
+    | regarding deprecated PHP and library features. This allows you to get
+    | your application ready for upcoming major versions of dependencies.
+    |
+    */
+
+    'deprecations' => [
+        'channel' => env('LOG_DEPRECATIONS_CHANNEL', 'null'),
+        'trace' => env('LOG_DEPRECATIONS_TRACE', false),
+    ],
+
+    /*
+    |--------------------------------------------------------------------------
+    | Log Channels
+    |--------------------------------------------------------------------------
+    |
+    | Here you may configure the log channels for your application. Laravel
+    | utilizes the Monolog PHP logging library, which includes a variety
+    | of powerful log handlers and formatters that you're free to use.
+    |
+    | Available drivers: "single", "daily", "slack", "syslog",
+    |                    "errorlog", "monolog", "custom", "stack"
+    |
+    */
+
+    'channels' => [
+
+        'stack' => [
+            'driver' => 'stack',
+            'channels' => explode(',', env('LOG_STACK', 'single')),
+            'ignore_exceptions' => false,
+        ],
+
+        'single' => [
+            'driver' => 'single',
+            'path' => storage_path('logs/laravel.log'),
+            'level' => env('LOG_LEVEL', 'debug'),
+            'replace_placeholders' => true,
+        ],
+
+        'daily' => [
+            'driver' => 'daily',
+            'path' => storage_path('logs/laravel.log'),
+            'level' => env('LOG_LEVEL', 'debug'),
+            'days' => env('LOG_DAILY_DAYS', 14),
+            'replace_placeholders' => true,
+        ],
+
+        'slack' => [
+            'driver' => 'slack',
+            'url' => env('LOG_SLACK_WEBHOOK_URL'),
+            'username' => env('LOG_SLACK_USERNAME', 'Laravel Log'),
+            'emoji' => env('LOG_SLACK_EMOJI', ':boom:'),
+            'level' => env('LOG_LEVEL', 'critical'),
+            'replace_placeholders' => true,
+        ],
+
+        'papertrail' => [
+            'driver' => 'monolog',
+            'level' => env('LOG_LEVEL', 'debug'),
+            'handler' => env('LOG_PAPERTRAIL_HANDLER', SyslogUdpHandler::class),
+            'handler_with' => [
+                'host' => env('PAPERTRAIL_URL'),
+                'port' => env('PAPERTRAIL_PORT'),
+                'connectionString' => 'tls://'.env('PAPERTRAIL_URL').':'.env('PAPERTRAIL_PORT'),
+            ],
+            'processors' => [PsrLogMessageProcessor::class],
+        ],
+
+        'stderr' => [
+            'driver' => 'monolog',
+            'level' => env('LOG_LEVEL', 'debug'),
+            'handler' => StreamHandler::class,
+            'formatter' => env('LOG_STDERR_FORMATTER'),
+            'with' => [
+                'stream' => 'php://stderr',
+            ],
+            'processors' => [PsrLogMessageProcessor::class],
+        ],
+
+        'syslog' => [
+            'driver' => 'syslog',
+            'level' => env('LOG_LEVEL', 'debug'),
+            'facility' => env('LOG_SYSLOG_FACILITY', LOG_USER),
+            'replace_placeholders' => true,
+        ],
+
+        'errorlog' => [
+            'driver' => 'errorlog',
+            'level' => env('LOG_LEVEL', 'debug'),
+            'replace_placeholders' => true,
+        ],
+
+        'null' => [
+            'driver' => 'monolog',
+            'handler' => NullHandler::class,
+        ],
+
+        'emergency' => [
+            'path' => storage_path('logs/laravel.log'),
+        ],
+
+    ],
+
+];
+
+
+================================================
+File: config/mail.php
+================================================
+<?php
+
+return [
+
+    /*
+    |--------------------------------------------------------------------------
+    | Default Mailer
+    |--------------------------------------------------------------------------
+    |
+    | This option controls the default mailer that is used to send all email
+    | messages unless another mailer is explicitly specified when sending
+    | the message. All additional mailers can be configured within the
+    | "mailers" array. Examples of each type of mailer are provided.
+    |
+    */
+
+    'default' => env('MAIL_MAILER', 'log'),
+
+    /*
+    |--------------------------------------------------------------------------
+    | Mailer Configurations
+    |--------------------------------------------------------------------------
+    |
+    | Here you may configure all of the mailers used by your application plus
+    | their respective settings. Several examples have been configured for
+    | you and you are free to add your own as your application requires.
+    |
+    | Laravel supports a variety of mail "transport" drivers that can be used
+    | when delivering an email. You may specify which one you're using for
+    | your mailers below. You may also add additional mailers if needed.
+    |
+    | Supported: "smtp", "sendmail", "mailgun", "ses", "ses-v2",
+    |            "postmark", "resend", "log", "array",
+    |            "failover", "roundrobin"
+    |
+    */
+
+    'mailers' => [
+
+        'smtp' => [
+            'transport' => 'smtp',
+            'url' => env('MAIL_URL'),
+            'host' => env('MAIL_HOST', '127.0.0.1'),
+            'port' => env('MAIL_PORT', 2525),
+            'encryption' => env('MAIL_ENCRYPTION', 'tls'),
+            'username' => env('MAIL_USERNAME'),
+            'password' => env('MAIL_PASSWORD'),
+            'timeout' => null,
+            'local_domain' => env('MAIL_EHLO_DOMAIN', parse_url(env('APP_URL', 'http://localhost'), PHP_URL_HOST)),
+        ],
+
+        'ses' => [
+            'transport' => 'ses',
+        ],
+        'mailersend' => [
+            'transport' => 'mailersend',
+        ],
+
+        'postmark' => [
+            'transport' => 'postmark',
+            // 'message_stream_id' => env('POSTMARK_MESSAGE_STREAM_ID'),
+            // 'client' => [
+            //     'timeout' => 5,
+            // ],
+        ],
+
+        'resend' => [
+            'transport' => 'resend',
+        ],
+
+        'sendmail' => [
+            'transport' => 'sendmail',
+            'path' => env('MAIL_SENDMAIL_PATH', '/usr/sbin/sendmail -bs -i'),
+        ],
+
+        'log' => [
+            'transport' => 'log',
+            'channel' => env('MAIL_LOG_CHANNEL'),
+        ],
+
+        'array' => [
+            'transport' => 'array',
+        ],
+
+        'failover' => [
+            'transport' => 'failover',
+            'mailers' => [
+                'smtp',
+                'log',
+            ],
+        ],
+
+        'roundrobin' => [
+            'transport' => 'roundrobin',
+            'mailers' => [
+                'ses',
+                'postmark',
+            ],
+        ],
+
+    ],
+
+    /*
+    |--------------------------------------------------------------------------
+    | Global "From" Address
+    |--------------------------------------------------------------------------
+    |
+    | You may wish for all emails sent by your application to be sent from
+    | the same address. Here you may specify a name and address that is
+    | used globally for all emails that are sent by your application.
+    |
+    */
+
+    'from' => [
+        'address' => env('MAIL_FROM_ADDRESS', 'hello@example.com'),
+        'name' => env('MAIL_FROM_NAME', 'Example'),
+    ],
+
+];
+
+
+================================================
+File: config/queue.php
+================================================
+<?php
+
+return [
+
+    /*
+    |--------------------------------------------------------------------------
+    | Default Queue Connection Name
+    |--------------------------------------------------------------------------
+    |
+    | Laravel's queue supports a variety of backends via a single, unified
+    | API, giving you convenient access to each backend using identical
+    | syntax for each. The default queue connection is defined below.
+    |
+    */
+
+    'default' => env('QUEUE_CONNECTION', 'database'),
+
+    /*
+    |--------------------------------------------------------------------------
+    | Queue Connections
+    |--------------------------------------------------------------------------
+    |
+    | Here you may configure the connection options for every queue backend
+    | used by your application. An example configuration is provided for

@@ -1,0 +1,523 @@
+
+    // =============== METHODS ==============
+
+    const isPointed = (option) => {
+        return (!!pointer.value && (
+            (!option.group && pointer.value[valueProp.value] === option[valueProp.value]) ||
+            (option.group !== undefined && pointer.value[groupLabel.value] === option[groupLabel.value])
+        )) ? true : undefined;
+    };
+
+    const setPointerFirst = () => {
+        setPointer(options.value[0] || null);
+    };
+
+    const selectPointer = () => {
+        if (!pointer.value || pointer.value[disabledProp.value] === true) {
+            return;
+        }
+
+        if (isPointerGroup.value) {
+            handleGroupClick(pointer.value);
+        } else {
+            handleOptionClick(pointer.value);
+        }
+    };
+
+    const forwardPointer = () => {
+        if (pointer.value === null) {
+            setPointer((groupped.value && canPointGroups.value ? (!groups.value[0].__CREATE__ ? groups.value[0] : options.value[0]) : options.value[0]) || null);
+        }
+        else if (groupped.value && canPointGroups.value) {
+            let nextPointer = isPointerGroup.value ? currentGroupFirstEnabledOption.value : currentGroupNextEnabledOption.value;
+
+            if (nextPointer === undefined) {
+                nextPointer = nextGroup.value;
+
+                if (nextPointer.__CREATE__) {
+                    nextPointer = nextPointer[groupOptions.value][0];
+                }
+            }
+
+            setPointer(nextPointer || /* istanbul ignore next */ null);
+        } else {
+            let next = options.value.map(o => o[valueProp.value]).indexOf(pointer.value[valueProp.value]) + 1;
+
+            if (options.value.length <= next) {
+                next = 0;
+            }
+
+            setPointer(options.value[next] || null);
+        }
+
+        nextTick(() => {
+            adjustWrapperScrollToPointer();
+        });
+    };
+
+    const backwardPointer = () => {
+        if (pointer.value === null) {
+            let prevPointer = options.value[options.value.length - 1];
+
+            if (groupped.value && canPointGroups.value) {
+                prevPointer = lastGroupLastEnabledOption.value;
+
+                if (prevPointer === undefined) {
+                    prevPointer = lastGroup.value;
+                }
+            }
+
+            setPointer(prevPointer || null);
+        }
+        else if (groupped.value && canPointGroups.value) {
+            let prevPointer = isPointerGroup.value ? prevGroupLastEnabledOption.value : currentGroupPrevEnabledOption.value;
+
+            if (prevPointer === undefined) {
+                prevPointer = isPointerGroup.value ? prevGroup.value : currentGroup.value;
+
+                if (prevPointer.__CREATE__) {
+                    prevPointer = prevGroupLastEnabledOption.value;
+
+                    if (prevPointer === undefined) {
+                        prevPointer = prevGroup.value;
+                    }
+                }
+            }
+
+            setPointer(prevPointer || /* istanbul ignore next */ null);
+        } else {
+            let prevIndex = options.value.map(o => o[valueProp.value]).indexOf(pointer.value[valueProp.value]) - 1;
+
+            if (prevIndex < 0) {
+                prevIndex = options.value.length - 1;
+            }
+
+            setPointer(options.value[prevIndex] || null);
+        }
+
+        nextTick(() => {
+            adjustWrapperScrollToPointer();
+        });
+    };
+
+    const getParentGroup = (option) => {
+        return groups.value.find((group) => {
+            return group.__VISIBLE__.map(o => o[valueProp.value]).indexOf(option[valueProp.value]) !== -1;
+        });
+    };
+
+    // no export
+    /* istanbul ignore next */
+    const adjustWrapperScrollToPointer = () => {
+        const pointedOption = multiselect.value.querySelector(`[data-pointed]`);
+
+        if (!pointedOption) {
+            return;
+        }
+
+        let wrapper = pointedOption.parentElement.parentElement;
+
+        if (groupped.value) {
+            wrapper = isPointerGroup.value
+                ? pointedOption.parentElement.parentElement.parentElement
+                : pointedOption.parentElement.parentElement.parentElement.parentElement;
+        }
+
+        if (pointedOption.offsetTop + pointedOption.offsetHeight > wrapper.clientHeight + wrapper.scrollTop) {
+            wrapper.scrollTop = pointedOption.offsetTop + pointedOption.offsetHeight - wrapper.clientHeight;
+        }
+
+        if (pointedOption.offsetTop < wrapper.scrollTop) {
+            wrapper.scrollTop = pointedOption.offsetTop;
+        }
+    };
+
+    // ============== WATCHERS ==============
+
+    watch(search, (val) => {
+        if (searchable.value) {
+            if (val.length && showOptions.value) {
+                setPointerFirst();
+            } else {
+                clearPointer();
+            }
+        }
+    });
+
+    watch(isOpen, (val) => {
+        if (val) {
+            const firstSelected = multiselect.value.querySelectorAll(`[data-selected]`)[0];
+
+            if (!firstSelected) {
+                return;
+            }
+
+            const wrapper = firstSelected.parentElement.parentElement;
+
+            nextTick(() => {
+                /* istanbul ignore next */
+                if (wrapper.scrollTop > 0) {
+                    return;
+                }
+
+                wrapper.scrollTop = firstSelected.offsetTop;
+            });
+        }
+    });
+
+    return {
+        pointer,
+        canPointGroups,
+        isPointed,
+        setPointerFirst,
+        selectPointer,
+        forwardPointer,
+        backwardPointer,
+    };
+}
+
+================================================
+File: resources/js/Components/Multiselect/composables/useScroll.js
+================================================
+import { computed, nextTick, onMounted, ref, toRefs, watch } from 'vue';
+
+export default function useScroll(props, context, dep) {
+    const {
+        limit, infinite,
+    } = toRefs(props);
+
+    // ============ DEPENDENCIES ============
+
+    const isOpen = dep.isOpen;
+    const offset = dep.offset;
+    const search = dep.search;
+    const pfo = dep.pfo;
+    const eo = dep.eo;
+
+    // ================ DATA ================
+
+    // no export
+    const observer = ref(null);
+
+    const infiniteLoader = ref(null);
+
+    // ============== COMPUTED ==============
+
+    const hasMore = computed(() => {
+        return offset.value < pfo.value.length;
+    });
+
+    // =============== METHODS ==============
+
+    // no export
+    /* istanbul ignore next */
+    const handleIntersectionObserver = (entries) => {
+        const { isIntersecting, target } = entries[0];
+
+        if (isIntersecting) {
+            const parent = target.offsetParent;
+            const scrollTop = parent.scrollTop;
+
+            offset.value += limit.value === -1 ? 10 : limit.value;
+
+            nextTick(() => {
+                parent.scrollTop = scrollTop;
+            });
+        }
+    };
+
+    const observe = () => {
+        /* istanbul ignore else */
+        if (isOpen.value && offset.value < pfo.value.length && infiniteLoader.value) {
+            observer.value.observe(infiniteLoader.value);
+        } else if (!isOpen.value && observer.value) {
+            observer.value.disconnect();
+        }
+    };
+
+    // ============== WATCHERS ==============
+
+    watch(isOpen, () => {
+        if (!infinite.value) {
+            return;
+        }
+
+        observe();
+    });
+
+    watch(search, () => {
+        if (!infinite.value) {
+            return;
+        }
+
+        offset.value = limit.value;
+
+        observe();
+    }, { flush: 'post' });
+
+    watch(eo, () => {
+        if (!infinite.value) {
+            return;
+        }
+
+        observe();
+    }, { immediate: false, flush: 'post' });
+
+    // ================ HOOKS ===============
+
+    onMounted(() => {
+        /* istanbul ignore else */
+        if (window && window.IntersectionObserver) {
+            observer.value = new IntersectionObserver(handleIntersectionObserver);
+        }
+    });
+
+    return {
+        hasMore,
+        infiniteLoader,
+    };
+}
+
+
+================================================
+File: resources/js/Components/Multiselect/composables/useSearch.js
+================================================
+import { getCurrentInstance, ref, toRefs, watch } from 'vue';
+
+export default function useSearch (props, context, dep)
+{
+  const { regex } = toRefs(props);
+
+  const $this = getCurrentInstance().proxy;
+
+  // ============ DEPENDENCIES ============
+
+  const isOpen = dep.isOpen;
+  const open = dep.open;
+
+  // ================ DATA ================
+
+  const search = ref(null);
+
+  const input = ref(null);
+
+  // =============== METHODS ==============
+
+  const clearSearch = () => {
+    search.value = '';
+  };
+
+  const handleSearchInput = (e) => {
+    search.value = e.target.value;
+  };
+
+  const handleKeypress = (e) => {
+    if (regex.value && regex.value) {
+      let regexp = regex.value;
+
+      if (typeof regexp === 'string') {
+        regexp = new RegExp(regexp);
+      }
+
+      if (!e.key.match(regexp)) {
+        e.preventDefault();
+      }
+    }
+  };
+
+  const handlePaste = (e) => {
+    if (regex.value && regex.value) {
+      const clipboardData = e.clipboardData || /* istanbul ignore next */ window.clipboardData;
+      const pastedData = clipboardData.getData('Text');
+
+      let regexp = regex.value;
+
+      if (typeof regexp === 'string') {
+        regexp = new RegExp(regexp);
+      }
+      
+      if (!pastedData.split('').every(c => !!c.match(regexp))) {
+        e.preventDefault();
+      }
+    }
+
+    context.emit('paste', e, $this);
+  };
+
+  // ============== WATCHERS ==============
+
+  watch(search, (val) => {
+    if (!isOpen.value && val) {
+      open();
+    }
+
+    context.emit('search-change', val, $this);
+  });
+
+  return {
+    search,
+    input,
+    clearSearch,
+    handleSearchInput,
+    handleKeypress,
+    handlePaste,
+  };
+}
+
+
+================================================
+File: resources/js/Components/Multiselect/composables/useValue.js
+================================================
+import { computed, ref, toRefs } from 'vue';
+
+export default function useValue (props, context)
+{
+  const { value, modelValue, mode, valueProp } = toRefs(props);
+
+  // ================ DATA ================
+
+  // internalValue
+  const iv = ref(mode.value !== 'single' ? [] : {});
+
+  // ============== COMPUTED ==============
+
+  /* istanbul ignore next */
+  // externalValue
+  const ev = modelValue.value && modelValue.value !== undefined ? modelValue : value;
+
+  const plainValue = computed(() => {
+    return mode.value === 'single' ? iv.value[valueProp.value] : iv.value.map(v=>v[valueProp.value]);
+  });
+
+  const textValue = computed(() => {
+    return mode.value !== 'single' ? iv.value.map(v=>v[valueProp.value]).join(',') : iv.value[valueProp.value];
+  });
+
+  return {
+    iv,
+    internalValue: iv,
+    ev,
+    externalValue: ev,
+    textValue,
+    plainValue,
+  };
+}
+
+================================================
+File: resources/js/Components/Multiselect/utils/arraysEqual.js
+================================================
+export default function arraysEqual (array1, array2) {
+  const array2Sorted = array2.slice().sort();
+
+  return array1.length === array2.length && array1.slice().sort().every(function(value, index) {
+      return value === array2Sorted[index];
+  });
+}
+
+================================================
+File: resources/js/Components/Multiselect/utils/isNullish.js
+================================================
+export default function isNullish (val) {
+  return [null, undefined].indexOf(val) !== -1;
+}
+
+================================================
+File: resources/js/Components/Multiselect/utils/isObject.js
+================================================
+export default function isObject (variable) {
+  return Object.prototype.toString.call(variable) === '[object Object]';
+}
+
+================================================
+File: resources/js/Components/Multiselect/utils/normalize.js
+================================================
+export default function normalize(str, strict = true) {
+    return strict
+        ? String(str).toLowerCase().trim()
+        : String(str).toLowerCase()
+            .normalize('NFD')
+            .trim()
+            .replace(/æ/g, 'ae')
+            .replace(/œ/g, 'oe')
+            .replace(/ø/g, 'o')
+            .replace(/\p{Diacritic}/gu, '');
+}
+
+================================================
+File: resources/js/Components/Multiselect/utils/resolveDeps.js
+================================================
+export default function (props, context, features, deps = {}) {
+  features.forEach((composable) => {
+    /* istanbul ignore else */
+    if (composable) {
+      deps = {
+        ...deps,
+        ...composable(props, context, deps)
+      };
+    }
+
+  });
+  
+  return deps;
+}
+
+================================================
+File: resources/js/Components/ui/accordion/Accordion.vue
+================================================
+<script setup>
+import { AccordionRoot, useForwardPropsEmits } from 'radix-vue';
+
+const props = defineProps({
+  collapsible: { type: Boolean, required: false },
+  disabled: { type: Boolean, required: false },
+  dir: { type: String, required: false },
+  orientation: { type: String, required: false },
+  asChild: { type: Boolean, required: false },
+  as: { type: null, required: false },
+  type: { type: null, required: false },
+  modelValue: { type: null, required: false },
+  defaultValue: { type: null, required: false },
+});
+const emits = defineEmits(['update:modelValue']);
+
+const forwarded = useForwardPropsEmits(props, emits);
+</script>
+
+<template>
+  <AccordionRoot v-bind="forwarded">
+    <slot />
+  </AccordionRoot>
+</template>
+
+
+================================================
+File: resources/js/Components/ui/accordion/AccordionContent.vue
+================================================
+<script setup>
+import { cn } from '@/lib/utils';
+import { AccordionContent } from 'radix-vue';
+import { computed } from 'vue';
+
+const props = defineProps({
+  forceMount: { type: Boolean, required: false },
+  asChild: { type: Boolean, required: false },
+  as: { type: null, required: false },
+  class: { type: null, required: false },
+});
+
+const delegatedProps = computed(() => {
+  const { class: _, ...delegated } = props;
+
+  return delegated;
+});
+</script>
+
+<template>
+  <AccordionContent
+    v-bind="delegatedProps"
+    class="overflow-hidden text-sm transition-all data-[state=closed]:animate-accordion-up data-[state=open]:animate-accordion-down"
+  >
+    <div :class="cn('pb-4 pt-0', props.class)">
+      <slot />
+    </div>
+  </AccordionContent>

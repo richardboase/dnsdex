@@ -1,0 +1,523 @@
+
+================================================
+File: resources/js/Pages/Profile/Edit.vue
+================================================
+<script setup>
+import AuthenticatedLayout from '@/Layouts/AuthenticatedLayout.vue';
+import DeleteUserForm from './Partials/DeleteUserForm.vue';
+import UpdatePasswordForm from './Partials/UpdatePasswordForm.vue';
+import UpdateProfileInformationForm from './Partials/UpdateProfileInformationForm.vue';
+import { Head } from '@inertiajs/vue3';
+
+defineProps({
+    mustVerifyEmail: {
+        type: Boolean,
+    },
+    status: {
+        type: String,
+    },
+});
+</script>
+
+<template>
+    <Head title="Profile" />
+
+    <AuthenticatedLayout>
+        <template #header>
+            <h2
+                class="text-xl font-semibold leading-tight text-gray-800"
+            >
+                Profile
+            </h2>
+        </template>
+
+        <div class="py-12">
+            <div class="mx-auto max-w-7xl space-y-6 sm:px-6 lg:px-8">
+                <div
+                    class="bg-white p-4 shadow sm:rounded-lg sm:p-8"
+                >
+                    <UpdateProfileInformationForm
+                        :must-verify-email="mustVerifyEmail"
+                        :status="status"
+                        class="max-w-xl"
+                    />
+                </div>
+
+                <div
+                    class="bg-white p-4 shadow sm:rounded-lg sm:p-8"
+                >
+                    <UpdatePasswordForm class="max-w-xl" />
+                </div>
+
+                <div
+                    class="bg-white p-4 shadow sm:rounded-lg sm:p-8"
+                >
+                    <DeleteUserForm class="max-w-xl" />
+                </div>
+            </div>
+        </div>
+    </AuthenticatedLayout>
+</template>
+
+
+================================================
+File: resources/js/Pages/Profile/Partials/DeleteUserForm.vue
+================================================
+<script setup>
+import DangerButton from '@/Components/DangerButton.vue';
+import InputError from '@/Components/InputError.vue';
+import InputLabel from '@/Components/InputLabel.vue';
+import Modal from '@/Components/Modal.vue';
+import SecondaryButton from '@/Components/SecondaryButton.vue';
+import TextInput from '@/Components/TextInput.vue';
+import { useForm } from '@inertiajs/vue3';
+import { nextTick, ref } from 'vue';
+
+const confirmingUserDeletion = ref(false);
+const passwordInput = ref(null);
+
+const form = useForm({
+    password: '',
+});
+
+const confirmUserDeletion = () => {
+    confirmingUserDeletion.value = true;
+
+    nextTick(() => passwordInput.value.focus());
+};
+
+const deleteUser = () => {
+    form.delete(route('profile.destroy'), {
+        preserveScroll: true,
+        onSuccess: () => closeModal(),
+        onError: () => passwordInput.value.focus(),
+        onFinish: () => form.reset(),
+    });
+};
+
+const closeModal = () => {
+    confirmingUserDeletion.value = false;
+
+    form.clearErrors();
+    form.reset();
+};
+</script>
+
+<template>
+    <section class="space-y-6">
+        <header>
+            <h2 class="text-lg font-medium text-gray-900">
+                Delete Account
+            </h2>
+
+            <p class="mt-1 text-sm text-gray-600">
+                Once your account is deleted, all of its resources and data will
+                be permanently deleted. Before deleting your account, please
+                download any data or information that you wish to retain.
+            </p>
+        </header>
+
+        <DangerButton @click="confirmUserDeletion">Delete Account</DangerButton>
+
+        <Modal :show="confirmingUserDeletion" @close="closeModal">
+            <div class="p-6">
+                <h2
+                    class="text-lg font-medium text-gray-900"
+                >
+                    Are you sure you want to delete your account?
+                </h2>
+
+                <p class="mt-1 text-sm text-gray-600">
+                    Once your account is deleted, all of its resources and data
+                    will be permanently deleted. Please enter your password to
+                    confirm you would like to permanently delete your account.
+                </p>
+
+                <div class="mt-6">
+                    <InputLabel
+                        for="password"
+                        value="Password"
+                        class="sr-only"
+                    />
+
+                    <TextInput
+                        id="password"
+                        ref="passwordInput"
+                        v-model="form.password"
+                        type="password"
+                        class="mt-1 block w-3/4"
+                        placeholder="Password"
+                        @keyup.enter="deleteUser"
+                    />
+
+                    <InputError :message="form.errors.password" class="mt-2" />
+                </div>
+
+                <div class="mt-6 flex justify-end">
+                    <SecondaryButton @click="closeModal">
+                        Cancel
+                    </SecondaryButton>
+
+                    <DangerButton
+                        class="ms-3"
+                        :class="{ 'opacity-25': form.processing }"
+                        :disabled="form.processing"
+                        @click="deleteUser"
+                    >
+                        Delete Account
+                    </DangerButton>
+                </div>
+            </div>
+        </Modal>
+    </section>
+</template>
+
+
+================================================
+File: resources/js/Pages/Profile/Partials/UpdatePasswordForm.vue
+================================================
+<script setup>
+import InputError from '@/Components/InputError.vue';
+import InputLabel from '@/Components/InputLabel.vue';
+import PrimaryButton from '@/Components/PrimaryButton.vue';
+import TextInput from '@/Components/TextInput.vue';
+import { useForm } from '@inertiajs/vue3';
+import { ref } from 'vue';
+
+const passwordInput = ref(null);
+const currentPasswordInput = ref(null);
+
+const form = useForm({
+    current_password: '',
+    password: '',
+    password_confirmation: '',
+});
+
+const updatePassword = () => {
+    form.put(route('password.update'), {
+        preserveScroll: true,
+        onSuccess: () => form.reset(),
+        onError: () => {
+            if (form.errors.password) {
+                form.reset('password', 'password_confirmation');
+                passwordInput.value.focus();
+            }
+            if (form.errors.current_password) {
+                form.reset('current_password');
+                currentPasswordInput.value.focus();
+            }
+        },
+    });
+};
+</script>
+
+<template>
+    <section>
+        <header>
+            <h2 class="text-lg font-medium text-gray-900">
+                Update Password
+            </h2>
+
+            <p class="mt-1 text-sm text-gray-600">
+                Ensure your account is using a long, random password to stay
+                secure.
+            </p>
+        </header>
+
+        <form @submit.prevent="updatePassword" class="mt-6 space-y-6">
+            <div>
+                <InputLabel for="current_password" value="Current Password" />
+
+                <TextInput
+                    id="current_password"
+                    ref="currentPasswordInput"
+                    v-model="form.current_password"
+                    type="password"
+                    class="mt-1 block w-full"
+                    autocomplete="current-password"
+                />
+
+                <InputError
+                    :message="form.errors.current_password"
+                    class="mt-2"
+                />
+            </div>
+
+            <div>
+                <InputLabel for="password" value="New Password" />
+
+                <TextInput
+                    id="password"
+                    ref="passwordInput"
+                    v-model="form.password"
+                    type="password"
+                    class="mt-1 block w-full"
+                    autocomplete="new-password"
+                />
+
+                <InputError :message="form.errors.password" class="mt-2" />
+            </div>
+
+            <div>
+                <InputLabel
+                    for="password_confirmation"
+                    value="Confirm Password"
+                />
+
+                <TextInput
+                    id="password_confirmation"
+                    v-model="form.password_confirmation"
+                    type="password"
+                    class="mt-1 block w-full"
+                    autocomplete="new-password"
+                />
+
+                <InputError
+                    :message="form.errors.password_confirmation"
+                    class="mt-2"
+                />
+            </div>
+
+            <div class="flex items-center gap-4">
+                <PrimaryButton :disabled="form.processing">Save</PrimaryButton>
+
+                <Transition
+                    enter-active-class="transition ease-in-out"
+                    enter-from-class="opacity-0"
+                    leave-active-class="transition ease-in-out"
+                    leave-to-class="opacity-0"
+                >
+                    <p
+                        v-if="form.recentlySuccessful"
+                        class="text-sm text-gray-600"
+                    >
+                        Saved.
+                    </p>
+                </Transition>
+            </div>
+        </form>
+    </section>
+</template>
+
+
+================================================
+File: resources/js/Pages/Profile/Partials/UpdateProfileInformationForm.vue
+================================================
+<script setup>
+import InputError from '@/Components/InputError.vue';
+import InputLabel from '@/Components/InputLabel.vue';
+import PrimaryButton from '@/Components/PrimaryButton.vue';
+import TextInput from '@/Components/TextInput.vue';
+import { Link, useForm, usePage } from '@inertiajs/vue3';
+
+defineProps({
+    mustVerifyEmail: {
+        type: Boolean,
+    },
+    status: {
+        type: String,
+    },
+});
+
+const user = usePage().props.auth.user;
+
+const form = useForm({
+    name: user.name,
+    email: user.email,
+});
+</script>
+
+<template>
+    <section>
+        <header>
+            <h2 class="text-lg font-medium text-gray-900">
+                Profile Information
+            </h2>
+
+            <p class="mt-1 text-sm text-gray-600">
+                Update your account's profile information and email address.
+            </p>
+        </header>
+
+        <form
+            @submit.prevent="form.patch(route('profile.update'))"
+            class="mt-6 space-y-6"
+        >
+            <div>
+                <InputLabel for="name" value="Name" />
+
+                <TextInput
+                    id="name"
+                    type="text"
+                    class="mt-1 block w-full"
+                    v-model="form.name"
+                    required
+                    autofocus
+                    autocomplete="name"
+                />
+
+                <InputError class="mt-2" :message="form.errors.name" />
+            </div>
+
+            <div>
+                <InputLabel for="email" value="Email" />
+
+                <TextInput
+                    id="email"
+                    type="email"
+                    class="mt-1 block w-full"
+                    v-model="form.email"
+                    required
+                    autocomplete="username"
+                />
+
+                <InputError class="mt-2" :message="form.errors.email" />
+            </div>
+
+            <div v-if="mustVerifyEmail && user.email_verified_at === null">
+                <p class="mt-2 text-sm text-gray-800">
+                    Your email address is unverified.
+                    <Link
+                        :href="route('verification.send')"
+                        method="post"
+                        as="button"
+                        class="rounded-md text-sm text-gray-600 underline hover:text-gray-900 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2"
+                    >
+                        Click here to re-send the verification email.
+                    </Link>
+                </p>
+
+                <div
+                    v-show="status === 'verification-link-sent'"
+                    class="mt-2 text-sm font-medium text-green-600"
+                >
+                    A new verification link has been sent to your email address.
+                </div>
+            </div>
+
+            <div class="flex items-center gap-4">
+                <PrimaryButton :disabled="form.processing">Save</PrimaryButton>
+
+                <Transition
+                    enter-active-class="transition ease-in-out"
+                    enter-from-class="opacity-0"
+                    leave-active-class="transition ease-in-out"
+                    leave-to-class="opacity-0"
+                >
+                    <p
+                        v-if="form.recentlySuccessful"
+                        class="text-sm text-gray-600"
+                    >
+                        Saved.
+                    </p>
+                </Transition>
+            </div>
+        </form>
+    </section>
+</template>
+
+
+================================================
+File: resources/js/hooks/explorers.js
+================================================
+import { computed } from 'vue';
+
+import { get } from '@vueuse/core';
+import { useChainId } from '@wagmi/vue';
+import { getAddress } from 'viem';
+import { arbitrum, arbitrumNova, avalanche, avalancheFuji, base, blast, bsc, bscTestnet, celo, mainnet, optimism, sepolia, worldchain, zora } from 'viem/chains';
+const explorers = {
+    etherscan: (link, data, type) => {
+        switch (type) {
+            case 'transaction':
+                return `${link}/tx/${data}`;
+            default:
+                return `${link}/${type}/${data}`;
+        }
+    },
+
+    blockscout: (link, data, type) => {
+        switch (type) {
+            case 'transaction':
+                return `${link}/tx/${data}`;
+            case 'token':
+                return `${link}/tokens/${data}`;
+            default:
+                return `${link}/${type}/${data}`;
+        }
+    },
+
+    harmony: (link, data, type) => {
+        switch (type) {
+            case 'transaction':
+                return `${link}/tx/${data}`;
+            case 'token':
+                return `${link}/address/${data}`;
+            default:
+                return `${link}/${type}/${data}`;
+        }
+    },
+
+    okex: (link, data, type) => {
+        switch (type) {
+            case 'transaction':
+                return `${link}/tx/${data}`;
+            case 'token':
+                return `${link}/tokenAddr/${data}`;
+            default:
+                return `${link}/${type}/${data}`;
+        }
+    },
+    moonriver: (link, data, type) => {
+        switch (type) {
+            case 'transaction':
+                return `${link}/tx/${data}`;
+            case 'token':
+                return `${link}/tokens/${data}`;
+            default:
+                return `${link}/${type}/${data}`;
+        }
+    },
+    fuse: (link, data, type) => {
+        switch (type) {
+            case 'transaction':
+                return `${link}/tx/${data}`;
+            case 'token':
+                return `${link}/tokens/${data}`;
+            default:
+                return `${link}/${type}/${data}`;
+        }
+    },
+    telos: (link, data, type) => {
+        switch (type) {
+            case 'transaction':
+                return `${link}/transaction/${data}`;
+            case 'token':
+                return `${link}/address/${data}`;
+            case 'address':
+                return `${link}/address/${data}`;
+            default:
+                return `${link}/${type}/${data}`;
+        }
+    },
+    moonbeam: (link, data, type) => {
+        switch (type) {
+            case 'transaction':
+                return `${link}/tx/${data}`;
+            case 'token':
+                return `${link}/tokens/${data}`;
+            default:
+                return `${link}/${type}/${data}`;
+        }
+    },
+};
+
+const chains = {
+    [mainnet.id]: {
+        link: 'https://etherscan.io',
+        builder: explorers.etherscan,
+    },
+    [sepolia.id]: {
+        link: 'https://sepolia.etherscan.io',
+        builder: explorers.etherscan,
+    },

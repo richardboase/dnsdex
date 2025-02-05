@@ -1,0 +1,523 @@
+            'featured' => $this->featured,
+            'kingofthehill' => $this->kingofthehill,
+            'active' => $this->active,
+            'volume24h' => $this->volume24h ?? '0.00',
+            'age' => $this->created_at->diffForHumans(),
+            'trades_count' => $this->trades_count,
+            'holders_count' => $this->holders_count,
+            // to be pulled
+            'percentage' => 0,
+            'marketCap' => 0,
+            'isFinalized' => false,
+            'isOwner' => $this->user_id === $request->user()?->id,
+            'createdAgo' => $this->created_at->diffForHumans(),
+            'factory' => new Factory($this->whenLoaded('factory')),
+            'user' => new ViewUser($this->whenLoaded('user')),
+            'trades' => Trade::collection($this->whenLoaded('trades')),
+            'msgs' => Msg::collection($this->whenLoaded('msgs')),
+            'uploads' => Upload::collection($this->whenLoaded('uploads')),
+
+        ];
+    }
+}
+
+
+================================================
+File: app/Http/Resources/Msg.php
+================================================
+<?php
+
+namespace App\Http\Resources;
+
+use Illuminate\Http\Resources\Json\JsonResource;
+
+class Msg extends JsonResource
+{
+
+    /**
+     * Transform the resource into an array.
+     *
+     * @param  \Illuminate\Http\Request  $request
+     * @return array
+     */
+    public function toArray($request)
+    {
+        return [
+            'id' => $this->id,
+            'user_id' => $this->user_id,
+            'launchpad_id' => $this->launchpad_id,
+            'uuid' => $this->uuid,
+            'message' => $this->message,
+            'image' => $this->image,
+            'pinned' => $this->pinned,
+            'status' => $this->status,
+            'created_at' => $this->created_at,
+            'launchpad' => new Launchpad($this->whenLoaded('launchpad')),
+            'user' => new ViewUser($this->whenLoaded('user')),
+            'can' => [
+                'delete' => $request->user()?->id === $this->user_id ||
+                    $request->user()?->isAdmin(),
+                'moderate' => $request->user()?->isAdmin(),
+            ],
+        ];
+    }
+}
+
+
+================================================
+File: app/Http/Resources/Poolstat.php
+================================================
+<?php
+
+namespace App\Http\Resources;
+
+use Illuminate\Http\Resources\Json\JsonResource;
+
+class Poolstat extends JsonResource
+{
+    
+    /**
+     * Transform the resource into an array.
+     *
+     * @param  \Illuminate\Http\Request  $request
+     * @return array
+     */
+    public function toArray($request)
+    {
+        return [
+			'launchpad_id'=>$this->launchpad_id,
+			'token0_price'=>$this->token0_price,
+			'token1_price'=>$this->token1_price,
+			'tvl_usd'=>$this->tvl_usd,
+			'volume_24h'=>$this->volume_24h,
+			'fee_tier'=>$this->fee_tier,
+			'transactions_24h'=>$this->transactions_24h,
+			'total_transactions'=>$this->total_transactions,
+			'liquidity'=>$this->liquidity,
+			'price_change_1h'=>$this->price_change_1h,
+			'price_change_24h'=>$this->price_change_24h,
+			'price_change_7d'=>$this->price_change_7d,
+			'min_price_24h'=>$this->min_price_24h,
+			'max_price_24h'=>$this->max_price_24h,
+			'timestamp'=>$this->timestamp,
+			'launchpad'=> new Launchpad($this->whenLoaded('launchpad')),
+		];
+    }
+}
+
+
+================================================
+File: app/Http/Resources/Promo.php
+================================================
+<?php
+
+namespace App\Http\Resources;
+
+use Illuminate\Http\Resources\Json\JsonResource;
+
+class Promo extends JsonResource
+{
+
+    /**
+     * Transform the resource into an array.
+     *
+     * @param  \Illuminate\Http\Request  $request
+     * @return array
+     */
+    public function toArray($request)
+    {
+        return [
+            'id' => $this->id,
+            'name' => $this->name,
+            'image' => $this->image,
+            'url' => $this->url,
+            'starts_at' => $this->starts_at->toFormattedDateString(),
+            'ends_at' => $this->ends_at->toFormattedDateString(),
+            'active' => $this->active,
+
+        ];
+    }
+}
+
+
+================================================
+File: app/Http/Resources/Rate.php
+================================================
+<?php
+
+namespace App\Http\Resources;
+
+use Illuminate\Http\Resources\Json\JsonResource;
+
+class Rate extends JsonResource
+{
+    
+    /**
+     * Transform the resource into an array.
+     *
+     * @param  \Illuminate\Http\Request  $request
+     * @return array
+     */
+    public function toArray($request)
+    {
+        return [
+			'symbol'=>$this->symbol,
+			'chainId'=>$this->chainId,
+			'usd_rate'=>$this->usd_rate,
+
+		];
+    }
+}
+
+
+================================================
+File: app/Http/Resources/Setting.php
+================================================
+<?php
+
+namespace App\Http\Resources;
+
+use Illuminate\Http\Resources\Json\JsonResource;
+
+class Setting extends JsonResource
+{
+    
+    /**
+     * Transform the resource into an array.
+     *
+     * @param  \Illuminate\Http\Request  $request
+     * @return array
+     */
+    public function toArray($request)
+    {
+        return [
+			'logo'=>$this->logo,
+			'name'=>$this->name,
+			'twitter'=>$this->twitter,
+			'youtube'=>$this->youtube,
+			'telegram_group'=>$this->telegram_group,
+			'telegram_channel'=>$this->telegram_channel,
+			'discord'=>$this->discord,
+			'documentation'=>$this->documentation,
+			'rpc'=>$this->rpc,
+			'ankr'=>$this->ankr,
+			'infura'=>$this->infura,
+			'blast'=>$this->blast,
+			'chat'=>$this->chat,
+			'featured'=>$this->featured,
+
+		];
+    }
+}
+
+
+================================================
+File: app/Http/Resources/Trade.php
+================================================
+<?php
+
+namespace App\Http\Resources;
+
+use Illuminate\Http\Resources\Json\JsonResource;
+
+class Trade extends JsonResource
+{
+
+    /**
+     * Transform the resource into an array.
+     *
+     * @param  \Illuminate\Http\Request  $request
+     * @return array
+     */
+    public function toArray($request)
+    {
+        return [
+            'launchpad_id' => $this->launchpad_id,
+            'txid' => $this->txid,
+            'address' => $this->address,
+            'qty' => $this->qty,
+            'amount' => $this->amount,
+            'price' => bcdiv($this->amount, $this->qty, 18),
+            'usd_price' => bcdiv($this->usd, $this->qty, 8),
+            'usd' => $this->usd,
+            'type' => $this->type,
+            'date' => now()->gt($this->created_at->addDay())
+                ? $this->created_at->toDateTimeString()
+                : $this->created_at->diffForHumans(),
+            'created_at' => $this->created_at,
+            'launchpad' => new Launchpad($this->whenLoaded('launchpad')),
+        ];
+    }
+}
+
+
+================================================
+File: app/Http/Resources/TradeCandle.php
+================================================
+<?php
+
+namespace App\Http\Resources;
+
+use Illuminate\Http\Resources\Json\JsonResource;
+
+class TradeCandle extends JsonResource
+{
+
+    /**
+     * Transform the resource into an array.
+     *
+     * @param  \Illuminate\Http\Request  $request
+     * @return array
+     */
+    public function toArray($request)
+    {
+        return [
+            'launchpad_id' => $this->launchpad_id,
+            'timeframe' => $this->timeframe,
+            'timestamp' =>  $this->timestamp->timestamp,
+            'open' => $this->open,
+            'high' => $this->high,
+            'low' => $this->low,
+            'close' => $this->close,
+            'volume' => $this->volume,
+            'trades_count' => $this->trades_count,
+        ];
+    }
+}
+
+
+================================================
+File: app/Http/Resources/Upload.php
+================================================
+<?php
+
+namespace App\Http\Resources;
+
+use App\Traits\WhenMorphed;
+use Illuminate\Http\Resources\Json\JsonResource;
+
+class Upload extends JsonResource
+{
+    use WhenMorphed;
+    /**
+     * Transform the resource into an array.
+     *
+     * @param  \Illuminate\Http\Request  $request
+     * @return array
+     */
+    public function toArray($request)
+    {
+        return [
+            'id' => $this->id,
+            'url' => $this->url,
+            $this->mergeWhen($request->user()?->isAdmin(), function () {
+                return [
+                    'id' => $this->id,
+                    'key' => $this->key,
+                    'path' => $this->path,
+                    'drive' => $this->drive,
+                ];
+            }),
+            'uploadable' =>  $this->WhenMorphed('uploadable')
+        ];
+    }
+}
+
+
+================================================
+File: app/Http/Resources/User.php
+================================================
+<?php
+
+namespace App\Http\Resources;
+
+use Illuminate\Http\Resources\Json\JsonResource;
+
+class User extends JsonResource
+{
+
+    /**
+     * Transform the resource into an array.
+     *
+     * @param  \Illuminate\Http\Request  $request
+     * @return array
+     */
+    public function toArray($request)
+    {
+
+        return [
+            'id' => $this->id,
+            'name' => $this->name,
+            'email' => config('app.demo') ? "** hidden in demo **" : $this->email,
+            'address' => $this->address,
+            'email_verified_at' => $this->email_verified_at,
+            'verified' => !!$this->email_verified_at,
+            'canVerify' => !$this->email_verified_at,
+            'joined' => $this->created_at->toDateTimeString(),
+            'joinedAgo' => $this->created_at->diffForHumans(),
+            'active' => $this->active,
+            'banned' => $this->banned,
+            //.git/
+            'launchpads_count' => $this->launchpads_count,
+            'trades_count' => $this->trades_count,
+            'msgs_count' => $this->msgs_count,
+            'holders_count' => $this->holders_count,
+            // profile
+            'profile_photo_path' => $this->profile_photo_path,
+            'profile_photo_url' => $this->profile_photo_url,
+            'is_admin' => $this->isAdmin(),
+        ];
+    }
+}
+
+
+================================================
+File: app/Http/Resources/ViewUser.php
+================================================
+<?php
+
+namespace App\Http\Resources;
+
+use Illuminate\Http\Resources\Json\JsonResource;
+
+class ViewUser extends JsonResource
+{
+
+    /**
+     * Transform the resource into an array.
+     *
+     * @param  \Illuminate\Http\Request  $request
+     * @return array
+     */
+    public function toArray($request)
+    {
+
+        return [
+            'name' => $this->name,
+            'address' => $this->address,
+            'joined' => $this->created_at->toDateTimeString(),
+            'active' => $this->active,
+            'banned' => $this->banned,
+            //.git/
+            'launchpads_count' => $this->launchpads_count,
+            'trades_count' => $this->trades_count,
+            'msgs_count' => $this->msgs_count,
+            'holders_count' => $this->holders_count,
+            // profile
+            'profile_photo_url' => $this->profile_photo_url,
+        ];
+    }
+}
+
+
+================================================
+File: app/Install/routes.php
+================================================
+<?php
+
+use App\Install\Controllers\InstallController;
+use App\Install\Middleware\InstallMiddleware;
+use Illuminate\Support\Facades\Route;
+
+Route::controller(InstallController::class)
+    ->group(function () {
+        Route::get('/', 'index')->name('index');
+        Route::get('/requirements', 'requirements')->name('requirements');
+        Route::get('/permissions', 'permissions')->name('permissions');
+        Route::get('/environment', 'environment')->name('environment');
+        Route::post('/environment/save', 'saveEnvironment')->name('environment.save');
+        // should pass for now
+        Route::get('/final', 'final')->name('final')->withoutMiddleware(InstallMiddleware::class);
+    });
+
+
+================================================
+File: app/Install/Controllers/InstallController.php
+================================================
+<?php
+
+namespace App\Install\Controllers;
+
+use App\Install\Helpers\EnvHelper;
+use App\Install\Middleware\InstallMiddleware;
+use Illuminate\Http\Request;
+use Illuminate\Routing\Controller;
+use Illuminate\Support\Facades\Artisan;
+use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Storage;
+use Inertia\Inertia;
+use Inertia\Response;
+use Str;
+
+class InstallController extends Controller
+{
+    protected $envHelper;
+
+    public function __construct(EnvHelper $envHelper)
+    {
+        $this->envHelper = $envHelper;
+    }
+
+    public function index(): Response
+    {
+        return Inertia::render('Install/Steps/Welcome');
+    }
+
+    public function requirements(): Response
+    {
+        $requirements = $this->checkRequirements();
+        return Inertia::render('Install/Steps/Requirements', [
+            'requirements' => $requirements,
+            'meets_requirements' => !in_array(false, $requirements, true)
+        ]);
+    }
+
+    public function permissions(): Response
+    {
+        $permissions = $this->checkPermissions();
+        return Inertia::render('Install/Steps/Permissions', [
+            'permissions' => $permissions,
+            'meets_permissions' => !in_array(false, $permissions, true)
+        ]);
+    }
+
+    public function environment(): Response
+    {
+        $currentEnv = [
+            'APP_URL' => $this->envHelper->getEnv('APP_URL'),
+            'COINCAP_APIKEY' => $this->envHelper->getEnv('COINCAP_APIKEY'),
+            'PROJECT_ID' => $this->envHelper->getEnv('PROJECT_ID'),
+            'ANKR_KEY' => $this->envHelper->getEnv('ANKR_KEY'),
+            'ADMIN' => $this->envHelper->getEnv('ADMIN'),
+            //database
+            'DB_HOST' => $this->envHelper->getEnv('DB_HOST'),
+            'DB_PORT' => $this->envHelper->getEnv('DB_PORT'),
+            'DB_DATABASE' => $this->envHelper->getEnv('DB_DATABASE'),
+            'DB_USERNAME' => $this->envHelper->getEnv('DB_USERNAME'),
+            'DB_PASSWORD' => $this->envHelper->getEnv('DB_PASSWORD'),
+        ];
+        return Inertia::render('Install/Steps/Environment', [
+            'installed' => Storage::disk('public')->exists('installed'),
+            'current' => $currentEnv
+        ]);
+    }
+
+    public function saveEnvironment(Request $request)
+    {
+        $validated = $request->validate([
+            'APP_URL' => 'required|url',
+            'COINCAP_APIKEY' => 'required|string',
+            'PROJECT_ID' => 'required|string',
+            'ANKR_KEY' => 'required|string',
+            'ADMIN' => 'required|string',
+            // Database validation
+            'DB_HOST' => 'required_unless:DB_CONNECTION,sqlite',
+            'DB_PORT' => 'required_unless:DB_CONNECTION,sqlite',
+            'DB_DATABASE' => 'required',
+            'DB_USERNAME' => 'required_unless:DB_CONNECTION,sqlite',
+            'DB_PASSWORD' => 'nullable',
+        ]);
+        try {
+            $this->migrateAndSeed($validated);
+        } catch (\Exception $e) {
+            return back()->with('error', 'Database setup failed: ' . $e->getMessage());

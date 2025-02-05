@@ -1,0 +1,523 @@
+        }
+        // Test database connection
+        $success = $this->envHelper->updateMultipleEnv($validated);
+        if ($success) {
+            // Mark as installed
+            if (!InstallMiddleware::markAsInstalled()) {
+                return back()->with('error', 'Failed to mark application as installed.');
+            }
+            return redirect()->route('install.final');
+        }
+        return back()->with('error', 'Failed to update environment variables.');
+    }
+
+
+
+    public function final(): Response
+    {
+        Artisan::call('config:clear');
+        return Inertia::render('Install/Steps/Final');
+    }
+
+    public function complete()
+    {
+
+        return redirect('/');
+    }
+
+    protected function migrateAndSeed($config)
+    {
+        config(
+            [
+                'database.connections.mysql' =>
+                [
+                    'driver'    => 'mysql',
+                    'host'      => $config['DB_HOST'],
+                    'port'      => $config['DB_PORT'],
+                    'database'  =>  $config['DB_DATABASE'],
+                    'username'  => $config['DB_USERNAME'],
+                    'password'  => $config['DB_PASSWORD'],
+                    'charset'   => 'utf8mb4',
+                    'collation' => 'utf8mb4_unicode_ci',
+                ],
+            ]
+        );
+        try {
+            DB::connection('mysql')->getPDO();
+        } catch (\Exception $e) {
+            return redirect()->route('install.environment')->with('error', 'Invalid DB credentials');
+        }
+        try {
+            // Disable foreign key checks before migrations
+            DB::connection('mysql')->statement('SET FOREIGN_KEY_CHECKS=0;');
+            // Run migrations
+            Artisan::call('migrate', ['--force' => true, '--database' => 'mysql']);
+            $migrationOutput = Artisan::output();
+            // Run seeders
+            Artisan::call('db:seed', ['--force' => true]);
+            $seederOutput = Artisan::output();
+            // Re-enable foreign key checks
+            DB::connection('mysql')->statement('SET FOREIGN_KEY_CHECKS=1;');
+            // Check for any error messages in the output
+            if (Str::contains($migrationOutput, 'error') || Str::contains($seederOutput, 'error')) {
+                throw new \Exception("Error during migration or seeding process.");
+            }
+        } catch (\Exception $e) {
+            throw new \Exception($e->getMessage());
+        }
+    }
+
+    protected function checkRequirements(): array
+    {
+        return [
+            'PHP Version (>= 8.2)' => version_compare(PHP_VERSION, '8.2.0', '>='),
+            'BCMath Extension' => extension_loaded('bcmath'),
+            'Ctype Extension' => extension_loaded('ctype'),
+            'JSON Extension' => extension_loaded('json'),
+            'Mbstring Extension' => extension_loaded('mbstring'),
+            'OpenSSL Extension' => extension_loaded('openssl'),
+            'PDO Extension' => extension_loaded('pdo'),
+            'Tokenizer Extension' => extension_loaded('tokenizer'),
+            'XML Extension' => extension_loaded('xml'),
+        ];
+    }
+
+
+
+    protected function checkPermissions(): array
+    {
+        return [
+            'storage/app' => is_writable(storage_path('app')),
+            'storage/framework' => is_writable(storage_path('framework')),
+            'storage/logs' => is_writable(storage_path('logs')),
+            'bootstrap/cache' => is_writable(base_path('bootstrap/cache')),
+            '.env' => is_writable(base_path('.env')),
+        ];
+    }
+}
+
+
+================================================
+File: app/Install/Helpers/EnvHelper.php
+================================================
+<?php
+
+namespace App\Install\Helpers;
+
+class EnvHelper
+{
+    /**
+     * Path to .env file
+     *
+     * @var string
+     */
+    protected $envPath;
+
+    /**
+     * Constructor
+     */
+    public function __construct()
+    {
+        $this->envPath = base_path('.env');
+    }
+
+    /**
+     * Update existing .env variable
+     *
+     * @param string $key
+     * @param string $value
+     * @return bool
+     */
+    public function updateEnv(string $key, string $value): bool
+    {
+        if (file_exists($this->envPath)) {
+            $content = file_get_contents($this->envPath);
+
+            // Escape any quotes in the value
+            $value = str_replace('"', '\"', $value);
+
+            // Check if key exists
+            if (preg_match("/^{$key}=/m", $content)) {
+                // Update existing key
+                $content = preg_replace(
+                    "/^{$key}=.*/m",
+                    "{$key}=\"{$value}\"",
+                    $content
+                );
+            } else {
+                // Add new key
+                $content .= PHP_EOL . "{$key}=\"{$value}\"";
+            }
+
+            return file_put_contents($this->envPath, $content) !== false;
+        }
+
+        return false;
+    }
+
+    /**
+     * Get current env value
+     *
+     * @param string $key
+     * @return string|null
+     */
+    public function getEnv(string $key): ?string
+    {
+        if (file_exists($this->envPath)) {
+            $content = file_get_contents($this->envPath);
+
+            // Match until end of line and handle quoted and unquoted values
+            if (preg_match("/^{$key}=[\"']?([^\"'\r\n]+)[\"']?/m", $content, $matches)) {
+                return $matches[1];
+            }
+        }
+
+        return null;
+    }
+
+    /**
+     * Update multiple env variables at once
+     *
+     * @param array $values
+     * @return bool
+     */
+    public function updateMultipleEnv(array $values): bool
+    {
+        $success = true;
+
+        foreach ($values as $key => $value) {
+            if (!$this->updateEnv($key, $value)) {
+                $success = false;
+            }
+        }
+
+        return $success;
+    }
+}
+
+
+================================================
+File: app/Install/Middleware/InstallMiddleware.php
+================================================
+<?php
+
+namespace App\Install\Middleware;
+
+use Closure;
+use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Storage;
+use Symfony\Component\HttpFoundation\Response;
+
+class InstallMiddleware
+{
+    /**
+     * Handle an incoming request.
+     *
+     * @param  \Closure(\Illuminate\Http\Request): (\Symfony\Component\HttpFoundation\Response)  $next
+     */
+    public function handle(Request $request, Closure $next): Response
+    {
+        // Check if installation route and already installed
+        if ($this->isInstalled() && $request->is('install*')) {
+            return redirect('/');
+        }
+
+        // Check if non-installation route and not installed
+        if (!$this->isInstalled() && !$request->is('install*')) {
+            return redirect()->route('install.index');
+        }
+
+        return $next($request);
+    }
+
+    /**
+     * Check if the application is installed by looking for the installed file
+     */
+    protected function isInstalled(): bool
+    {
+        return Storage::disk('public')->exists('installed');
+    }
+
+    /**
+     * Mark the application as installed
+     */
+    public static function markAsInstalled(): bool
+    {
+        try {
+            $content = json_encode([
+                'installed_at' => now()->toIso8601String(),
+                'version' => config('app.version', '1.0.0')
+            ]);
+            return file_put_contents(storage_path('app/public/installed'), $content) !== false;
+        } catch (\Exception $e) {
+            return false;
+        }
+    }
+}
+
+
+================================================
+File: app/Models/Factory.php
+================================================
+<?php
+
+namespace App\Models;
+
+use Illuminate\Database\Eloquent\Builder;
+use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\SoftDeletes;
+
+use Illuminate\Database\Eloquent\Relations\HasMany;
+
+
+class Factory extends Model
+{
+    use SoftDeletes;
+
+    /**
+     * The database table used by the model.
+     *
+     * @var string
+     */
+    protected $table = 'factories';
+
+    /**
+     * The database primary key value.
+     *
+     * @var string
+     */
+    protected $primaryKey = 'id';
+
+    /**
+     * Attributes that should be cast to native types.
+     *
+     * @var string
+     */
+    protected function casts()
+    {
+        return [
+            'lock_abi' => 'array',
+            'factory_abi' => 'array',
+            'abi' => 'array',
+            'active' => 'boolean'
+        ];
+    }
+
+    /**
+     * Attributes that should be mass-assignable.
+     *
+     * @var array
+     */
+    protected $fillable = [
+        'version',
+        'chainId',
+        'foundry',
+        'contract',
+        'lock',
+        'lock_abi',
+        'factory_abi',
+        'abi',
+        'active'
+    ];
+
+
+    /**
+
+     * Get the launchpads this model Owns.
+     *
+     */
+    public function launchpads(): HasMany
+    {
+        return $this->hasMany(Launchpad::class, 'factory_id', 'id');
+    }
+
+    /**
+     * select only latest factories per chainId
+     */
+    public function scopeLatestByChain(Builder $query)
+    {
+        return $query->whereIn('id', function ($subquery) {
+            $subquery->selectRaw('MAX(id)')
+                ->groupBy('chainId');
+        });
+    }
+}
+
+
+================================================
+File: app/Models/Holder.php
+================================================
+<?php
+
+namespace App\Models;
+
+use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\SoftDeletes;
+
+use Illuminate\Database\Eloquent\Relations\BelongsTo;
+
+class Holder extends Model
+{
+    use SoftDeletes;
+
+	/**
+     * The database table used by the model.
+     *
+     * @var string
+     */
+    protected $table = 'holders';
+
+    /**
+    * The database primary key value.
+    *
+    * @var string
+    */
+    protected $primaryKey = 'id';
+	
+	/**
+     * Attributes that should be cast to native types.
+     *
+     * @var string
+     */
+    protected function casts() {
+		 return [
+			'prebond' => 'boolean'
+		];
+	}
+
+    /**
+     * Attributes that should be mass-assignable.
+     *
+     * @var array
+     */
+    protected $fillable = [
+        'launchpad_id',
+		'user_id',
+		'address',
+		'qty',
+		'prebond'
+   ];
+
+    
+    /**
+
+    * Get the launchpad this model Belongs To.
+    *
+    */
+    public function launchpad():BelongsTo
+	{
+		return $this->belongsTo(Launchpad::class,'trade_id','id');
+	}
+	
+    /**
+
+    * Get the user this model Belongs To.
+    *
+    */
+    public function user():BelongsTo
+	{
+		return $this->belongsTo(User::class,'user_id','id');
+	}
+
+}
+
+
+================================================
+File: app/Models/Launchpad.php
+================================================
+<?php
+
+namespace App\Models;
+
+use App\Enums\LaunchpadStatus;
+use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\Relations\BelongsTo;
+use Illuminate\Database\Eloquent\Relations\HasMany;
+use Illuminate\Database\Eloquent\Relations\MorphMany;
+use Illuminate\Database\Eloquent\SoftDeletes;
+
+class Launchpad extends Model
+{
+    use SoftDeletes;
+
+    /**
+     * The database table used by the model.
+     *
+     * @var string
+     */
+    protected $table = 'launchpads';
+
+    /**
+     * The database primary key value.
+     *
+     * @var string
+     */
+    protected $primaryKey = 'id';
+
+    /**
+     * Attributes that should be cast to native types.
+     *
+     * @var string
+     */
+    protected function casts()
+    {
+        return [
+            'status' => LaunchpadStatus::class,
+            'featured' => 'boolean',
+            'kingofthehill' => 'boolean',
+            'active' => 'boolean'
+        ];
+    }
+
+    /**
+     * Attributes that should be mass-assignable.
+     *
+     * @var array
+     */
+    protected $fillable = [
+        'user_id',
+        'factory_id',
+        'contract',
+        'token',
+        'pool',
+        'graph',
+        'name',
+        'symbol',
+        'description',
+        'chainId',
+        'twitter',
+        'discord',
+        'telegram',
+        'website',
+        'livestreamId',
+        'status',
+        'logo',
+        'featured',
+        'kingofthehill',
+        'active'
+    ];
+
+
+    /**
+
+     * Get the factory this model Belongs To.
+     *
+     */
+    public function factory(): BelongsTo
+    {
+        return $this->belongsTo(Factory::class, 'factory_id', 'id');
+    }
+
+    /**
+
+     * Get the user this model Belongs To.
+     *
+     */
+    public function user(): BelongsTo
+    {
+        return $this->belongsTo(User::class, 'user_id', 'id');
+    }
+
+    /**
+
+     * Get the trades this model Owns.

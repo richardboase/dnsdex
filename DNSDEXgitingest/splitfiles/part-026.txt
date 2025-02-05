@@ -1,0 +1,523 @@
+                $close = $currentPrice + $movement;
+                $high = max($open, $close) * (1 + (rand(0, 100) / 1000)); // Up to 0.1% higher
+                $low = min($open, $close) * (1 - (rand(0, 100) / 1000)); // Up to 0.1% lower
+                $volume = rand(100, 1000) / pow(10, 18); // Random volume between 0.1 and 1 ETH
+
+                $records[] = [
+                    'launchpad_id' => $launchpadId,
+                    'timestamp' => $timestamp->copy(),
+                    'timeframe' => $timeframe,
+                    'open' => number_format($open, 18, '.', ''),
+                    'high' => number_format($high, 18, '.', ''),
+                    'low' => number_format($low, 18, '.', ''),
+                    'close' => number_format($close, 18, '.', ''),
+                    'volume' => number_format($volume, 18, '.', ''),
+                    'trades_count' => rand(1, 20),
+                    'created_at' => Carbon::now(),
+                    'updated_at' => Carbon::now(),
+                ];
+
+                // Update current price for next iteration
+                $currentPrice = $close;
+                $timestamp->addSeconds($interval);
+
+                // Insert in chunks to avoid memory issues
+                if (count($records) >= 100) {
+                    DB::table('trade_candles')->insert($records);
+                    $records = [];
+                }
+            }
+
+            // Insert remaining records
+            if (!empty($records)) {
+                DB::table('trade_candles')->insert($records);
+            }
+        }
+    }
+
+    private function getIntervalInSeconds(string $timeframe): int
+    {
+        return match ($timeframe) {
+            '1' => 60,
+            '5' => 300,
+            '15' => 900,
+            '30' => 1800,
+            '60' => 3600,
+            '240' => 14400,
+            'D' => 86400,
+            default => 3600,
+        };
+    }
+}
+
+
+================================================
+File: docker/8.0/Dockerfile
+================================================
+FROM ubuntu:24.04
+
+LABEL maintainer="Taylor Otwell"
+
+ARG WWWGROUP
+ARG NODE_VERSION=22
+ARG POSTGRES_VERSION=17
+
+WORKDIR /var/www/html
+
+ENV DEBIAN_FRONTEND=noninteractive
+ENV TZ=UTC
+ENV SUPERVISOR_PHP_COMMAND="/usr/bin/php -d variables_order=EGPCS /var/www/html/artisan serve --host=0.0.0.0 --port=80"
+ENV SUPERVISOR_PHP_USER="sail"
+
+RUN ln -snf /usr/share/zoneinfo/$TZ /etc/localtime && echo $TZ > /etc/timezone
+
+RUN echo "Acquire::http::Pipeline-Depth 0;" > /etc/apt/apt.conf.d/99custom && \
+    echo "Acquire::http::No-Cache true;" >> /etc/apt/apt.conf.d/99custom && \
+    echo "Acquire::BrokenProxy    true;" >> /etc/apt/apt.conf.d/99custom
+
+RUN apt-get update && apt-get upgrade -y \
+    && mkdir -p /etc/apt/keyrings \
+    && apt-get install -y gnupg gosu curl ca-certificates zip unzip git supervisor sqlite3 libcap2-bin libpng-dev python3 dnsutils librsvg2-bin fswatch ffmpeg nano \
+    && curl -sS 'https://keyserver.ubuntu.com/pks/lookup?op=get&search=0x14aa40ec0831756756d7f66c4f4ea0aae5267a6c' | gpg --dearmor | tee /usr/share/keyrings/ppa_ondrej_php.gpg > /dev/null \
+    && echo "deb [signed-by=/usr/share/keyrings/ppa_ondrej_php.gpg] https://ppa.launchpadcontent.net/ondrej/php/ubuntu noble main" > /etc/apt/sources.list.d/ppa_ondrej_php.list \
+    && apt-get update \
+    && apt-get install -y php8.0-cli php8.0-dev \
+       php8.0-pgsql php8.0-sqlite3 php8.0-gd php8.0-imagick \
+       php8.0-curl php8.0-memcached php8.0-mongodb \
+       php8.0-imap php8.0-mysql php8.0-mbstring \
+       php8.0-xml php8.0-zip php8.0-bcmath php8.0-soap \
+       php8.0-intl php8.0-readline php8.0-pcov \
+       php8.0-msgpack php8.0-igbinary php8.0-ldap \
+       php8.0-redis php8.0-swoole php8.0-xdebug \
+    && curl -sLS https://getcomposer.org/installer | php -- --install-dir=/usr/bin/ --filename=composer \
+    && curl -fsSL https://deb.nodesource.com/gpgkey/nodesource-repo.gpg.key | gpg --dearmor -o /etc/apt/keyrings/nodesource.gpg \
+    && echo "deb [signed-by=/etc/apt/keyrings/nodesource.gpg] https://deb.nodesource.com/node_$NODE_VERSION.x nodistro main" > /etc/apt/sources.list.d/nodesource.list \
+    && apt-get update \
+    && apt-get install -y nodejs \
+    && npm install -g npm \
+    && npm install -g bun \
+    && curl -sS https://dl.yarnpkg.com/debian/pubkey.gpg | gpg --dearmor | tee /usr/share/keyrings/yarnkey.gpg >/dev/null \
+    && echo "deb [signed-by=/usr/share/keyrings/yarnkey.gpg] https://dl.yarnpkg.com/debian/ stable main" > /etc/apt/sources.list.d/yarn.list \
+    && curl -sS https://www.postgresql.org/media/keys/ACCC4CF8.asc | gpg --dearmor | tee /usr/share/keyrings/pgdg.gpg >/dev/null \
+    && echo "deb [signed-by=/usr/share/keyrings/pgdg.gpg] http://apt.postgresql.org/pub/repos/apt noble-pgdg main" > /etc/apt/sources.list.d/pgdg.list \
+    && apt-get update \
+    && apt-get install -y yarn \
+    && apt-get install -y mysql-client \
+    && apt-get install -y postgresql-client-$POSTGRES_VERSION \
+    && apt-get -y autoremove \
+    && apt-get clean \
+    && rm -rf /var/lib/apt/lists/* /tmp/* /var/tmp/*
+
+RUN update-alternatives --set php /usr/bin/php8.0
+
+RUN setcap "cap_net_bind_service=+ep" /usr/bin/php8.0
+
+RUN groupadd --force -g $WWWGROUP sail
+RUN useradd -ms /bin/bash --no-user-group -g $WWWGROUP -u 1337 sail
+
+COPY start-container /usr/local/bin/start-container
+COPY supervisord.conf /etc/supervisor/conf.d/supervisord.conf
+COPY php.ini /etc/php/8.0/cli/conf.d/99-sail.ini
+RUN chmod +x /usr/local/bin/start-container
+
+EXPOSE 80/tcp
+
+ENTRYPOINT ["start-container"]
+
+
+================================================
+File: docker/8.0/php.ini
+================================================
+[PHP]
+post_max_size = 100M
+upload_max_filesize = 100M
+variables_order = EGPCS
+pcov.directory = .
+
+
+================================================
+File: docker/8.0/start-container
+================================================
+#!/usr/bin/env bash
+
+if [ "$SUPERVISOR_PHP_USER" != "root" ] && [ "$SUPERVISOR_PHP_USER" != "sail" ]; then
+    echo "You should set SUPERVISOR_PHP_USER to either 'sail' or 'root'."
+    exit 1
+fi
+
+if [ ! -z "$WWWUSER" ]; then
+    usermod -u $WWWUSER sail
+fi
+
+if [ ! -d /.composer ]; then
+    mkdir /.composer
+fi
+
+chmod -R ugo+rw /.composer
+
+if [ $# -gt 0 ]; then
+    if [ "$SUPERVISOR_PHP_USER" = "root" ]; then
+        exec "$@"
+    else
+        exec gosu $WWWUSER "$@"
+    fi
+else
+    exec /usr/bin/supervisord -c /etc/supervisor/conf.d/supervisord.conf
+fi
+
+
+================================================
+File: docker/8.0/supervisord.conf
+================================================
+[supervisord]
+nodaemon=true
+user=root
+logfile=/var/log/supervisor/supervisord.log
+pidfile=/var/run/supervisord.pid
+
+[program:php]
+command=%(ENV_SUPERVISOR_PHP_COMMAND)s
+user=%(ENV_SUPERVISOR_PHP_USER)s
+environment=LARAVEL_SAIL="1"
+stdout_logfile=/dev/stdout
+stdout_logfile_maxbytes=0
+stderr_logfile=/dev/stderr
+stderr_logfile_maxbytes=0
+
+
+================================================
+File: docker/8.1/Dockerfile
+================================================
+FROM ubuntu:24.04
+
+LABEL maintainer="Taylor Otwell"
+
+ARG WWWGROUP
+ARG NODE_VERSION=22
+ARG POSTGRES_VERSION=17
+
+WORKDIR /var/www/html
+
+ENV DEBIAN_FRONTEND=noninteractive
+ENV TZ=UTC
+ENV SUPERVISOR_PHP_COMMAND="/usr/bin/php -d variables_order=EGPCS /var/www/html/artisan serve --host=0.0.0.0 --port=80"
+ENV SUPERVISOR_PHP_USER="sail"
+
+RUN ln -snf /usr/share/zoneinfo/$TZ /etc/localtime && echo $TZ > /etc/timezone
+
+RUN echo "Acquire::http::Pipeline-Depth 0;" > /etc/apt/apt.conf.d/99custom && \
+    echo "Acquire::http::No-Cache true;" >> /etc/apt/apt.conf.d/99custom && \
+    echo "Acquire::BrokenProxy    true;" >> /etc/apt/apt.conf.d/99custom
+
+RUN apt-get update && apt-get upgrade -y \
+    && mkdir -p /etc/apt/keyrings \
+    && apt-get install -y gnupg gosu curl ca-certificates zip unzip git supervisor sqlite3 libcap2-bin libpng-dev python3 dnsutils librsvg2-bin fswatch ffmpeg nano \
+    && curl -sS 'https://keyserver.ubuntu.com/pks/lookup?op=get&search=0x14aa40ec0831756756d7f66c4f4ea0aae5267a6c' | gpg --dearmor | tee /usr/share/keyrings/ppa_ondrej_php.gpg > /dev/null \
+    && echo "deb [signed-by=/usr/share/keyrings/ppa_ondrej_php.gpg] https://ppa.launchpadcontent.net/ondrej/php/ubuntu noble main" > /etc/apt/sources.list.d/ppa_ondrej_php.list \
+    && apt-get update \
+    && apt-get install -y php8.1-cli php8.1-dev \
+       php8.1-pgsql php8.1-sqlite3 php8.1-gd php8.1-imagick \
+       php8.1-curl php8.1-mongodb \
+       php8.1-imap php8.1-mysql php8.1-mbstring \
+       php8.1-xml php8.1-zip php8.1-bcmath php8.1-soap \
+       php8.1-intl php8.1-readline \
+       php8.1-ldap \
+       php8.1-msgpack php8.1-igbinary php8.1-redis php8.1-swoole \
+       php8.1-memcached php8.1-pcov php8.1-xdebug \
+    && curl -sLS https://getcomposer.org/installer | php -- --install-dir=/usr/bin/ --filename=composer \
+    && curl -fsSL https://deb.nodesource.com/gpgkey/nodesource-repo.gpg.key | gpg --dearmor -o /etc/apt/keyrings/nodesource.gpg \
+    && echo "deb [signed-by=/etc/apt/keyrings/nodesource.gpg] https://deb.nodesource.com/node_$NODE_VERSION.x nodistro main" > /etc/apt/sources.list.d/nodesource.list \
+    && apt-get update \
+    && apt-get install -y nodejs \
+    && npm install -g npm \
+    && npm install -g bun \
+    && curl -sS https://dl.yarnpkg.com/debian/pubkey.gpg | gpg --dearmor | tee /usr/share/keyrings/yarn.gpg >/dev/null \
+    && echo "deb [signed-by=/usr/share/keyrings/yarn.gpg] https://dl.yarnpkg.com/debian/ stable main" > /etc/apt/sources.list.d/yarn.list \
+    && curl -sS https://www.postgresql.org/media/keys/ACCC4CF8.asc | gpg --dearmor | tee /usr/share/keyrings/pgdg.gpg >/dev/null \
+    && echo "deb [signed-by=/usr/share/keyrings/pgdg.gpg] http://apt.postgresql.org/pub/repos/apt noble-pgdg main" > /etc/apt/sources.list.d/pgdg.list \
+    && apt-get update \
+    && apt-get install -y yarn \
+    && apt-get install -y mysql-client \
+    && apt-get install -y postgresql-client-$POSTGRES_VERSION \
+    && apt-get -y autoremove \
+    && apt-get clean \
+    && rm -rf /var/lib/apt/lists/* /tmp/* /var/tmp/*
+
+RUN setcap "cap_net_bind_service=+ep" /usr/bin/php8.1
+
+RUN groupadd --force -g $WWWGROUP sail
+RUN useradd -ms /bin/bash --no-user-group -g $WWWGROUP -u 1337 sail
+
+COPY start-container /usr/local/bin/start-container
+COPY supervisord.conf /etc/supervisor/conf.d/supervisord.conf
+COPY php.ini /etc/php/8.1/cli/conf.d/99-sail.ini
+RUN chmod +x /usr/local/bin/start-container
+
+EXPOSE 80/tcp
+
+ENTRYPOINT ["start-container"]
+
+
+================================================
+File: docker/8.1/php.ini
+================================================
+[PHP]
+post_max_size = 100M
+upload_max_filesize = 100M
+variables_order = EGPCS
+pcov.directory = .
+
+
+================================================
+File: docker/8.1/start-container
+================================================
+#!/usr/bin/env bash
+
+if [ "$SUPERVISOR_PHP_USER" != "root" ] && [ "$SUPERVISOR_PHP_USER" != "sail" ]; then
+    echo "You should set SUPERVISOR_PHP_USER to either 'sail' or 'root'."
+    exit 1
+fi
+
+if [ ! -z "$WWWUSER" ]; then
+    usermod -u $WWWUSER sail
+fi
+
+if [ ! -d /.composer ]; then
+    mkdir /.composer
+fi
+
+chmod -R ugo+rw /.composer
+
+if [ $# -gt 0 ]; then
+    if [ "$SUPERVISOR_PHP_USER" = "root" ]; then
+        exec "$@"
+    else
+        exec gosu $WWWUSER "$@"
+    fi
+else
+    exec /usr/bin/supervisord -c /etc/supervisor/conf.d/supervisord.conf
+fi
+
+
+================================================
+File: docker/8.1/supervisord.conf
+================================================
+[supervisord]
+nodaemon=true
+user=root
+logfile=/var/log/supervisor/supervisord.log
+pidfile=/var/run/supervisord.pid
+
+[program:php]
+command=%(ENV_SUPERVISOR_PHP_COMMAND)s
+user=%(ENV_SUPERVISOR_PHP_USER)s
+environment=LARAVEL_SAIL="1"
+stdout_logfile=/dev/stdout
+stdout_logfile_maxbytes=0
+stderr_logfile=/dev/stderr
+stderr_logfile_maxbytes=0
+
+
+================================================
+File: docker/8.2/Dockerfile
+================================================
+FROM ubuntu:24.04
+
+LABEL maintainer="Taylor Otwell"
+
+ARG WWWGROUP
+ARG NODE_VERSION=22
+ARG POSTGRES_VERSION=17
+
+WORKDIR /var/www/html
+
+ENV DEBIAN_FRONTEND=noninteractive
+ENV TZ=UTC
+ENV SUPERVISOR_PHP_COMMAND="/usr/bin/php -d variables_order=EGPCS /var/www/html/artisan serve --host=0.0.0.0 --port=80"
+ENV SUPERVISOR_PHP_USER="sail"
+
+RUN ln -snf /usr/share/zoneinfo/$TZ /etc/localtime && echo $TZ > /etc/timezone
+
+RUN echo "Acquire::http::Pipeline-Depth 0;" > /etc/apt/apt.conf.d/99custom && \
+    echo "Acquire::http::No-Cache true;" >> /etc/apt/apt.conf.d/99custom && \
+    echo "Acquire::BrokenProxy    true;" >> /etc/apt/apt.conf.d/99custom
+
+RUN apt-get update && apt-get upgrade -y \
+    && mkdir -p /etc/apt/keyrings \
+    && apt-get install -y gnupg gosu curl ca-certificates zip unzip git supervisor sqlite3 libcap2-bin libpng-dev python3 dnsutils librsvg2-bin fswatch ffmpeg nano  \
+    && curl -sS 'https://keyserver.ubuntu.com/pks/lookup?op=get&search=0x14aa40ec0831756756d7f66c4f4ea0aae5267a6c' | gpg --dearmor | tee /etc/apt/keyrings/ppa_ondrej_php.gpg > /dev/null \
+    && echo "deb [signed-by=/etc/apt/keyrings/ppa_ondrej_php.gpg] https://ppa.launchpadcontent.net/ondrej/php/ubuntu noble main" > /etc/apt/sources.list.d/ppa_ondrej_php.list \
+    && apt-get update \
+    && apt-get install -y php8.2-cli php8.2-dev \
+       php8.2-pgsql php8.2-sqlite3 php8.2-gd php8.2-imagick \
+       php8.2-curl php8.2-mongodb \
+       php8.2-imap php8.2-mysql php8.2-mbstring \
+       php8.2-xml php8.2-zip php8.2-bcmath php8.2-soap \
+       php8.2-intl php8.2-readline \
+       php8.2-ldap \
+       php8.2-msgpack php8.2-igbinary php8.2-redis php8.2-swoole \
+       php8.2-memcached php8.2-pcov php8.2-xdebug \
+    && curl -sLS https://getcomposer.org/installer | php -- --install-dir=/usr/bin/ --filename=composer \
+    && curl -fsSL https://deb.nodesource.com/gpgkey/nodesource-repo.gpg.key | gpg --dearmor -o /etc/apt/keyrings/nodesource.gpg \
+    && echo "deb [signed-by=/etc/apt/keyrings/nodesource.gpg] https://deb.nodesource.com/node_$NODE_VERSION.x nodistro main" > /etc/apt/sources.list.d/nodesource.list \
+    && apt-get update \
+    && apt-get install -y nodejs \
+    && npm install -g npm \
+    && npm install -g pnpm \
+    && npm install -g bun \
+    && curl -sS https://dl.yarnpkg.com/debian/pubkey.gpg | gpg --dearmor | tee /etc/apt/keyrings/yarn.gpg >/dev/null \
+    && echo "deb [signed-by=/etc/apt/keyrings/yarn.gpg] https://dl.yarnpkg.com/debian/ stable main" > /etc/apt/sources.list.d/yarn.list \
+    && curl -sS https://www.postgresql.org/media/keys/ACCC4CF8.asc | gpg --dearmor | tee /etc/apt/keyrings/pgdg.gpg >/dev/null \
+    && echo "deb [signed-by=/etc/apt/keyrings/pgdg.gpg] http://apt.postgresql.org/pub/repos/apt noble-pgdg main" > /etc/apt/sources.list.d/pgdg.list \
+    && apt-get update \
+    && apt-get install -y yarn \
+    && apt-get install -y mysql-client \
+    && apt-get install -y postgresql-client-$POSTGRES_VERSION \
+    && apt-get -y autoremove \
+    && apt-get clean \
+    && rm -rf /var/lib/apt/lists/* /tmp/* /var/tmp/*
+
+RUN setcap "cap_net_bind_service=+ep" /usr/bin/php8.2
+
+RUN groupadd --force -g $WWWGROUP sail
+RUN useradd -ms /bin/bash --no-user-group -g $WWWGROUP -u 1337 sail
+
+COPY start-container /usr/local/bin/start-container
+COPY supervisord.conf /etc/supervisor/conf.d/supervisord.conf
+COPY php.ini /etc/php/8.2/cli/conf.d/99-sail.ini
+RUN chmod +x /usr/local/bin/start-container
+
+EXPOSE 80/tcp
+
+ENTRYPOINT ["start-container"]
+
+
+================================================
+File: docker/8.2/php.ini
+================================================
+[PHP]
+post_max_size = 100M
+upload_max_filesize = 100M
+variables_order = EGPCS
+pcov.directory = .
+
+
+================================================
+File: docker/8.2/start-container
+================================================
+#!/usr/bin/env bash
+
+if [ "$SUPERVISOR_PHP_USER" != "root" ] && [ "$SUPERVISOR_PHP_USER" != "sail" ]; then
+    echo "You should set SUPERVISOR_PHP_USER to either 'sail' or 'root'."
+    exit 1
+fi
+
+if [ ! -z "$WWWUSER" ]; then
+    usermod -u $WWWUSER sail
+fi
+
+if [ ! -d /.composer ]; then
+    mkdir /.composer
+fi
+
+chmod -R ugo+rw /.composer
+
+if [ $# -gt 0 ]; then
+    if [ "$SUPERVISOR_PHP_USER" = "root" ]; then
+        exec "$@"
+    else
+        exec gosu $WWWUSER "$@"
+    fi
+else
+    exec /usr/bin/supervisord -c /etc/supervisor/conf.d/supervisord.conf
+fi
+
+
+================================================
+File: docker/8.2/supervisord.conf
+================================================
+[supervisord]
+nodaemon=true
+user=root
+logfile=/var/log/supervisor/supervisord.log
+pidfile=/var/run/supervisord.pid
+
+[program:php]
+command=%(ENV_SUPERVISOR_PHP_COMMAND)s
+user=%(ENV_SUPERVISOR_PHP_USER)s
+environment=LARAVEL_SAIL="1"
+stdout_logfile=/dev/stdout
+stdout_logfile_maxbytes=0
+stderr_logfile=/dev/stderr
+stderr_logfile_maxbytes=0
+
+
+================================================
+File: docker/8.3/Dockerfile
+================================================
+FROM ubuntu:24.04
+
+LABEL maintainer="Taylor Otwell"
+
+ARG WWWGROUP
+ARG NODE_VERSION=22
+ARG MYSQL_CLIENT="mysql-client"
+ARG POSTGRES_VERSION=17
+
+WORKDIR /var/www/html
+
+ENV DEBIAN_FRONTEND=noninteractive
+ENV TZ=UTC
+ENV SUPERVISOR_PHP_COMMAND="/usr/bin/php -d variables_order=EGPCS /var/www/html/artisan serve --host=0.0.0.0 --port=80"
+ENV SUPERVISOR_PHP_USER="sail"
+
+RUN ln -snf /usr/share/zoneinfo/$TZ /etc/localtime && echo $TZ > /etc/timezone
+
+RUN echo "Acquire::http::Pipeline-Depth 0;" > /etc/apt/apt.conf.d/99custom && \
+    echo "Acquire::http::No-Cache true;" >> /etc/apt/apt.conf.d/99custom && \
+    echo "Acquire::BrokenProxy    true;" >> /etc/apt/apt.conf.d/99custom
+
+RUN apt-get update && apt-get upgrade -y \
+    && mkdir -p /etc/apt/keyrings \
+    && apt-get install -y gnupg gosu curl ca-certificates zip unzip git supervisor sqlite3 libcap2-bin libpng-dev python3 dnsutils librsvg2-bin fswatch ffmpeg nano  \
+    && curl -sS 'https://keyserver.ubuntu.com/pks/lookup?op=get&search=0x14aa40ec0831756756d7f66c4f4ea0aae5267a6c' | gpg --dearmor | tee /etc/apt/keyrings/ppa_ondrej_php.gpg > /dev/null \
+    && echo "deb [signed-by=/etc/apt/keyrings/ppa_ondrej_php.gpg] https://ppa.launchpadcontent.net/ondrej/php/ubuntu noble main" > /etc/apt/sources.list.d/ppa_ondrej_php.list \
+    && apt-get update \
+    && apt-get install -y php8.3-cli php8.3-dev \
+       php8.3-pgsql php8.3-sqlite3 php8.3-gd \
+       php8.3-curl php8.3-mongodb \
+       php8.3-imap php8.3-mysql php8.3-mbstring \
+       php8.3-xml php8.3-zip php8.3-bcmath php8.3-soap \
+       php8.3-intl php8.3-readline \
+       php8.3-ldap \
+       php8.3-msgpack php8.3-igbinary php8.3-redis \
+       php8.3-memcached php8.3-pcov php8.3-imagick php8.3-xdebug php8.3-swoole \
+    && curl -sLS https://getcomposer.org/installer | php -- --install-dir=/usr/bin/ --filename=composer \
+    && curl -fsSL https://deb.nodesource.com/gpgkey/nodesource-repo.gpg.key | gpg --dearmor -o /etc/apt/keyrings/nodesource.gpg \
+    && echo "deb [signed-by=/etc/apt/keyrings/nodesource.gpg] https://deb.nodesource.com/node_$NODE_VERSION.x nodistro main" > /etc/apt/sources.list.d/nodesource.list \
+    && apt-get update \
+    && apt-get install -y nodejs \
+    && npm install -g npm \
+    && npm install -g pnpm \
+    && npm install -g bun \
+    && curl -sS https://dl.yarnpkg.com/debian/pubkey.gpg | gpg --dearmor | tee /etc/apt/keyrings/yarn.gpg >/dev/null \
+    && echo "deb [signed-by=/etc/apt/keyrings/yarn.gpg] https://dl.yarnpkg.com/debian/ stable main" > /etc/apt/sources.list.d/yarn.list \
+    && curl -sS https://www.postgresql.org/media/keys/ACCC4CF8.asc | gpg --dearmor | tee /etc/apt/keyrings/pgdg.gpg >/dev/null \
+    && echo "deb [signed-by=/etc/apt/keyrings/pgdg.gpg] http://apt.postgresql.org/pub/repos/apt noble-pgdg main" > /etc/apt/sources.list.d/pgdg.list \
+    && apt-get update \
+    && apt-get install -y yarn \
+    && apt-get install -y $MYSQL_CLIENT \
+    && apt-get install -y postgresql-client-$POSTGRES_VERSION \
+    && apt-get -y autoremove \
+    && apt-get clean \
+    && rm -rf /var/lib/apt/lists/* /tmp/* /var/tmp/*
+
+RUN setcap "cap_net_bind_service=+ep" /usr/bin/php8.3
+
+RUN groupadd --force -g $WWWGROUP sail
+RUN useradd -ms /bin/bash --no-user-group -g $WWWGROUP -u 1337 sail
+
+COPY start-container /usr/local/bin/start-container
+COPY supervisord.conf /etc/supervisor/conf.d/supervisord.conf
+COPY php.ini /etc/php/8.3/cli/conf.d/99-sail.ini
+RUN chmod +x /usr/local/bin/start-container

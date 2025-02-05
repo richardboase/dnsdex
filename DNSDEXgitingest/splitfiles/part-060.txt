@@ -1,0 +1,523 @@
+export { default as MenubarSubTrigger } from './MenubarSubTrigger.vue';
+export { default as MenubarTrigger } from './MenubarTrigger.vue';
+
+
+================================================
+File: resources/js/Components/ui/navigation-menu/NavigationMenu.vue
+================================================
+<script setup>
+import { cn } from '@/lib/utils';
+import { NavigationMenuRoot, useForwardPropsEmits } from 'radix-vue';
+import { computed } from 'vue';
+import NavigationMenuViewport from './NavigationMenuViewport.vue';
+
+const props = defineProps({
+  modelValue: { type: String, required: false },
+  defaultValue: { type: String, required: false },
+  dir: { type: String, required: false },
+  orientation: { type: String, required: false },
+  delayDuration: { type: Number, required: false },
+  skipDelayDuration: { type: Number, required: false },
+  disableClickTrigger: { type: Boolean, required: false },
+  disableHoverTrigger: { type: Boolean, required: false },
+  asChild: { type: Boolean, required: false },
+  as: { type: null, required: false },
+  class: { type: null, required: false },
+});
+
+const emits = defineEmits(['update:modelValue']);
+
+const delegatedProps = computed(() => {
+  const { class: _, ...delegated } = props;
+
+  return delegated;
+});
+
+const forwarded = useForwardPropsEmits(delegatedProps, emits);
+</script>
+
+<template>
+  <NavigationMenuRoot
+    v-bind="forwarded"
+    :class="
+      cn(
+        'relative z-10 flex max-w-max flex-1 items-center justify-center',
+        props.class,
+      )
+    "
+  >
+    <slot />
+    <NavigationMenuViewport />
+  </NavigationMenuRoot>
+</template>
+
+
+================================================
+File: resources/js/Components/ui/navigation-menu/NavigationMenuContent.vue
+================================================
+<script setup>
+import { cn } from '@/lib/utils';
+import { NavigationMenuContent, useForwardPropsEmits } from 'radix-vue';
+import { computed } from 'vue';
+
+const props = defineProps({
+  forceMount: { type: Boolean, required: false },
+  disableOutsidePointerEvents: { type: Boolean, required: false },
+  asChild: { type: Boolean, required: false },
+  as: { type: null, required: false },
+  class: { type: null, required: false },
+});
+
+const emits = defineEmits([
+  'escapeKeyDown',
+  'pointerDownOutside',
+  'focusOutside',
+  'interactOutside',
+]);
+
+const delegatedProps = computed(() => {
+  const { class: _, ...delegated } = props;
+
+  return delegated;
+});
+
+const forwarded = useForwardPropsEmits(delegatedProps, emits);
+</script>
+
+<template>
+  <NavigationMenuContent
+    v-bind="forwarded"
+    :class="
+      cn(
+        'left-0 top-0 w-full data-[motion^=from-]:animate-in data-[motion^=to-]:animate-out data-[motion^=from-]:fade-in data-[motion^=to-]:fade-out data-[motion=from-end]:slide-in-from-right-52 data-[motion=from-start]:slide-in-from-left-52 data-[motion=to-end]:slide-out-to-right-52 data-[motion=to-start]:slide-out-to-left-52 md:absolute md:w-auto',
+        props.class,
+      )
+    "
+  >
+    <slot />
+  </NavigationMenuContent>
+</template>
+
+
+================================================
+File: resources/js/Components/ui/navigation-menu/NavigationMenuIndicator.vue
+================================================
+<script setup>
+import { cn } from '@/lib/utils';
+import { NavigationMenuIndicator, useForwardProps } from 'radix-vue';
+import { computed } from 'vue';
+
+const props = defineProps({
+  forceMount: { type: Boolean, required: false },
+  asChild: { type: Boolean, required: false },
+  as: { type: null, required: false },
+  class: { type: null, required: false },
+});
+
+const delegatedProps = computed(() => {
+  const { class: _, ...delegated } = props;
+
+  return delegated;
+});
+
+const forwardedProps = useForwardProps(delegatedProps);
+</script>
+
+<template>
+  <NavigationMenuIndicator
+    v-bind="forwardedProps"
+    :class="
+      cn(
+        'top-full z-[1] flex h-1.5 items-end justify-center overflow-hidden data-[state=visible]:animate-in data-[state=hidden]:animate-out data-[state=hidden]:fade-out data-[state=visible]:fade-in',
+        props.class,
+      )
+    "
+  >
+    <div
+      class="relative top-[60%] h-2 w-2 rotate-45 rounded-tl-sm bg-gray-200 shadow-md dark:bg-gray-800"
+    />
+  </NavigationMenuIndicator>
+</template>
+
+
+================================================
+File: resources/js/Components/ui/navigation-menu/NavigationMenuItem.vue
+================================================
+<script setup>
+import { NavigationMenuItem } from 'radix-vue';
+
+const props = defineProps({
+  value: { type: String, required: false },
+  asChild: { type: Boolean, required: false },
+  as: { type: null, required: false },
+});
+</script>
+
+<template>
+  <NavigationMenuItem v-bind="props">
+    <slot />
+  </NavigationMenuItem>
+</template>
+
+
+================================================
+File: resources/js/Components/ui/navigation-menu/NavigationMenuLink.vue
+================================================
+<script setup>
+import { NavigationMenuLink, useForwardPropsEmits } from 'radix-vue';
+
+const props = defineProps({
+  active: { type: Boolean, required: false },
+  asChild: { type: Boolean, required: false },
+  as: { type: null, required: false },
+});
+const emits = defineEmits(['select']);
+
+const forwarded = useForwardPropsEmits(props, emits);
+</script>
+
+<template>
+  <NavigationMenuLink v-bind="forwarded">
+    <slot />
+  </NavigationMenuLink>
+</template>
+
+
+================================================
+File: resources/js/Components/ui/navigation-menu/NavigationMenuList.vue
+================================================
+<script setup>
+import { cn } from '@/lib/utils';
+import { NavigationMenuList, useForwardProps } from 'radix-vue';
+import { computed } from 'vue';
+
+const props = defineProps({
+  asChild: { type: Boolean, required: false },
+  as: { type: null, required: false },
+  class: { type: null, required: false },
+});
+
+const delegatedProps = computed(() => {
+  const { class: _, ...delegated } = props;
+
+  return delegated;
+});
+
+const forwardedProps = useForwardProps(delegatedProps);
+</script>
+
+<template>
+  <NavigationMenuList
+    v-bind="forwardedProps"
+    :class="
+      cn(
+        'group flex flex-1 list-none items-center justify-center gap-x-1',
+        props.class,
+      )
+    "
+  >
+    <slot />
+  </NavigationMenuList>
+</template>
+
+
+================================================
+File: resources/js/Components/ui/navigation-menu/NavigationMenuTrigger.vue
+================================================
+<script setup>
+import { cn } from '@/lib/utils';
+import { ChevronDown } from 'lucide-vue-next';
+import { NavigationMenuTrigger, useForwardProps } from 'radix-vue';
+import { computed } from 'vue';
+import { navigationMenuTriggerStyle } from '.';
+
+const props = defineProps({
+  disabled: { type: Boolean, required: false },
+  asChild: { type: Boolean, required: false },
+  as: { type: null, required: false },
+  class: { type: null, required: false },
+});
+
+const delegatedProps = computed(() => {
+  const { class: _, ...delegated } = props;
+
+  return delegated;
+});
+
+const forwardedProps = useForwardProps(delegatedProps);
+</script>
+
+<template>
+  <NavigationMenuTrigger
+    v-bind="forwardedProps"
+    :class="cn(navigationMenuTriggerStyle(), 'group', props.class)"
+  >
+    <slot />
+    <ChevronDown
+      class="relative top-px ml-1 h-3 w-3 transition duration-200 group-data-[state=open]:rotate-180"
+      aria-hidden="true"
+    />
+  </NavigationMenuTrigger>
+</template>
+
+
+================================================
+File: resources/js/Components/ui/navigation-menu/NavigationMenuViewport.vue
+================================================
+<script setup>
+import { cn } from '@/lib/utils';
+import { NavigationMenuViewport, useForwardProps } from 'radix-vue';
+import { computed } from 'vue';
+
+const props = defineProps({
+  forceMount: { type: Boolean, required: false },
+  asChild: { type: Boolean, required: false },
+  as: { type: null, required: false },
+  class: { type: null, required: false },
+});
+
+const delegatedProps = computed(() => {
+  const { class: _, ...delegated } = props;
+
+  return delegated;
+});
+
+const forwardedProps = useForwardProps(delegatedProps);
+</script>
+
+<template>
+  <div class="absolute left-0 top-full flex justify-center">
+    <NavigationMenuViewport
+      v-bind="forwardedProps"
+      :class="
+        cn(
+          'origin-top-center relative mt-1.5 h-[--radix-navigation-menu-viewport-height] w-full overflow-hidden rounded-md border border-gray-200 bg-white text-gray-950 shadow-lg data-[state=open]:animate-in data-[state=closed]:animate-out data-[state=closed]:zoom-out-95 data-[state=open]:zoom-in-90 md:w-[--radix-navigation-menu-viewport-width] dark:border-gray-800 dark:bg-gray-950 dark:text-gray-50',
+          props.class,
+        )
+      "
+    />
+  </div>
+</template>
+
+
+================================================
+File: resources/js/Components/ui/navigation-menu/index.js
+================================================
+import { cva } from 'class-variance-authority';
+
+export { default as NavigationMenu } from './NavigationMenu.vue';
+export { default as NavigationMenuContent } from './NavigationMenuContent.vue';
+export { default as NavigationMenuItem } from './NavigationMenuItem.vue';
+export { default as NavigationMenuLink } from './NavigationMenuLink.vue';
+export { default as NavigationMenuList } from './NavigationMenuList.vue';
+export { default as NavigationMenuTrigger } from './NavigationMenuTrigger.vue';
+export { default as NavigationMenuViewport } from './NavigationMenuViewport.vue';
+
+export const navigationMenuTriggerStyle = cva(
+  'group inline-flex h-10 w-max items-center justify-center rounded-md bg-white px-4 py-2 text-sm font-medium transition-colors hover:bg-gray-100 hover:text-gray-900 focus:bg-gray-100 focus:text-gray-900 focus:outline-none disabled:pointer-events-none disabled:opacity-50 data-[active]:bg-gray-100/50 data-[state=open]:bg-gray-100/50 dark:bg-gray-950 dark:hover:bg-gray-800 dark:hover:text-gray-50 dark:focus:bg-gray-800 dark:focus:text-gray-50 dark:data-[active]:bg-gray-800/50 dark:data-[state=open]:bg-gray-800/50',
+);
+
+
+================================================
+File: resources/js/Components/ui/popover/Popover.vue
+================================================
+<script setup>
+import { PopoverRoot, useForwardPropsEmits } from 'radix-vue';
+
+const props = defineProps({
+  defaultOpen: { type: Boolean, required: false },
+  open: { type: Boolean, required: false },
+  modal: { type: Boolean, required: false },
+});
+const emits = defineEmits(['update:open']);
+
+const forwarded = useForwardPropsEmits(props, emits);
+</script>
+
+<template>
+  <PopoverRoot v-bind="forwarded">
+    <slot />
+  </PopoverRoot>
+</template>
+
+
+================================================
+File: resources/js/Components/ui/popover/PopoverContent.vue
+================================================
+<script setup>
+import { cn } from '@/lib/utils';
+import { PopoverContent, PopoverPortal, useForwardPropsEmits } from 'radix-vue';
+import { computed } from 'vue';
+
+defineOptions({
+  inheritAttrs: false,
+});
+
+const props = defineProps({
+  forceMount: { type: Boolean, required: false },
+  trapFocus: { type: Boolean, required: false },
+  side: { type: null, required: false },
+  sideOffset: { type: Number, required: false, default: 4 },
+  align: { type: null, required: false, default: 'center' },
+  alignOffset: { type: Number, required: false },
+  avoidCollisions: { type: Boolean, required: false },
+  collisionBoundary: { type: null, required: false },
+  collisionPadding: { type: [Number, Object], required: false },
+  arrowPadding: { type: Number, required: false },
+  sticky: { type: String, required: false },
+  hideWhenDetached: { type: Boolean, required: false },
+  updatePositionStrategy: { type: String, required: false },
+  prioritizePosition: { type: Boolean, required: false },
+  asChild: { type: Boolean, required: false },
+  as: { type: null, required: false },
+  disableOutsidePointerEvents: { type: Boolean, required: false },
+  class: { type: null, required: false },
+});
+const emits = defineEmits([
+  'escapeKeyDown',
+  'pointerDownOutside',
+  'focusOutside',
+  'interactOutside',
+  'openAutoFocus',
+  'closeAutoFocus',
+]);
+
+const delegatedProps = computed(() => {
+  const { class: _, ...delegated } = props;
+
+  return delegated;
+});
+
+const forwarded = useForwardPropsEmits(delegatedProps, emits);
+</script>
+
+<template>
+  <PopoverPortal>
+    <PopoverContent
+      v-bind="{ ...forwarded, ...$attrs }"
+      :class="
+        cn(
+          'z-50 w-72 rounded-md border border-gray-200 bg-white p-4 text-gray-950 shadow-md outline-none data-[state=open]:animate-in data-[state=closed]:animate-out data-[state=closed]:fade-out-0 data-[state=open]:fade-in-0 data-[state=closed]:zoom-out-95 data-[state=open]:zoom-in-95 data-[side=bottom]:slide-in-from-top-2 data-[side=left]:slide-in-from-right-2 data-[side=right]:slide-in-from-left-2 data-[side=top]:slide-in-from-bottom-2 dark:border-gray-800 dark:bg-gray-950 dark:text-gray-50',
+          props.class,
+        )
+      "
+    >
+      <slot />
+    </PopoverContent>
+  </PopoverPortal>
+</template>
+
+
+================================================
+File: resources/js/Components/ui/popover/PopoverTrigger.vue
+================================================
+<script setup>
+import { PopoverTrigger } from 'radix-vue';
+
+const props = defineProps({
+  asChild: { type: Boolean, required: false },
+  as: { type: null, required: false },
+});
+</script>
+
+<template>
+  <PopoverTrigger v-bind="props">
+    <slot />
+  </PopoverTrigger>
+</template>
+
+
+================================================
+File: resources/js/Components/ui/popover/index.js
+================================================
+export { default as Popover } from './Popover.vue';
+export { default as PopoverContent } from './PopoverContent.vue';
+export { default as PopoverTrigger } from './PopoverTrigger.vue';
+
+
+================================================
+File: resources/js/Components/ui/progress/Progress.vue
+================================================
+<script setup>
+import { cn } from '@/lib/utils';
+import { ProgressIndicator, ProgressRoot } from 'radix-vue';
+import { computed } from 'vue';
+
+const props = defineProps({
+  modelValue: { type: [Number, null], required: false, default: 0 },
+  max: { type: Number, required: false },
+  getValueLabel: { type: Function, required: false },
+  asChild: { type: Boolean, required: false },
+  as: { type: null, required: false },
+  class: { type: null, required: false },
+});
+
+const delegatedProps = computed(() => {
+  const { class: _, ...delegated } = props;
+
+  return delegated;
+});
+</script>
+
+<template>
+  <ProgressRoot
+    v-bind="delegatedProps"
+    :class="
+      cn(
+        'relative h-4 w-full overflow-hidden rounded-full bg-gray-100 dark:bg-gray-800',
+        props.class,
+      )
+    "
+  >
+    <ProgressIndicator
+      class="h-full w-full flex-1 bg-gray-900 transition-all dark:bg-gray-50"
+      :style="`transform: translateX(-${100 - (props.modelValue ?? 0)}%);`"
+    />
+  </ProgressRoot>
+</template>
+
+
+================================================
+File: resources/js/Components/ui/progress/index.js
+================================================
+export { default as Progress } from './Progress.vue';
+
+
+================================================
+File: resources/js/Components/ui/radio-group/RadioGroup.vue
+================================================
+<script setup>
+import { cn } from '@/lib/utils';
+import { RadioGroupRoot, useForwardPropsEmits } from 'radix-vue';
+import { computed } from 'vue';
+
+const props = defineProps({
+  modelValue: { type: String, required: false },
+  defaultValue: { type: String, required: false },
+  disabled: { type: Boolean, required: false },
+  name: { type: String, required: false },
+  required: { type: Boolean, required: false },
+  orientation: { type: String, required: false },
+  dir: { type: String, required: false },
+  loop: { type: Boolean, required: false },
+  asChild: { type: Boolean, required: false },
+  as: { type: null, required: false },
+  class: { type: null, required: false },
+});
+const emits = defineEmits(['update:modelValue']);
+
+const delegatedProps = computed(() => {
+  const { class: _, ...delegated } = props;
+
+  return delegated;
+});
+
+const forwarded = useForwardPropsEmits(delegatedProps, emits);
+</script>
+
+<template>
+  <RadioGroupRoot :class="cn('grid gap-2', props.class)" v-bind="forwarded">
+    <slot />
+  </RadioGroupRoot>
+</template>
+

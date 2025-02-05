@@ -1,0 +1,523 @@
+					{{ $t("Are you sure you would like to delete this User?") }}
+				</p>
+				<p>{{ $t("The reseller will most likely lose money") }}</p>
+			</template>
+
+			<template #footer>
+				<SecondaryButton
+					class="uppercase text-xs font-semibold"
+					@click="userBeingDeleted = null">
+					{{ $t("Cancel") }}
+				</SecondaryButton>
+
+				<PrimaryButton
+					error
+					class="ml-2 uppercase text-xs font-semibold"
+					@click="deleteUser"
+					:class="{ 'opacity-25': deleteUserForm.processing }"
+					:disabled="deleteUserForm.processing">
+					{{ $t("Delete") }}
+				</PrimaryButton>
+			</template>
+		</ConfirmationModal>
+	</AdminLayout>
+</template>
+
+
+================================================
+File: resources/js/Pages/Auth/AuthLink.vue
+================================================
+<script setup>
+	import { ref } from "vue";
+
+	import PrimaryButton from "@/Components/PrimaryButton.vue";
+	import AuthModal from "@/Pages/Auth/AuthModal.vue";
+	const show = ref(false);
+</script>
+<template>
+	<div v-if="$page.props.auth.user?.canVerify">
+		<PrimaryButton size="xs" outlined @click.prevent="show = !show">
+			Verify Email Address
+		</PrimaryButton>
+		<AuthModal v-model:show="show" />
+	</div>
+</template>
+
+
+================================================
+File: resources/js/Pages/Auth/AuthModal.vue
+================================================
+<script setup>
+	import { computed, ref, watch } from "vue";
+
+	import { Link, router, useForm, usePage } from "@inertiajs/vue3";
+	import { useInterval } from "@vueuse/core";
+	import { Mail, UserIcon } from "lucide-vue-next";
+
+	import ApplicationLogo from "@/Components/ApplicationLogo.vue";
+	import CollapseTransition from "@/Components/CollapseTransition.vue";
+	import FormInput from "@/Components/FormInput.vue";
+	import Loading from "@/Components/Loading.vue";
+	import PrimaryButton from "@/Components/PrimaryButton.vue";
+	import {
+		Dialog,
+		DialogContent,
+		DialogHeader,
+	} from "@/Components/ui/dialog";
+	import OtpInput from "@/Pages/Auth/OtpInput.vue";
+	const { counter, reset, pause, resume, isActive } = useInterval(1000, {
+		controls: true,
+	});
+	pause();
+	watch(counter, (counter) => {
+		if (counter === 60) {
+			pause();
+			reset();
+		}
+	});
+
+	defineProps({
+		show: Boolean,
+	});
+
+	const emit = defineEmits(["update:show"]);
+
+	const needsOtp = computed(
+		() =>
+			!!usePage().props.auth.user?.email &&
+			!usePage().props.auth.user?.email_verified_at,
+	);
+	const error = ref("");
+	const loading = ref(false);
+	const resendForm = useForm({});
+	const requestForm = useForm({
+		email: null,
+		name: null,
+		to: window.location.pathname,
+	});
+	const resend = async () => {
+		resendForm.post(window.route("otp.resend"), {
+			preserveScroll: true,
+			preserveState: true,
+			onFinish() {
+				reset();
+				resume();
+			},
+		});
+	};
+	const submitEmail = async () => {
+		requestForm.post(window.route("otp.send"), {
+			preserveScroll: true,
+			preserveState: true,
+			onFinish() {
+				reset();
+				resume();
+			},
+		});
+	};
+	const authForm = useForm({ otp: "" });
+	const submitOTP = async () => {
+		console.log("hehehehhe");
+		authForm.post(window.route("modal.verify"), {
+			preserveState: true,
+			preserveScroll: true,
+			onSuccess() {
+				emit("update:show", false);
+				router.reload();
+			},
+		});
+	};
+</script>
+
+<template>
+	<Dialog :open="show" @update:open="(val) => $emit('update:show', val)">
+		<DialogContent class="sm:max-w-[425px]">
+			<DialogHeader>
+				<Link class="flex mb-4 items-center" href="/">
+					<ApplicationLogo class="block h-8 w-auto font-semibold" />
+				</Link>
+				<h3 class="text-2xl">Connect email address</h3>
+
+				<p v-if="needsOtp">
+					A code was sent to your email, Enter it below
+				</p>
+			</DialogHeader>
+			<form @submit.prevent="needsOtp ? submitOTP() : submitEmail()">
+				<div v-if="error" class="text-red-500 mb-4">{{ error }}</div>
+				<div v-if="needsOtp">
+					<OtpInput v-model="authForm.otp" :length="6" />
+					<p
+						class="!text-red-500 text-sm mt-2"
+						v-if="authForm.errors.otp">
+						{{ authForm.errors.otp }}
+					</p>
+				</div>
+				<div v-else>
+					<FormInput
+						class="mt-1 block w-full"
+						placeholder="Your Full Name"
+						v-model="requestForm.name"
+						:error="requestForm.errors.name"
+						required
+						type="text"
+						size="md"
+						autocomplete="name">
+						<template #lead>
+							<UserIcon class="w-4 h-4 ml-1 text-white" />
+						</template>
+					</FormInput>
+					<FormInput
+						class="mt-1 block w-full"
+						placeholder="Email"
+						:label="needsOtp ? 'Verify OTP' : 'Enter Email Address'"
+						v-model="requestForm.email"
+						:error="requestForm.errors.email"
+						required
+						autofocus
+						type="email"
+						size="md"
+						autocomplete="username">
+						<template #lead>
+							<Mail class="w-4 h-4 ml-1 text-white" />
+						</template>
+					</FormInput>
+				</div>
+				<CollapseTransition>
+					<div
+						class="text-emerald-400 font-semibold text-sm py-3"
+						v-if="resendForm.recentlySuccessful">
+						{{ $t("Code resent successfully !") }}
+					</div>
+				</CollapseTransition>
+				<div class="flex gap-3 justify-end mt-6">
+					<PrimaryButton
+						size="sm"
+						outlined
+						@click="resend"
+						type="button"
+						:disabled="resendForm.processing || isActive"
+						v-if="needsOtp">
+						<Loading
+							v-if="resendForm.processing"
+							class="!w-5 !h-5 mr-2 -ml-1" />
+						{{ $t("Resend") }}
+						{{ isActive ? `in ${60 - counter}s` : "" }}
+					</PrimaryButton>
+					<PrimaryButton
+						type="submit"
+						class="w-full"
+						size="lg"
+						:disabled="loading">
+						{{ needsOtp ? $t("Verify") : $t("Continue") }}
+					</PrimaryButton>
+				</div>
+			</form>
+		</DialogContent>
+	</Dialog>
+</template>
+
+
+================================================
+File: resources/js/Pages/Auth/OtpInput.vue
+================================================
+<script setup>
+	import { ref, watch } from "vue";
+
+	const props = defineProps({
+		length: {
+			type: Number,
+			default: 6,
+		},
+		modelValue: {
+			type: String,
+			default: "",
+		},
+		errors: {
+			type: String,
+			default: "",
+		},
+	});
+
+	const emit = defineEmits(["update:modelValue"]);
+
+	const otpInputs = ref(Array(props.length).fill(""));
+	const inputRefs = ref(Array(props.length).fill(null));
+
+	const handleInput = (index) => {
+		if (index < props.length - 1 && otpInputs.value[index]) {
+			inputRefs.value[index + 1].focus();
+		}
+		updateModelValue();
+	};
+
+	const handleKeyDown = (e, index) => {
+		if (e.key === "Backspace" && !otpInputs.value[index] && index > 0) {
+			inputRefs.value[index - 1].focus();
+		}
+	};
+
+	const handlePaste = (e) => {
+		e.preventDefault();
+		const pastedData = e.clipboardData
+			.getData("text")
+			.slice(0, props.length);
+		const pastedChars = pastedData.split("");
+		otpInputs.value = [
+			...pastedChars,
+			...Array(props.length - pastedChars.length).fill(""),
+		];
+		updateModelValue();
+		// Focus on the next empty input or the last input if all are filled
+		const nextEmptyIndex = otpInputs.value.findIndex((val) => val === "");
+		const focusIndex =
+			nextEmptyIndex === -1 ? props.length - 1 : nextEmptyIndex;
+		inputRefs.value[focusIndex].focus();
+	};
+
+	const updateModelValue = () => {
+		emit("update:modelValue", otpInputs.value.join(""));
+	};
+
+	watch(
+		() => props.modelValue,
+		(newValue) => {
+			otpInputs.value = `${newValue}`
+				.split("")
+				.concat(Array(props.length - `${newValue}`.length).fill(""));
+		},
+		{ immediate: true },
+	);
+</script>
+
+<template>
+	<div class="flex justify-between mb-6">
+		<input
+			v-for="(_, index) in otpInputs"
+			:key="index"
+			type="text"
+			inputmode="numeric"
+			maxlength="1"
+			:class="
+				errors
+					? 'bg-red-100 text-red-700 dark:bg-red-700 dark:text-white '
+					: 'bg-gray-50 dark:bg-gray-900'
+			"
+			class="w-12 h-12 font-bold text-center text-2xl text-white rounded-md focus:outline-none focus:border-primary focus:ring-primary"
+			v-model="otpInputs[index]"
+			:ref="(el) => (inputRefs[index] = el)"
+			@input="() => handleInput(index)"
+			@keydown="(e) => handleKeyDown(e, index)"
+			@paste="handlePaste" />
+	</div>
+</template>
+
+
+================================================
+File: resources/js/Pages/Auth/Web3Auth.vue
+================================================
+<script setup>
+import { computed, ref, watch } from "vue";
+
+import { router, usePage } from "@inertiajs/vue3";
+import { createAppKit, useAppKit } from "@reown/appkit/vue";
+import {
+    useAccount,
+    useAccountEffect,
+    useDisconnect,
+    useSignMessage,
+} from "@wagmi/vue";
+import axios from "axios";
+import { Power } from "lucide-vue-next";
+import { blast, linea, sepolia } from "viem/chains";
+
+import DangerButton from "@/Components/DangerButton.vue";
+import PrimaryButton from "@/Components/PrimaryButton.vue";
+import SecondaryButton from "@/Components/SecondaryButton.vue";
+import { shortenAddress } from "@/lib/wagmi";
+import {
+    networks,
+    projectId,
+    projectName,
+    projectUrl,
+    useWagmiAdapter
+} from "@/lib/wagmi.js";
+createAppKit({
+    adapters: [useWagmiAdapter({
+        rpc: usePage().props.rpc ?? 'ankr',
+        ankr: usePage().props.ankr,
+        infura: usePage().props.infura,
+        blast: usePage().props.blast,
+        activeChains: usePage().props.activeChains,
+    })],
+    networks: networks.filter((n) =>
+        usePage().props.activeChains.includes(n.id),
+    ),
+    projectId: projectId ?? usePage().props.projectId,
+    metadata: {
+        name: projectName,
+        description: `${projectName} Crypto Memes Service`,
+        url: projectUrl,
+        icons: [],
+    },
+    themeVariables: {
+        "--w3m-color-mix": "#404040",
+        "--w3m-color-mix-strength": 40,
+    },
+    chainImages: {
+        [sepolia.id]: "https://icons.llamao.fi/icons/chains/rsz_ethereum.jpg",
+        [linea.id]: "https://icons.llamao.fi/icons/chains/rsz_linea.jpg",
+        [blast.id]: "https://icons.llamao.fi/icons/chains/rsz_blast.jpg",
+    },
+});
+const { open: openConnectModal } = useAppKit();
+
+defineProps({
+    size: { type: String, default: "xs" },
+    full: Boolean
+});
+const authCheck = computed(() => !!usePage().props.auth.user);
+const { address, isConnected } = useAccount();
+
+const { disconnect } = useDisconnect();
+const { signMessageAsync } = useSignMessage();
+
+const handleVerify = async () => {
+    try {
+        // Get auth code
+        const { data } = await axios.post(window.route("auth.code"));
+        const authCode = data.authCode;
+        // Sign message
+        const signature = await signMessageAsync({
+            message: authCode,
+        });
+
+        // Verify signature and login
+        router.post(
+            window.route("login"),
+            {
+                address: address.value,
+                signature,
+            },
+            {
+                preserveState: true,
+                preserveScroll: true,
+            },
+        );
+    } catch (error) {
+        console.error("Verification failed:", error);
+    }
+};
+const isSigningOut = ref(false);
+const signOut = async () => {
+    if (isSigningOut.value) return;
+    isSigningOut.value = true;
+    if (authCheck.value)
+        router.post(
+            window.route("logout"),
+            {},
+            {
+                onFinish() {
+                    isSigningOut.value = false;
+                },
+            },
+        );
+};
+
+const signIn = async () => {
+    if (!authCheck.value) await handleVerify();
+};
+useAccountEffect({
+    onConnect(data) {
+        signIn();
+    },
+    onDisconnect() {
+        signOut();
+    },
+});
+watch([isConnected, authCheck], ([isConnected, authCheck]) => {
+    if (isConnected && !authCheck) {
+        return signIn();
+    }
+    if (!isConnected && authCheck) {
+        return signOut();
+    }
+});
+</script>
+
+<template>
+    <div class="flex gap-2">
+        <template v-if="$page.props.auth.user && isConnected">
+            <SecondaryButton
+                :size="size"
+                :class="{ 'w-full': full }"
+                @click="openConnectModal()"
+                outlined
+            >
+                {{ shortenAddress(address) }}
+            </SecondaryButton>
+            <DangerButton
+                size="sm"
+                :class="{ 'w-full': full }"
+                :icon-mode="!full"
+                outlined
+                @click="disconnect"
+            >
+                <span
+                    class="mr-2"
+                    v-if="full"
+                > Logout </span>
+                <Power class="w-4 h-4 stroke-[3]" />
+            </DangerButton>
+        </template>
+        <template v-else-if="isConnected">
+            <SecondaryButton
+                :size="size"
+                :class="{ 'w-full': full }"
+                @click="handleVerify"
+            >
+                Verify Signature
+            </SecondaryButton>
+            <DangerButton
+                :size="size"
+                :class="{ 'w-full': full }"
+                @click="disconnect()"
+            >
+                Disconnect
+            </DangerButton>
+        </template>
+        <template v-else>
+            <PrimaryButton
+                :size="size"
+                outlined
+                :class="{ 'w-full': full }"
+                @click="openConnectModal"
+            >
+                Connect Wallet
+            </PrimaryButton>
+        </template>
+    </div>
+</template>
+
+
+================================================
+File: resources/js/Pages/Install/Layout.vue
+================================================
+<script setup>
+	import { computed } from "vue";
+
+	import {
+		Card,
+		CardContent,
+		CardDescription,
+		CardHeader,
+		CardTitle,
+	} from "@/Components/ui/card";
+
+	const steps = [
+		{ name: "Welcome", route: "install.index" },
+		{ name: "Requirements", route: "install.requirements" },
+		{ name: "Permissions", route: "install.permissions" },
+		{ name: "Environment", route: "install.environment" },
+		{ name: "Final", route: "install.final" },
+	];
+

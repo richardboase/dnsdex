@@ -1,0 +1,523 @@
+      cn(
+        'flex h-10 w-full items-center justify-between rounded-md border border-gray-200 bg-white px-3 py-2 text-sm ring-offset-white data-[placeholder]:text-gray-500 focus:outline-none focus:ring-2 focus:ring-gray-950 focus:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50 [&>span]:truncate text-start dark:border-gray-800 dark:bg-gray-950 dark:ring-offset-gray-950 dark:data-[placeholder]:text-gray-400 dark:focus:ring-gray-300',
+        props.class,
+      )
+    "
+  >
+    <slot />
+    <SelectIcon as-child>
+      <ChevronDown class="w-4 h-4 opacity-50 shrink-0" />
+    </SelectIcon>
+  </SelectTrigger>
+</template>
+
+
+================================================
+File: resources/js/Components/ui/select/SelectValue.vue
+================================================
+<script setup>
+import { SelectValue } from 'radix-vue';
+
+const props = defineProps({
+  placeholder: { type: String, required: false },
+  asChild: { type: Boolean, required: false },
+  as: { type: null, required: false },
+});
+</script>
+
+<template>
+  <SelectValue v-bind="props">
+    <slot />
+  </SelectValue>
+</template>
+
+
+================================================
+File: resources/js/Components/ui/select/index.js
+================================================
+export { default as Select } from './Select.vue';
+export { default as SelectContent } from './SelectContent.vue';
+export { default as SelectGroup } from './SelectGroup.vue';
+export { default as SelectItem } from './SelectItem.vue';
+export { default as SelectItemText } from './SelectItemText.vue';
+export { default as SelectLabel } from './SelectLabel.vue';
+export { default as SelectScrollDownButton } from './SelectScrollDownButton.vue';
+export { default as SelectScrollUpButton } from './SelectScrollUpButton.vue';
+export { default as SelectSeparator } from './SelectSeparator.vue';
+export { default as SelectTrigger } from './SelectTrigger.vue';
+export { default as SelectValue } from './SelectValue.vue';
+
+
+================================================
+File: resources/js/Components/ui/separator/Separator.vue
+================================================
+<script setup>
+import { cn } from '@/lib/utils';
+import { Separator } from 'radix-vue';
+import { computed } from 'vue';
+
+const props = defineProps({
+  orientation: { type: String, required: false },
+  decorative: { type: Boolean, required: false },
+  asChild: { type: Boolean, required: false },
+  as: { type: null, required: false },
+  class: { type: null, required: false },
+  label: { type: String, required: false },
+});
+
+const delegatedProps = computed(() => {
+  const { class: _, ...delegated } = props;
+
+  return delegated;
+});
+</script>
+
+<template>
+  <Separator
+    v-bind="delegatedProps"
+    :class="
+      cn(
+        'shrink-0 bg-gray-200 relative dark:bg-gray-800',
+        props.orientation === 'vertical' ? 'w-px h-full' : 'h-px w-full',
+        props.class,
+      )
+    "
+  >
+    <span
+      v-if="props.label"
+      :class="
+        cn(
+          'text-xs text-gray-500 bg-white absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 flex justify-center items-center dark:text-gray-400 dark:bg-gray-950',
+          props.orientation === 'vertical'
+            ? 'w-[1px] px-1 py-2'
+            : 'h-[1px] py-1 px-2',
+        )
+      "
+      >{{ props.label }}</span
+    >
+  </Separator>
+</template>
+
+
+================================================
+File: resources/js/Components/ui/separator/index.js
+================================================
+export { default as Separator } from './Separator.vue';
+
+
+================================================
+File: resources/js/Components/ui/sheet/Sheet.vue
+================================================
+<script setup>
+import { DialogRoot, useForwardPropsEmits } from 'radix-vue';
+
+const props = defineProps({
+  open: { type: Boolean, required: false },
+  defaultOpen: { type: Boolean, required: false },
+  modal: { type: Boolean, required: false },
+});
+const emits = defineEmits(['update:open']);
+
+const forwarded = useForwardPropsEmits(props, emits);
+</script>
+
+<template>
+  <DialogRoot v-bind="forwarded">
+    <slot />
+  </DialogRoot>
+</template>
+
+
+================================================
+File: resources/js/Components/ui/sheet/SheetClose.vue
+================================================
+<script setup>
+import { DialogClose } from 'radix-vue';
+
+const props = defineProps({
+  asChild: { type: Boolean, required: false },
+  as: { type: null, required: false },
+});
+</script>
+
+<template>
+  <DialogClose v-bind="props">
+    <slot />
+  </DialogClose>
+</template>
+
+
+================================================
+File: resources/js/Components/ui/sheet/SheetContent.vue
+================================================
+<script setup>
+import { cn } from '@/lib/utils';
+import { X } from 'lucide-vue-next';
+import {
+  DialogClose,
+  DialogContent,
+  DialogOverlay,
+  DialogPortal,
+  useForwardPropsEmits,
+} from 'radix-vue';
+import { computed } from 'vue';
+import { sheetVariants } from '.';
+
+defineOptions({
+  inheritAttrs: false,
+});
+
+const props = defineProps({
+  class: { type: null, required: false },
+  side: { type: null, required: false },
+  forceMount: { type: Boolean, required: false },
+  trapFocus: { type: Boolean, required: false },
+  disableOutsidePointerEvents: { type: Boolean, required: false },
+  asChild: { type: Boolean, required: false },
+  as: { type: null, required: false },
+});
+
+const emits = defineEmits([
+  'escapeKeyDown',
+  'pointerDownOutside',
+  'focusOutside',
+  'interactOutside',
+  'openAutoFocus',
+  'closeAutoFocus',
+]);
+
+const delegatedProps = computed(() => {
+  const { class: _, side, ...delegated } = props;
+
+  return delegated;
+});
+
+const forwarded = useForwardPropsEmits(delegatedProps, emits);
+</script>
+
+<template>
+  <DialogPortal>
+    <DialogOverlay
+      class="fixed inset-0 z-50 bg-black/80 data-[state=open]:animate-in data-[state=closed]:animate-out data-[state=closed]:fade-out-0 data-[state=open]:fade-in-0"
+    />
+    <DialogContent
+      :class="cn(sheetVariants({ side }), props.class)"
+      v-bind="{ ...forwarded, ...$attrs }"
+    >
+      <slot />
+
+      <DialogClose
+        class="absolute right-4 top-4 rounded-sm opacity-70 ring-offset-white transition-opacity hover:opacity-100 focus:outline-none focus:ring-2 focus:ring-gray-950 focus:ring-offset-2 disabled:pointer-events-none data-[state=open]:bg-gray-100 dark:ring-offset-gray-950 dark:focus:ring-gray-300 dark:data-[state=open]:bg-gray-800"
+      >
+        <X class="w-4 h-4 text-gray-500 dark:text-gray-400" />
+      </DialogClose>
+    </DialogContent>
+  </DialogPortal>
+</template>
+
+
+================================================
+File: resources/js/Components/ui/sheet/SheetDescription.vue
+================================================
+<script setup>
+import { cn } from '@/lib/utils';
+import { DialogDescription } from 'radix-vue';
+import { computed } from 'vue';
+
+const props = defineProps({
+  asChild: { type: Boolean, required: false },
+  as: { type: null, required: false },
+  class: { type: null, required: false },
+});
+
+const delegatedProps = computed(() => {
+  const { class: _, ...delegated } = props;
+
+  return delegated;
+});
+</script>
+
+<template>
+  <DialogDescription
+    :class="cn('text-sm text-gray-500 dark:text-gray-400', props.class)"
+    v-bind="delegatedProps"
+  >
+    <slot />
+  </DialogDescription>
+</template>
+
+
+================================================
+File: resources/js/Components/ui/sheet/SheetFooter.vue
+================================================
+<script setup>
+import { cn } from '@/lib/utils';
+
+const props = defineProps({
+  class: { type: null, required: false },
+});
+</script>
+
+<template>
+  <div
+    :class="
+      cn(
+        'flex flex-col-reverse sm:flex-row sm:justify-end sm:gap-x-2',
+        props.class,
+      )
+    "
+  >
+    <slot />
+  </div>
+</template>
+
+
+================================================
+File: resources/js/Components/ui/sheet/SheetHeader.vue
+================================================
+<script setup>
+import { cn } from '@/lib/utils';
+
+const props = defineProps({
+  class: { type: null, required: false },
+});
+</script>
+
+<template>
+  <div
+    :class="cn('flex flex-col gap-y-2 text-center sm:text-left', props.class)"
+  >
+    <slot />
+  </div>
+</template>
+
+
+================================================
+File: resources/js/Components/ui/sheet/SheetTitle.vue
+================================================
+<script setup>
+import { cn } from '@/lib/utils';
+import { DialogTitle } from 'radix-vue';
+import { computed } from 'vue';
+
+const props = defineProps({
+  asChild: { type: Boolean, required: false },
+  as: { type: null, required: false },
+  class: { type: null, required: false },
+});
+
+const delegatedProps = computed(() => {
+  const { class: _, ...delegated } = props;
+
+  return delegated;
+});
+</script>
+
+<template>
+  <DialogTitle
+    :class="cn('text-lg font-semibold text-gray-950 dark:text-gray-50', props.class)"
+    v-bind="delegatedProps"
+  >
+    <slot />
+  </DialogTitle>
+</template>
+
+
+================================================
+File: resources/js/Components/ui/sheet/SheetTrigger.vue
+================================================
+<script setup>
+import { DialogTrigger } from 'radix-vue';
+
+const props = defineProps({
+  asChild: { type: Boolean, required: false },
+  as: { type: null, required: false },
+});
+</script>
+
+<template>
+  <DialogTrigger v-bind="props">
+    <slot />
+  </DialogTrigger>
+</template>
+
+
+================================================
+File: resources/js/Components/ui/sheet/index.js
+================================================
+import { cva } from 'class-variance-authority';
+
+export { default as Sheet } from './Sheet.vue';
+export { default as SheetClose } from './SheetClose.vue';
+export { default as SheetContent } from './SheetContent.vue';
+export { default as SheetDescription } from './SheetDescription.vue';
+export { default as SheetFooter } from './SheetFooter.vue';
+export { default as SheetHeader } from './SheetHeader.vue';
+export { default as SheetTitle } from './SheetTitle.vue';
+export { default as SheetTrigger } from './SheetTrigger.vue';
+
+export const sheetVariants = cva(
+  'fixed z-50 gap-4 bg-white p-6 shadow-lg transition ease-in-out data-[state=open]:animate-in data-[state=closed]:animate-out data-[state=closed]:duration-300 data-[state=open]:duration-500 dark:bg-gray-950',
+  {
+    variants: {
+      side: {
+        top: 'inset-x-0 top-0 border-b data-[state=closed]:slide-out-to-top data-[state=open]:slide-in-from-top',
+        bottom:
+          'inset-x-0 bottom-0 border-t data-[state=closed]:slide-out-to-bottom data-[state=open]:slide-in-from-bottom',
+        left: 'inset-y-0 left-0 h-full w-3/4 border-r data-[state=closed]:slide-out-to-left data-[state=open]:slide-in-from-left sm:max-w-sm',
+        right:
+          'inset-y-0 right-0 h-full w-3/4 border-l data-[state=closed]:slide-out-to-right data-[state=open]:slide-in-from-right sm:max-w-sm',
+      },
+    },
+    defaultVariants: {
+      side: 'right',
+    },
+  },
+);
+
+
+================================================
+File: resources/js/Components/ui/skeleton/Skeleton.vue
+================================================
+<script setup>
+import { cn } from '@/lib/utils';
+
+const props = defineProps({
+  class: { type: null, required: false },
+});
+</script>
+
+<template>
+  <div :class="cn('animate-pulse rounded-md bg-gray-100 dark:bg-gray-800', props.class)" />
+</template>
+
+
+================================================
+File: resources/js/Components/ui/skeleton/index.js
+================================================
+export { default as Skeleton } from './Skeleton.vue';
+
+
+================================================
+File: resources/js/Components/ui/slider/Slider.vue
+================================================
+<script setup>
+import { cn } from '@/lib/utils';
+import {
+  SliderRange,
+  SliderRoot,
+  SliderThumb,
+  SliderTrack,
+  useForwardPropsEmits,
+} from 'radix-vue';
+import { computed } from 'vue';
+
+const props = defineProps({
+  name: { type: String, required: false },
+  defaultValue: { type: Array, required: false },
+  modelValue: { type: Array, required: false },
+  disabled: { type: Boolean, required: false },
+  orientation: { type: String, required: false },
+  dir: { type: String, required: false },
+  inverted: { type: Boolean, required: false },
+  min: { type: Number, required: false },
+  max: { type: Number, required: false },
+  step: { type: Number, required: false },
+  minStepsBetweenThumbs: { type: Number, required: false },
+  asChild: { type: Boolean, required: false },
+  as: { type: null, required: false },
+  class: { type: null, required: false },
+});
+const emits = defineEmits(['update:modelValue', 'valueCommit']);
+
+const delegatedProps = computed(() => {
+  const { class: _, ...delegated } = props;
+
+  return delegated;
+});
+
+const forwarded = useForwardPropsEmits(delegatedProps, emits);
+</script>
+
+<template>
+  <SliderRoot
+    :class="
+      cn(
+        'relative flex w-full touch-none select-none items-center data-[orientation=vertical]:flex-col data-[orientation=vertical]:w-2 data-[orientation=vertical]:h-full',
+        props.class,
+      )
+    "
+    v-bind="forwarded"
+  >
+    <SliderTrack
+      class="relative h-2 w-full data-[orientation=vertical]:w-2 grow overflow-hidden rounded-full bg-gray-100 dark:bg-gray-800"
+    >
+      <SliderRange
+        class="absolute h-full data-[orientation=vertical]:w-full bg-gray-900 dark:bg-gray-50"
+      />
+    </SliderTrack>
+    <SliderThumb
+      v-for="(_, key) in modelValue"
+      :key="key"
+      class="block h-5 w-5 rounded-full border-2 border-gray-900 bg-white ring-offset-white transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-gray-950 focus-visible:ring-offset-2 disabled:pointer-events-none disabled:opacity-50 dark:border-gray-50 dark:bg-gray-950 dark:ring-offset-gray-950 dark:focus-visible:ring-gray-300"
+    />
+  </SliderRoot>
+</template>
+
+
+================================================
+File: resources/js/Components/ui/slider/index.js
+================================================
+export { default as Slider } from './Slider.vue';
+
+
+================================================
+File: resources/js/Components/ui/switch/Switch.vue
+================================================
+<script setup>
+import { cn } from '@/lib/utils';
+import { SwitchRoot, SwitchThumb, useForwardPropsEmits } from 'radix-vue';
+import { computed } from 'vue';
+
+const props = defineProps({
+  defaultChecked: { type: Boolean, required: false },
+  checked: { type: Boolean, required: false },
+  disabled: { type: Boolean, required: false },
+  required: { type: Boolean, required: false },
+  name: { type: String, required: false },
+  id: { type: String, required: false },
+  value: { type: String, required: false },
+  asChild: { type: Boolean, required: false },
+  as: { type: null, required: false },
+  class: { type: null, required: false },
+});
+
+const emits = defineEmits(['update:checked']);
+
+const delegatedProps = computed(() => {
+  const { class: _, ...delegated } = props;
+
+  return delegated;
+});
+
+const forwarded = useForwardPropsEmits(delegatedProps, emits);
+</script>
+
+<template>
+  <SwitchRoot
+    v-bind="forwarded"
+    :class="
+      cn(
+        'peer inline-flex h-6 w-11 shrink-0 cursor-pointer items-center rounded-full border-2 border-transparent transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-gray-950 focus-visible:ring-offset-2 focus-visible:ring-offset-white disabled:cursor-not-allowed disabled:opacity-50 data-[state=checked]:bg-gray-900 data-[state=unchecked]:bg-gray-200 dark:focus-visible:ring-gray-300 dark:focus-visible:ring-offset-gray-950 dark:data-[state=checked]:bg-gray-50 dark:data-[state=unchecked]:bg-gray-800',
+        props.class,
+      )
+    "
+  >
+    <SwitchThumb
+      :class="
+        cn(
+          'pointer-events-none block h-5 w-5 rounded-full bg-white shadow-lg ring-0 transition-transform data-[state=checked]:translate-x-5 dark:bg-gray-950',
+        )
+      "
+    >
+      <slot name="thumb" />

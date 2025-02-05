@@ -1,0 +1,523 @@
+    │   │   │   │               ├── ja.5652.209eb64b624dfe3c853a.js
+    │   │   │   │               ├── ja.6196.3e28185b53cd2346f10d.js
+    │   │   │   │               ├── ja.7201.028a386569caa7df9e56.js
+    │   │   │   │               ├── ja.77.5401b8766c940f90b3e9.js
+    │   │   │   │               ├── ja.8884.515644758428ad7e8263.js
+    │   │   │   │               ├── ko.2014.ac41a755cbd36fd3ce84.js
+    │   │   │   │               ├── ko.2427.596db67d26c83197588d.js
+    │   │   │   │               ├── ko.2684.25cb9ba0254ab5298f14.js
+    │   │   │   │               ├── ko.3753.abc1ac9bcf134df94dec.js
+    │   │   │   │               ├── ko.4053.929467332218f26dc70f.js
+    │   │   │   │               ├── ko.505.978e053ffa4899c28da8.js
+    │   │   │   │               ├── ko.5652.209eb64b624dfe3c853a.js
+    │   │   │   │               ├── ko.6196.3e28185b53cd2346f10d.js
+    │   │   │   │               ├── ko.7201.028a386569caa7df9e56.js
+    │   │   │   │               ├── ko.77.5401b8766c940f90b3e9.js
+    │   │   │   │               ├── ko.8884.515644758428ad7e8263.js
+    │   │   │   │               ├── library.f735e5630512a49de4f4.js
+    │   │   │   │               ├── line-tools-icons.ec9907a13590a74ff995.js
+    │   │   │   │               ├── load-chart-dialog.2bc8d3998e1a2392ad03.js
+    │   │   │   │               ├── lollipop-tooltip-renderer.cbacd2a74fa2249c23ad.js
+    │   │   │   │               ├── lt-icons-atlas.aceb77470f3039ad2f63.js
+    │   │   │   │               ├── lt-pane-views.fe06b5162a88616539a9.js
+    │   │   │   │               ├── lt-property-pages-with-definitions.33f2eb46049d6d74ca06.js
+    │   │   │   │               ├── lt-stickers-atlas.52ad6e6d7d7b134ab0ba.js
+    │   │   │   │               ├── manage-drawings-dialog.3f5b604134bebba28c6c.js
+    │   │   │   │               ├── ms_MY.2014.ac41a755cbd36fd3ce84.js
+    │   │   │   │               ├── ms_MY.2427.596db67d26c83197588d.js
+    │   │   │   │               ├── ms_MY.2684.25cb9ba0254ab5298f14.js
+    │   │   │   │               ├── ms_MY.3753.abc1ac9bcf134df94dec.js
+    │   │   │   │               ├── ms_MY.4053.929467332218f26dc70f.js
+    │   │   │   │               ├── ms_MY.505.978e053ffa4899c28da8.js
+    │   │   │   │               ├── ms_MY.5652.209eb64b624dfe3c853a.js
+    │   │   │   │               ├── ms_MY.6196.3e28185b53cd2346f10d.js
+    │   │   │   │               ├── ms_MY.7201.028a386569caa7df9e56.js
+    │   │   │   │               ├── ms_MY.77.5401b8766c940f90b3e9.js
+    │   │   │   │               ├── ms_MY.8884.515644758428ad7e8263.js
+    │   │   │   │               ├── new-confirm-inputs-dialog.700f756efb60fe024812.js
+    │   │   │   │               ├── new-edit-object-dialog.ea1d15219003b54e9f1c.js
+    │   │   │   │               ├── nl_NL.2014.ac41a755cbd36fd3ce84.js
+    │   │   │   │               ├── nl_NL.2427.596db67d26c83197588d.js
+    │   │   │   │               ├── nl_NL.2684.25cb9ba0254ab5298f14.js
+    │   │   │   │               ├── nl_NL.3753.abc1ac9bcf134df94dec.js
+    │   │   │   │               ├── nl_NL.4053.929467332218f26dc70f.js
+    │   │   │   │               ├── nl_NL.505.978e053ffa4899c28da8.js
+    │   │   │   │               ├── nl_NL.5652.209eb64b624dfe3c853a.js
+    │   │   │   │               ├── nl_NL.6196.3e28185b53cd2346f10d.js
+    │   │   │   │               ├── nl_NL.7201.028a386569caa7df9e56.js
+    │   │   │   │               ├── nl_NL.77.5401b8766c940f90b3e9.js
+    │   │   │   │               ├── nl_NL.8884.515644758428ad7e8263.js
+    │   │   │   │               ├── object-tree-dialog.e45c37aa49fc3245f8f0.js
+    │   │   │   │               ├── pl.2014.ac41a755cbd36fd3ce84.js
+    │   │   │   │               ├── pl.2427.596db67d26c83197588d.js
+    │   │   │   │               ├── pl.2684.25cb9ba0254ab5298f14.js
+    │   │   │   │               ├── pl.3753.abc1ac9bcf134df94dec.js
+    │   │   │   │               ├── pl.4053.929467332218f26dc70f.js
+    │   │   │   │               ├── pl.505.978e053ffa4899c28da8.js
+    │   │   │   │               ├── pl.5652.209eb64b624dfe3c853a.js
+    │   │   │   │               ├── pl.6196.3e28185b53cd2346f10d.js
+    │   │   │   │               ├── pl.7201.028a386569caa7df9e56.js
+    │   │   │   │               ├── pl.77.5401b8766c940f90b3e9.js
+    │   │   │   │               ├── pl.8884.515644758428ad7e8263.js
+    │   │   │   │               ├── pt.2014.ac41a755cbd36fd3ce84.js
+    │   │   │   │               ├── pt.2427.596db67d26c83197588d.js
+    │   │   │   │               ├── pt.2684.25cb9ba0254ab5298f14.js
+    │   │   │   │               ├── pt.3753.abc1ac9bcf134df94dec.js
+    │   │   │   │               ├── pt.4053.929467332218f26dc70f.js
+    │   │   │   │               ├── pt.505.978e053ffa4899c28da8.js
+    │   │   │   │               ├── pt.5652.209eb64b624dfe3c853a.js
+    │   │   │   │               ├── pt.6196.3e28185b53cd2346f10d.js
+    │   │   │   │               ├── pt.7201.028a386569caa7df9e56.js
+    │   │   │   │               ├── pt.77.5401b8766c940f90b3e9.js
+    │   │   │   │               ├── pt.8884.515644758428ad7e8263.js
+    │   │   │   │               ├── restricted-toolset.1b7bc1402f30983626f1.js
+    │   │   │   │               ├── ro.2014.ac41a755cbd36fd3ce84.js
+    │   │   │   │               ├── ro.2427.596db67d26c83197588d.js
+    │   │   │   │               ├── ro.2684.25cb9ba0254ab5298f14.js
+    │   │   │   │               ├── ro.3753.abc1ac9bcf134df94dec.js
+    │   │   │   │               ├── ro.4053.929467332218f26dc70f.js
+    │   │   │   │               ├── ro.505.978e053ffa4899c28da8.js
+    │   │   │   │               ├── ro.5652.209eb64b624dfe3c853a.js
+    │   │   │   │               ├── ro.6196.3e28185b53cd2346f10d.js
+    │   │   │   │               ├── ro.7201.028a386569caa7df9e56.js
+    │   │   │   │               ├── ro.77.5401b8766c940f90b3e9.js
+    │   │   │   │               ├── ro.8884.515644758428ad7e8263.js
+    │   │   │   │               ├── ru.2014.ac41a755cbd36fd3ce84.js
+    │   │   │   │               ├── ru.2427.596db67d26c83197588d.js
+    │   │   │   │               ├── ru.2684.25cb9ba0254ab5298f14.js
+    │   │   │   │               ├── ru.3753.abc1ac9bcf134df94dec.js
+    │   │   │   │               ├── ru.4053.929467332218f26dc70f.js
+    │   │   │   │               ├── ru.505.978e053ffa4899c28da8.js
+    │   │   │   │               ├── ru.5652.209eb64b624dfe3c853a.js
+    │   │   │   │               ├── ru.6196.3e28185b53cd2346f10d.js
+    │   │   │   │               ├── ru.7201.028a386569caa7df9e56.js
+    │   │   │   │               ├── ru.77.5401b8766c940f90b3e9.js
+    │   │   │   │               ├── ru.8884.515644758428ad7e8263.js
+    │   │   │   │               ├── runtime.2d7205dfd0e311e18ff9.js
+    │   │   │   │               ├── series-icons-map.6b7b2f52a18274053c99.js
+    │   │   │   │               ├── series-pane-views.97a8e6dbe1a94532eb49.js
+    │   │   │   │               ├── share-chart-to-social-utils.d7331dbca4a2aa0909e7.js
+    │   │   │   │               ├── show-theme-save-dialog.d599965fb89ec8e183eb.js
+    │   │   │   │               ├── simple-dialog.2bb0f228f3ba2ab7961a.js
+    │   │   │   │               ├── source-properties-editor.574ad472c0635857c0e7.js
+    │   │   │   │               ├── study-inputs-pane-views.a80a3e282aa441e156d1.js
+    │   │   │   │               ├── study-market.9e70f3c55a48dea9582d.js
+    │   │   │   │               ├── study-pane-views.cc5bd003161b0ea73f75.js
+    │   │   │   │               ├── study-property-pages-with-definitions.ce85b8b8af55fc2902f6.js
+    │   │   │   │               ├── study-template-dialog.faf557ce6d32f93e5a9a.js
+    │   │   │   │               ├── sv.2014.ac41a755cbd36fd3ce84.js
+    │   │   │   │               ├── sv.2427.596db67d26c83197588d.js
+    │   │   │   │               ├── sv.2684.25cb9ba0254ab5298f14.js
+    │   │   │   │               ├── sv.3753.abc1ac9bcf134df94dec.js
+    │   │   │   │               ├── sv.4053.929467332218f26dc70f.js
+    │   │   │   │               ├── sv.505.978e053ffa4899c28da8.js
+    │   │   │   │               ├── sv.5652.209eb64b624dfe3c853a.js
+    │   │   │   │               ├── sv.6196.3e28185b53cd2346f10d.js
+    │   │   │   │               ├── sv.7201.028a386569caa7df9e56.js
+    │   │   │   │               ├── sv.77.5401b8766c940f90b3e9.js
+    │   │   │   │               ├── sv.8884.515644758428ad7e8263.js
+    │   │   │   │               ├── svg-renderer.f065beaf6b5b37da27d9.js
+    │   │   │   │               ├── symbol-info-dialog-impl.391e1e1a29220b089537.js
+    │   │   │   │               ├── symbol-search-dialog.9eb046ffc9fedac1edf1.js
+    │   │   │   │               ├── take-chart-image-impl.c0ec40f417c36a1c6179.js
+    │   │   │   │               ├── th.2014.ac41a755cbd36fd3ce84.js
+    │   │   │   │               ├── th.2427.596db67d26c83197588d.js
+    │   │   │   │               ├── th.2684.25cb9ba0254ab5298f14.js
+    │   │   │   │               ├── th.3753.abc1ac9bcf134df94dec.js
+    │   │   │   │               ├── th.4053.929467332218f26dc70f.js
+    │   │   │   │               ├── th.505.978e053ffa4899c28da8.js
+    │   │   │   │               ├── th.5652.209eb64b624dfe3c853a.js
+    │   │   │   │               ├── th.6196.3e28185b53cd2346f10d.js
+    │   │   │   │               ├── th.7201.028a386569caa7df9e56.js
+    │   │   │   │               ├── th.77.5401b8766c940f90b3e9.js
+    │   │   │   │               ├── th.8884.515644758428ad7e8263.js
+    │   │   │   │               ├── tr.2014.ac41a755cbd36fd3ce84.js
+    │   │   │   │               ├── tr.2427.596db67d26c83197588d.js
+    │   │   │   │               ├── tr.2684.25cb9ba0254ab5298f14.js
+    │   │   │   │               ├── tr.3753.abc1ac9bcf134df94dec.js
+    │   │   │   │               ├── tr.4053.929467332218f26dc70f.js
+    │   │   │   │               ├── tr.505.978e053ffa4899c28da8.js
+    │   │   │   │               ├── tr.5652.209eb64b624dfe3c853a.js
+    │   │   │   │               ├── tr.6196.3e28185b53cd2346f10d.js
+    │   │   │   │               ├── tr.7201.028a386569caa7df9e56.js
+    │   │   │   │               ├── tr.77.5401b8766c940f90b3e9.js
+    │   │   │   │               ├── tr.8884.515644758428ad7e8263.js
+    │   │   │   │               ├── user-defined-bars-marks-tooltip.520f315000510aab3003.js
+    │   │   │   │               ├── vi.2014.ac41a755cbd36fd3ce84.js
+    │   │   │   │               ├── vi.2427.596db67d26c83197588d.js
+    │   │   │   │               ├── vi.2684.25cb9ba0254ab5298f14.js
+    │   │   │   │               ├── vi.3753.abc1ac9bcf134df94dec.js
+    │   │   │   │               ├── vi.4053.929467332218f26dc70f.js
+    │   │   │   │               ├── vi.505.978e053ffa4899c28da8.js
+    │   │   │   │               ├── vi.5652.209eb64b624dfe3c853a.js
+    │   │   │   │               ├── vi.6196.3e28185b53cd2346f10d.js
+    │   │   │   │               ├── vi.7201.028a386569caa7df9e56.js
+    │   │   │   │               ├── vi.77.5401b8766c940f90b3e9.js
+    │   │   │   │               ├── vi.8884.515644758428ad7e8263.js
+    │   │   │   │               ├── zh.2014.ac41a755cbd36fd3ce84.js
+    │   │   │   │               ├── zh.2427.596db67d26c83197588d.js
+    │   │   │   │               ├── zh.2684.25cb9ba0254ab5298f14.js
+    │   │   │   │               ├── zh.3753.abc1ac9bcf134df94dec.js
+    │   │   │   │               ├── zh.4053.929467332218f26dc70f.js
+    │   │   │   │               ├── zh.505.978e053ffa4899c28da8.js
+    │   │   │   │               ├── zh.5652.209eb64b624dfe3c853a.js
+    │   │   │   │               ├── zh.6196.3e28185b53cd2346f10d.js
+    │   │   │   │               ├── zh.7201.028a386569caa7df9e56.js
+    │   │   │   │               ├── zh.77.5401b8766c940f90b3e9.js
+    │   │   │   │               ├── zh.8884.515644758428ad7e8263.js
+    │   │   │   │               ├── zh_TW.2014.ac41a755cbd36fd3ce84.js
+    │   │   │   │               ├── zh_TW.2427.596db67d26c83197588d.js
+    │   │   │   │               ├── zh_TW.2684.25cb9ba0254ab5298f14.js
+    │   │   │   │               ├── zh_TW.3753.abc1ac9bcf134df94dec.js
+    │   │   │   │               ├── zh_TW.4053.929467332218f26dc70f.js
+    │   │   │   │               ├── zh_TW.505.978e053ffa4899c28da8.js
+    │   │   │   │               ├── zh_TW.5652.209eb64b624dfe3c853a.js
+    │   │   │   │               ├── zh_TW.6196.3e28185b53cd2346f10d.js
+    │   │   │   │               ├── zh_TW.7201.028a386569caa7df9e56.js
+    │   │   │   │               ├── zh_TW.77.5401b8766c940f90b3e9.js
+    │   │   │   │               └── zh_TW.8884.515644758428ad7e8263.js
+    │   │   │   └── Profile/
+    │   │   │       ├── Edit.vue
+    │   │   │       └── Partials/
+    │   │   │           ├── DeleteUserForm.vue
+    │   │   │           ├── UpdatePasswordForm.vue
+    │   │   │           └── UpdateProfileInformationForm.vue
+    │   │   ├── hooks/
+    │   │   │   ├── explorers.js
+    │   │   │   ├── index.js
+    │   │   │   ├── multicall.js
+    │   │   │   ├── positionManager.json
+    │   │   │   ├── swapMath.js
+    │   │   │   ├── useCamelToTitle.js
+    │   │   │   ├── useContractCall.js
+    │   │   │   ├── useCountDown.js
+    │   │   │   ├── useLaunchpadsData.js
+    │   │   │   └── usePriceInfo.js
+    │   │   └── lib/
+    │   │       ├── utils.js
+    │   │       └── wagmi.js
+    │   └── views/
+    │       ├── app.blade.php
+    │       └── errors/
+    │           ├── 403.blade.php
+    │           ├── 404.blade.php
+    │           ├── 419.blade.php
+    │           ├── 429.blade.php
+    │           ├── 500.blade.php
+    │           ├── 503.blade.php
+    │           └── layout.blade.php
+    ├── routes/
+    │   ├── admin.php
+    │   ├── channels.php
+    │   ├── console.php
+    │   ├── otp.php
+    │   ├── web.php
+    │   └── web3.php
+    ├── storage/
+    │   ├── app/
+    │   │   ├── .gitignore
+    │   │   ├── private/
+    │   │   │   └── .gitignore
+    │   │   └── public/
+    │   │       └── .gitignore
+    │   ├── framework/
+    │   │   ├── .gitignore
+    │   │   ├── cache/
+    │   │   │   ├── .gitignore
+    │   │   │   └── data/
+    │   │   │       └── .gitignore
+    │   │   ├── sessions/
+    │   │   │   └── .gitignore
+    │   │   ├── testing/
+    │   │   │   └── .gitignore
+    │   │   └── views/
+    │   │       └── .gitignore
+    │   └── logs/
+    │       └── .gitignore
+    ├── tests/
+    │   ├── TestCase.php
+    │   ├── Feature/
+    │   │   ├── ExampleTest.php
+    │   │   ├── ProfileTest.php
+    │   │   └── Auth/
+    │   │       ├── AuthenticationTest.php
+    │   │       ├── EmailVerificationTest.php
+    │   │       ├── PasswordConfirmationTest.php
+    │   │       ├── PasswordResetTest.php
+    │   │       ├── PasswordUpdateTest.php
+    │   │       └── RegistrationTest.php
+    │   └── Unit/
+    │       └── ExampleTest.php
+    ├── .github/
+    │   └── workflows/
+    │       └── deploy.yml
+    └── .scripts/
+        └── deploy.sh
+
+================================================
+File: README.md
+================================================
+# Memex - Decentralized Meme Bonding Curve
+
+![Memex Banner](https://cdn.scriptoshi.com/scriptoshi/banner.jpg)
+
+**The #1 full featured meme tokens launchpad.**
+
+## Quick Links
+
+-   📚 [Online Documentation](https://docs.memex.scriptoshi.com)
+-   🔧 [Documentation Repository](https://github.com/scriptoshi/memex-docs) - Fork or contribute to our docs
+-   📜 [Smart Contracts Repository](https://github.com/scriptoshi/memex-contracts) - Core blockchain contracts
+
+    Memex is a sophisticated decentralized application (dApp) designed for creating, hosting and managing meme token launches on a bonding curve. A bonding curve allows for token trading even before the token reaches marketcap. Built for EVM-compatible chains, Memex leverages the automated market making (AMM) constant product algorithm and a secure prebonding mechanism to create a reliable and profitable platform for administrators, meme creators, and meme traders.
+
+## Demo Access
+
+To fully test the demo, ensure you have a working web3 wallet. Any connected address can access admin.
+
+[![Frontend Demo](https://cdn.scriptoshi.com/envato/frontend-demo.jpg)](https://memex.scriptoshi.com)
+[![Admin Demo](https://cdn.scriptoshi.com/envato/admin-demo.jpg)](https://memex.scriptoshi.com/admin)
+
+## Technical Architecture
+
+### Backend Stack
+
+-   Laravel v11.31
+-   MySQL/PostgreSQL database
+-   RESTful API architecture
+-   Web3 integration for blockchain interactions
+
+### Frontend Stack
+
+-   Vue.js 3.x with Composition API
+-   Tailwind CSS 3.x for styling
+-   Inertia.js for SPA functionality
+-   Shadcn-vue components
+-   Trading view integration for charts
+
+## Core Features
+
+### Decentralized Architecture
+
+-   Fully decentralized system with smart contract-based operations
+-   AMM (Constant product Formula) bonding curve for optimal price discovery
+-   Innovative prebond mechanism ensuring project viability
+-   Automatic liquidity migration to major DEXes
+-   No code instant solidity contract deployments
+-   Automatic Contract source verification at etherscan
+
+### Security & Integration
+
+-   Support for Uniswap, Sushiswap, PancakeSwap, and UniswapV3-compatible platforms
+-   Automatic LP lock for 10 years with secure fee claiming for developers
+-   Web3 authentication eliminating password-related vulnerabilities
+-   Built-in launchpad chat system for community engagement
+
+## Revenue Streams for Platform Administrators
+
+### Multiple Income Sources
+
+-   Deploy fees collection - Charge users for launchpad creation with blockchain-based fee collection
+-   Trading fees collection - Earn from all sales during the bonding period
+-   Top Ads revenue - Monetize through premium advertisement placement
+-   Featured Launchpads (Coming soon) - Premium listing opportunities
+-   Video Streaming services (Coming soon) - Additional monetization channel
+
+## Supported Blockchain Networks
+
+Currently integrated networks:
+
+![Binance](https://cdn.scriptoshi.com/envato/binance.jpg)
+![Arbitrum](https://cdn.scriptoshi.com/envato/arbitrum.jpg)
+![Base](https://cdn.scriptoshi.com/envato/base.jpg)
+![Blast](https://cdn.scriptoshi.com/envato/blast.jpg)
+![Linea](https://cdn.scriptoshi.com/envato/linea.jpg)
+![Sepolia](https://cdn.scriptoshi.com/envato/sepolia.jpg)
+
+_More networks coming soon! Custom chain integration available upon request._
+
+## Smart Contract Architecture
+
+### Factory Pattern Implementation
+
+The system employs a factory pattern for contract deployment, offering:
+
+1. **Gas Efficiency**: Utilizes clone proxies to reduce deployment costs by up to 60%
+2. **Centralized Management**: Factory serves as a hub for all contract deployments
+3. **Standardization**: Ensures consistency across all deployed contracts
+4. **Cost Control**: Optimizes gas consumption for contract deployment
+
+### Deployment Costs
+
+Gas costs vary by network:
+
+-   Layer 1 networks (e.g., Ethereum): $8-12 USD
+-   Layer 2 networks (e.g., Base): $4-6 USD
+
+## Technical Requirements
+
+### Server Requirements
+
+-   PHP >= 8.2
+-   MySQL >= 8.0 or PostgreSQL >= 14
+-   Node.js >= 16.x
+-   Composer
+
+### Required PHP Extensions
+
+-   BCMath
+-   Ctype
+-   JSON
+-   Mbstring
+-   OpenSSL
+-   PDO
+-   Tokenizer
+-   XML
+
+## Installation
+
+1. Clone the repository:
+
+```bash
+git clone https://github.com/your-org/memex-launchpad.git
+cd memex-launchpad
+```
+
+2. Install PHP dependencies:
+
+```bash
+composer install
+```
+
+3. Install JavaScript dependencies:
+
+```bash
+npm install
+```
+
+4. Configure environment variables:
+
+```bash
+cp .env.example .env
+php artisan key:generate
+```
+
+5. Set up the database:
+
+```bash
+php artisan migrate
+```
+
+## Key Benefits
+
+-   Enterprise-grade security through decentralized architecture
+-   Multiple revenue streams for platform administrators
+-   Seamless integration with major DEXes
+-   Regular updates and feature additions
+-   Comprehensive documentation and support
+
+## What's Included
+
+-   Complete source code
+-   Detailed documentation
+-   Dedicated support via Github, Telegram and Discord
+-   Regular updates and improvements
+-   Installation and setup guide
+
+## Support & Updates. I provide a free limitted support service for
+
+-   Installation assistance
+-   Hot Bug fixes
+-   Technical questions
+-   Basic feature requests
+
+**Note:** This is a complex Web3 application that requires basic familiarity with blockchain technology and smart contract deployment. Our comprehensive documentation will guide you through the setup process.
+
+## License
+
+This project is licensed under the MIT License - see the LICENSE file for details.
+
+## In case you need help. contact me
+
+There are so many people contacting me, so be brief and respectful. Also I do this in my freetime, so im online 3-4 hours daily.
+
+## [![skype](https://cdn.scriptoshi.com/scriptoshi/Skype.png) Message me on Skype:](https://join.skype.com/invite/aKBehNElcDhg)
+
+## [![telegram-logo](https://cdn.scriptoshi.com/scriptoshi/telegram.png) Dm me on telegram](https://t.me/freshdropsadmin)
+
+## I need support keeping servers up and running.
+
+Did this help you? support me by donating any amount crypto:
+
+### EVM Networks (ETH, BNB, etc.)
+
+`0x14Bf01BCd1D415BFf5675EE586Cd71bB2d58baA0`
+
+![EVM Networks QR Code](https://cdn.scriptoshi.com/scriptoshi/0x14Bf01BCd1D415BFf5675EE586Cd71bB2d58baA0.jpg)
+
+### Bitcoin (BTC)
+
+`14NU4N7RPUyqPSmU4Cu7ovtBJfuvS5AVUm`
+
+![Bitcoin QR Code](https://cdn.scriptoshi.com/scriptoshi/14NU4N7RPUyqPSmU4Cu7ovtBJfuvS5AVUm.jpg)
+
+## Disclaimer
+
+While Memex implements various security measures, users should conduct their own due diligence when deploying contracts or launching tokens. Gas costs mentioned are approximate and may vary based on network conditions.
+
+
+================================================
+File: artisan
+================================================
+#!/usr/bin/env php
+<?php
+
+use Symfony\Component\Console\Input\ArgvInput;
+
+define('LARAVEL_START', microtime(true));
+
+// Register the Composer autoloader...
+require __DIR__.'/vendor/autoload.php';
+
+// Bootstrap Laravel and handle the command...
+$status = (require_once __DIR__.'/bootstrap/app.php')
+    ->handleCommand(new ArgvInput);
+
+exit($status);
+
+
+================================================
+File: components.json
+================================================
+{
+  "$schema": "https://shadcn-vue.com/schema.json",
+  "style": "default",
+  "typescript": false,
+  "tsConfigPath": "./jsconfig.json",
+  "tailwind": {
+    "config": "tailwind.config.js",
+    "css": "resources/css/app.css",
+    "baseColor": "gray",
+    "cssVariables": false,
+    "prefix": ""
+  },
+  "framework": "laravel",
+  "aliases": {
+    "components": "@/Components",
+    "utils": "@/lib/utils"
+  }
+}
+
+================================================
+File: composer.json
+================================================
+{
+    "$schema": "https://getcomposer.org/schema.json",
+    "name": "laravel/laravel",
+    "type": "project",
+    "description": "The skeleton application for the Laravel framework.",
+    "keywords": [
+        "laravel",
+        "framework"
+    ],
+    "license": "MIT",

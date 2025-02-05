@@ -1,0 +1,523 @@
+
+        if (closeOnSelect.value) {
+          close();
+        }
+        break;
+    }
+
+    if (!closeOnSelect.value) {
+      focus();
+    }
+  };
+
+  const handleGroupClick = (group) => {
+    if (isDisabled(group) || mode.value === 'single' || !groupSelect.value) {
+      return;
+    }
+
+    switch (mode.value) {
+      case 'multiple':
+      case 'tags':
+        if (areAllEnabledSelected(group[groupOptions.value])) {
+          deselect(group[groupOptions.value]);
+        } else {
+          select(group[groupOptions.value]
+            .filter(o => iv.value.map(v => v[valueProp.value]).indexOf(o[valueProp.value]) === -1)
+            .filter(o => !o[disabledProp.value])
+            .filter((o, k) => iv.value.length + 1 + k <= max.value || max.value === -1)
+          );
+        }
+        break;
+    }
+
+    if (closeOnSelect.value) {
+      deactivate();
+    }
+  };
+
+  const handleOptionAppend = (option) => {
+    if (getOption(option[valueProp.value]) === undefined && createOption.value) {
+      context.emit('tag', option[valueProp.value], $this);
+      context.emit('option', option[valueProp.value], $this);
+      context.emit('create', option[valueProp.value], $this);
+
+      if (appendNewOption.value) {
+        appendOption(option);
+      }
+
+      clearSearch();
+    }
+  };
+
+  const selectAll = () => {
+    if (mode.value === 'single') {
+      return;
+    }
+
+    select(fo.value.filter(o => !o.disabled && !isSelected(o)));
+  };
+
+  // no export
+  const areAllEnabledSelected = (options) => {
+    return options.find(o => !isSelected(o) && !o[disabledProp.value]) === undefined;
+  };
+
+  // no export
+  const areAllSelected = (options) => {
+    return options.find(o => !isSelected(o)) === undefined;
+  };
+
+  const getOption = (val) => {
+    return eo.value[eo.value.map(o => String(o[valueProp.value])).indexOf(String(val))];
+  };
+
+  // no export
+  const getOptionByTrackBy = (val, norm = true) => {
+    return eo.value.map(o => parseInt(o[trackBy.value]) === o[trackBy.value] ? parseInt(o[trackBy.value]) : o[trackBy.value]).indexOf(
+      parseInt(val) === val ? parseInt(val) : val
+    );
+  };
+
+  // no export
+  const shouldHideOption = (option) => {
+    return ['tags', 'multiple'].indexOf(mode.value) !== -1 && hideSelected.value && isSelected(option);
+  };
+
+  // no export
+  const appendOption = (option) => {
+    ap.value.push(option);
+  };
+
+  // no export
+  const filterGroups = (groups) => {
+    // If the search has value we need to filter among 
+    // the ones that are visible to the user to avoid
+    // displaying groups which technically have options
+    // based on search but that option is already selected.
+    return groupHideEmpty.value
+      ? groups.filter(g => search.value
+          ? g.__VISIBLE__.length
+          : g[groupOptions.value].length
+        )
+      : groups.filter(g => search.value ? g.__VISIBLE__.length : true);
+  };
+
+  // no export
+  const filterOptions = (options, excludeHideSelected = true) => {
+    let fo = options;
+    
+    if (search.value && filterResults.value) {
+      let filter = searchFilter.value;
+
+      if (!filter) {
+        filter = (option, $this) => {
+          const target = normalize(localize(option[trackBy.value]), strict.value);
+
+          return searchStart.value
+            ? target.startsWith(normalize(search.value, strict.value))
+            : target.indexOf(normalize(search.value, strict.value)) !== -1;
+        };
+      }
+
+      fo = fo.filter(filter);
+    }
+
+    if (hideSelected.value && excludeHideSelected) {
+      fo = fo.filter((option) => !shouldHideOption(option));
+    }
+
+    return fo;
+  };
+
+  // no export
+  const optionsToArray = (options) => {
+    let uo = options;
+    
+    // Transforming an object to an array of objects
+    if (isObject(uo)) {
+      uo = Object.keys(uo).map((key) => {
+        const val = uo[key];
+
+        return { [valueProp.value]: key, [trackBy.value]: val, [label.value]: val};
+      });
+    }
+
+    // Transforming an plain arrays to an array of objects
+    uo = uo.map((val) => {
+      return typeof val === 'object' ? val : { [valueProp.value]: val, [trackBy.value]: val, [label.value]: val};
+    });
+
+    return uo;
+  };
+
+  // no export
+  const initInternalValue = () => {
+    if (!isNullish(ev.value)) {
+      iv.value = makeInternal(ev.value);
+    }
+  };
+
+  const resolveOptions = (callback) => {
+    resolving.value = true;
+
+    return new Promise((resolve, reject) => {
+      options.value(search.value, $this).then((response) => {
+        ro.value = response || [];
+
+        if (typeof callback === 'function') {
+          callback(response);
+        }
+
+        resolving.value = false;
+      }).catch((e) => {
+        console.error(e);
+
+        ro.value = [];
+
+        resolving.value = false;
+      }).finally(() => {
+        resolve();
+      });
+    });
+  };
+
+  // no export
+  const refreshLabels = () => {
+    if (!hasSelected.value) {
+      return;
+    }
+
+    if (mode.value === 'single') {
+      const option = getOption(iv.value[valueProp.value]);
+
+      /* istanbul ignore else */
+      if (option !== undefined) {
+        const newLabel = option[label.value];
+
+        iv.value[label.value] = newLabel;
+
+        if (object.value) {
+          ev.value[label.value] = newLabel;
+        }
+      }
+    } else {
+      iv.value.forEach((val, i) => {
+        const option = getOption(iv.value[i][valueProp.value]);
+
+        /* istanbul ignore else */
+        if (option !== undefined) {
+          const newLabel = option[label.value];
+
+          iv.value[i][label.value] = newLabel;
+
+          if (object.value) {
+            ev.value[i][label.value] = newLabel;
+          }
+        }
+      });
+    }
+  };
+
+  const refreshOptions = (callback) => {
+    resolveOptions(callback);
+  };
+
+  // no export
+  const makeInternal = (val) => {
+    if (isNullish(val)) {
+      return mode.value === 'single' ? {} : [];
+    }
+
+    if (object.value) {
+      return val;
+    }
+
+    // If external should be plain transform value object to plain values
+    return mode.value === 'single' ? getOption(val) || (allowAbsent.value ? {
+      [label.value]: val,
+      [valueProp.value]: val,
+      [trackBy.value]: val,
+    } : {}) : val.filter(v => !!getOption(v) || allowAbsent.value).map(v => getOption(v) || {
+      [label.value]: v,
+      [valueProp.value]: v,
+      [trackBy.value]: v,
+    });
+  };
+
+  // no export
+  const initSearchWatcher = () => {
+    searchWatcher.value = watch(search, (query) => {
+      if (query.length < minChars.value || (!query && minChars.value !== 0)) {
+        return;
+      }
+
+      resolving.value = true;
+
+      if (clearOnSearch.value) {
+        ro.value = [];
+      }
+      setTimeout(() => {
+        if (query !== search.value) {
+          return;
+        }
+
+        options.value(search.value, $this).then((response) => {
+          if (query === search.value || !search.value) {
+            ro.value = response;
+            pointer.value = fo.value.filter(o => o[disabledProp.value] !== true)[0] || null;
+            resolving.value = false;
+          }
+        }).catch( /* istanbul ignore next */ (e) => {
+          console.error(e);
+        });
+      }, delay.value);
+
+    }, { flush: 'sync' });
+  };
+
+  // ================ HOOKS ===============
+
+  if (mode.value !== 'single' && !isNullish(ev.value) && !Array.isArray(ev.value)) {
+    throw new Error(`v-model must be an array when using "${mode.value}" mode`);
+  }
+
+  if (options.value && typeof options.value === 'function') {
+    if (resolveOnLoad.value) {
+      resolveOptions(initInternalValue);
+    } else if (object.value === true) {
+      initInternalValue();
+    }
+  }
+  else {
+    ro.value = options.value;
+
+    initInternalValue();
+  }
+  
+  // ============== WATCHERS ==============
+
+  if (delay.value > -1) {
+    initSearchWatcher();
+  }
+
+  watch(delay, (value, old) => {
+    /* istanbul ignore else */
+    if (searchWatcher.value) {
+      searchWatcher.value();
+    }
+
+    if (value >= 0) {
+      initSearchWatcher();
+    }
+  });
+
+  watch(ev, (newValue) => {
+    if (isNullish(newValue)) {
+      update(makeInternal(newValue), false);
+      return;
+    }
+
+    switch (mode.value) {
+      case 'single':
+        if (object.value ? newValue[valueProp.value] !== iv.value[valueProp.value] : newValue !== iv.value[valueProp.value]) {
+          update(makeInternal(newValue), false);
+        }
+        break;
+
+      case 'multiple':
+      case 'tags':
+        if (!arraysEqual(object.value ? newValue.map(o => o[valueProp.value]) : newValue, iv.value.map(o => o[valueProp.value]))) {
+          update(makeInternal(newValue), false);
+        }
+        break;
+    }
+  }, { deep: true });
+
+  watch(options, (n, o) => {
+    if (typeof props.options === 'function') {
+      if (resolveOnLoad.value && (!o || (n && n.toString() !== o.toString()))) {
+        resolveOptions();
+      }
+    } else {
+      ro.value = props.options;
+
+      if (!Object.keys(iv.value).length) {
+        initInternalValue();
+      }
+
+      refreshLabels();
+    }
+  });
+
+  watch(label, refreshLabels);
+
+  return {
+    pfo,
+    fo,
+    filteredOptions: fo,
+    hasSelected,
+    multipleLabelText,
+    eo,
+    extendedOptions: eo,
+    eg,
+    extendedGroups: eg,
+    fg,
+    filteredGroups: fg,
+    noOptions,
+    noResults,
+    resolving,
+    busy,
+    offset,
+    select,
+    deselect,
+    remove,
+    selectAll,
+    clear,
+    isSelected,
+    isDisabled,
+    isMax,
+    getOption,
+    handleOptionClick,
+    handleGroupClick,
+    handleTagRemove,
+    refreshOptions,
+    resolveOptions,
+    refreshLabels,
+  };
+}
+
+================================================
+File: resources/js/Components/Multiselect/composables/usePointer.js
+================================================
+import { ref, toRefs } from 'vue';
+
+export default function usePointer (props, context, dep)
+{
+  const { groupSelect, mode, groups, disabledProp } = toRefs(props);
+
+  // ================ DATA ================
+
+  const pointer = ref(null);
+
+  // =============== METHODS ==============
+
+  const setPointer = (option) => {
+    if (option === undefined || (option !== null && option[disabledProp.value])) {
+      return;
+    }
+
+    if (groups.value && option && option.group && (mode.value === 'single' || !groupSelect.value)) {
+      return;
+    }
+
+    pointer.value = option;
+  };
+
+  const clearPointer = () => {
+    setPointer(null);
+  };
+
+  return {
+    pointer,
+    setPointer,
+    clearPointer,
+  };
+}
+
+================================================
+File: resources/js/Components/Multiselect/composables/usePointerAction.js
+================================================
+import { computed, nextTick, toRefs, watch } from 'vue';
+
+export default function usePointer(props, context, dep) {
+    const {
+        valueProp, showOptions, searchable, groupLabel,
+        groups: groupped, mode, groupSelect, disabledProp,
+        groupOptions,
+    } = toRefs(props);
+
+    // ============ DEPENDENCIES ============
+
+    const fo = dep.fo;
+    const fg = dep.fg;
+    const handleOptionClick = dep.handleOptionClick;
+    const handleGroupClick = dep.handleGroupClick;
+    const search = dep.search;
+    const pointer = dep.pointer;
+    const setPointer = dep.setPointer;
+    const clearPointer = dep.clearPointer;
+    const multiselect = dep.multiselect;
+    const isOpen = dep.isOpen;
+
+    // ============== COMPUTED ==============
+
+    // no export
+    const options = computed(() => {
+        return fo.value.filter(o => !o[disabledProp.value]);
+    });
+
+    const groups = computed(() => {
+        return fg.value.filter(g => !g[disabledProp.value]);
+    });
+
+    const canPointGroups = computed(() => {
+        return mode.value !== 'single' && groupSelect.value;
+    });
+
+    const isPointerGroup = computed(() => {
+        return pointer.value && pointer.value.group;
+    });
+
+    const currentGroup = computed(() => {
+        return getParentGroup(pointer.value);
+    });
+
+    const prevGroup = computed(() => {
+        const group = isPointerGroup.value ? pointer.value : /* istanbul ignore next */ getParentGroup(pointer.value);
+        const groupIndex = groups.value.map(g => g[groupLabel.value]).indexOf(group[groupLabel.value]);
+        let prevGroup = groups.value[groupIndex - 1];
+
+        if (prevGroup === undefined) {
+            prevGroup = lastGroup.value;
+        }
+
+        return prevGroup;
+    });
+
+    const nextGroup = computed(() => {
+        let nextIndex = groups.value.map(g => g.label).indexOf(isPointerGroup.value
+            ? pointer.value[groupLabel.value]
+            : getParentGroup(pointer.value)[groupLabel.value]) + 1;
+
+        if (groups.value.length <= nextIndex) {
+            nextIndex = 0;
+        }
+
+        return groups.value[nextIndex];
+    });
+
+    const lastGroup = computed(() => {
+        return [...groups.value].slice(-1)[0];
+    });
+
+    const currentGroupFirstEnabledOption = computed(() => {
+        return pointer.value.__VISIBLE__.filter(o => !o[disabledProp.value])[0];
+    });
+
+    const currentGroupPrevEnabledOption = computed(() => {
+        const options = currentGroup.value.__VISIBLE__.filter(o => !o[disabledProp.value]);
+        return options[options.map(o => o[valueProp.value]).indexOf(pointer.value[valueProp.value]) - 1];
+    });
+
+    const currentGroupNextEnabledOption = computed(() => {
+        const options = getParentGroup(pointer.value).__VISIBLE__.filter(o => !o[disabledProp.value]);
+        return options[options.map(o => o[valueProp.value]).indexOf(pointer.value[valueProp.value]) + 1];
+    });
+
+    const prevGroupLastEnabledOption = computed(() => {
+        return [...prevGroup.value.__VISIBLE__.filter(o => !o[disabledProp.value])].slice(-1)[0];
+    });
+
+    const lastGroupLastEnabledOption = computed(() => {
+        return [...lastGroup.value.__VISIBLE__.filter(o => !o[disabledProp.value])].slice(-1)[0];
+    });

@@ -1,0 +1,523 @@
+use App\Http\Controllers\Admin\TradesController;
+use App\Http\Middleware\DemoMode;
+use Illuminate\Support\Facades\Route;
+
+Route::get('/', [DashboardController::class, 'dashboard'])->name('dashboard');
+#users
+Route::name('users.')->controller(DashboardController::class)->group(function () {
+    Route::get('/users', 'index')->name('index');
+    Route::put('/users/toggle/{user}', 'toggle')->name('toggle');
+    Route::put('/users/banned/{user}', 'banned')->name('banned');
+});
+#users
+
+
+#factories
+Route::name('factories.')->controller(FactoriesController::class)->group(function () {
+    Route::get('/factories', 'index')->name('index');
+    Route::get('/factories/create', 'create')->name('create');
+    Route::post('/factories/store', 'store')->name('store');
+    Route::get('/factories/{factory}/show', 'show')->name('show');
+    Route::get('/factories/{factory}/edit', 'edit')->name('edit');
+    Route::put('/factories/{factory}', 'update')->name('update');
+    Route::put('/factories/toggle/{factory}', 'toggle')->middleware(DemoMode::class)->name('toggle');
+    Route::delete('/factories/{factory}', 'destroy')->middleware(DemoMode::class)->name('destroy');
+});
+#factories
+
+
+#launchpads
+Route::name('launchpads.')->controller(LaunchpadsController::class)->group(function () {
+    Route::get('/launchpads', 'index')->name('index');
+    Route::put('/launchpads/toggle/{launchpad}', 'toggle')->middleware(DemoMode::class)->name('toggle');
+    Route::put('/launchpads/kingofthehill/{launchpad}', 'kingofthehill')->name('kingofthehill');
+    Route::put('/launchpads/featured/{launchpad}', 'featured')->name('featured');
+    Route::delete('/launchpads/{launchpad}', 'destroy')->middleware(DemoMode::class)->name('destroy');
+});
+#launchpads
+
+
+
+#holders
+Route::name('holders.')->controller(HoldersController::class)->group(function () {
+    Route::get('/holders', 'index')->name('index');
+});
+#holders
+
+
+
+#msgs
+Route::name('msgs.')->controller(MsgsController::class)->group(function () {
+    Route::get('/msgs', 'index')->name('index');
+    Route::put('/msgs/status/{msg}/{status}', 'status')->name('status');
+    Route::delete('/msgs/{msg}', 'destroy')->middleware(DemoMode::class)->name('destroy');
+});
+#msgs
+
+
+
+#trades
+Route::name('trades.')->controller(TradesController::class)->group(function () {
+    Route::get('/trades', 'index')->name('index');
+    Route::delete('/trades/{trade}', 'destroy')->middleware(DemoMode::class)->name('destroy');
+});
+#trades
+#settings
+Route::name('settings.')->controller(SettingsController::class)->group(function () {
+    Route::put('/settings', 'update')->middleware(DemoMode::class)->name('update');
+    Route::put('/mail/{mailer}', 'saveMailSettings')->middleware(DemoMode::class)->name('mail');
+});
+#settings
+
+
+#promos
+Route::name('promos.')->controller(PromosController::class)->group(function () {
+    Route::get('/promos', 'index')->name('index');
+    Route::get('/promos/create', 'create')->name('create');
+    Route::post('/promos/store', 'store')->middleware(DemoMode::class)->name('store');
+    Route::get('/promos/{promo}/edit', 'edit')->name('edit');
+    Route::put('/promos/{promo}', 'update')->middleware(DemoMode::class)->name('update');
+    Route::put('/promos/toggle/{promo}', 'toggle')->middleware(DemoMode::class)->name('toggle');
+    Route::delete('/promos/{promo}', 'destroy')->middleware(DemoMode::class)->name('destroy');
+});
+#promos
+
+================================================
+File: routes/channels.php
+================================================
+<?php
+
+use Illuminate\Support\Facades\Broadcast;
+
+Broadcast::channel('App.Models.User.{id}', function ($user, $id) {
+    return (int) $user->id === (int) $id;
+});
+
+
+================================================
+File: routes/console.php
+================================================
+<?php
+
+use App\Console\Commands\UpdatePoolStats;
+use App\Console\Commands\UpdateTokenHolders;
+use App\Console\Commands\UpdateTradeCandles;
+use App\Services\Rate;
+use Illuminate\Support\Facades\Artisan;
+use Illuminate\Support\Facades\Schedule;
+
+//schedule
+Schedule::command(UpdatePoolStats::class)->everyTenMinutes();
+Schedule::command(UpdateTokenHolders::class)->everyTenMinutes();
+Schedule::command(UpdateTradeCandles::class, ['--days=1'])->hourly();
+Schedule::command(UpdateTradeCandles::class, ['--days=30'])->daily();
+//commands
+Artisan::command('rates:update', function () {
+    Rate::update();
+})->purpose('Update crypto rates in the db')->hourly();
+
+//utility
+Artisan::command('lang:strap', function () {
+    Artisan::call('translatable:export', ['lang' => 'en']);
+    Artisan::call('vue-i18n:generate', ['--with-vendor' => 'en']);
+});
+
+use Illuminate\Support\Facades\Storage;
+
+Artisan::command('s3:rename-folder', function () {
+    $disk = Storage::disk('do');
+
+    // Get all files in the source folder
+    $files = $disk->allFiles('memex');
+
+    // Move each file to the new location while preserving visibility
+    foreach ($files as $file) {
+        $newPath = str_replace('memex/', 'scriptoshi/', $file);
+        // Move the file
+        $disk->move($file, $newPath);
+        // Set the same visibility on the new path
+        $disk->setVisibility($newPath, 'public');
+    }
+
+    $this->info('Folder renamed successfully from /memex to /scriptoshi');
+})->purpose('Rename S3 folder from /memex to /scriptoshi while preserving file visibility');
+
+
+================================================
+File: routes/otp.php
+================================================
+<?php
+
+use App\Http\Controllers\Auth\OtpController;
+use Illuminate\Support\Facades\Route;
+
+
+Route::middleware('auth')->group(function () {
+    // OTP email code    
+    Route::get('verify-otp/{code}', [OtpController::class, 'verifyOtp'])
+        ->name('otp.verify');
+
+    Route::post('otp-resend', [OtpController::class, 'resend'])
+        ->name('otp.resend');
+    // For modal login flow
+    Route::post('send-otp', [OtpController::class, 'sendOtp'])
+        ->name('otp.send');
+
+    Route::post('modal-verify', [OtpController::class, 'modalVerify'])
+        ->name('modal.verify');
+});
+
+
+================================================
+File: routes/web.php
+================================================
+<?php
+
+use App\Http\Controllers\LaunchpadsController;
+use App\Http\Controllers\MsgsController;
+use App\Http\Controllers\ProfileController;
+use App\Http\Controllers\S3Controller;
+use App\Http\Controllers\TradesController;
+use Illuminate\Foundation\Application;
+use Illuminate\Support\Facades\Route;
+use Inertia\Inertia;
+
+
+Route::get('/dashboard', function () {
+    return Inertia::render('Dashboard');
+})->middleware(['auth', 'verified'])->name('dashboard');
+
+
+Route::get('/terms', fn() => Inertia::render('Terms'))->name('terms');
+Route::get('/privacy', fn() => Inertia::render('Privacy'))->name('privacy');
+
+
+Route::controller(S3Controller::class)
+    ->group(function () {
+        Route::post('sign/{disk?}/{folder?}', 'sign')->name('s3.sign');
+    });
+
+
+Route::middleware('auth')->group(function () {
+    Route::get('/profile', [ProfileController::class, 'edit'])->name('profile.edit');
+    Route::patch('/profile', [ProfileController::class, 'update'])->name('profile.update');
+    Route::delete('/profile', [ProfileController::class, 'destroy'])->name('profile.destroy');
+});
+require __DIR__ . '/otp.php';
+require __DIR__ . '/web3.php';
+
+
+
+#launchpads
+Route::name('launchpads.')->controller(LaunchpadsController::class)->group(function () {
+    Route::get('/{type?}', 'index')->whereIn('type', ['trending', 'top', 'featured', 'rising', 'new', 'finalized', 'mine'])->name('index');
+    Route::get('/launch', 'create')->name('create');
+    Route::post('/launchpads/store', 'store')->name('store');
+    Route::post('/launchpads/status/{launchpad}', 'updateStatus')->name('update.status');
+    Route::post('/launchpads/livestream/{launchpad}', 'updateLiveStream')->name('update.livestream');
+    Route::put('/launchpads/finalize/{launchpad}', 'finalize')->name('finalize');
+    Route::get('/{launchpad:contract}', 'show')
+        ->where('launchpad', '0x[a-fA-F0-9]{40}')
+        ->name('show');
+    Route::put('/launchpads/{launchpad}', 'update')->name('update');
+});
+#launchpads
+
+#msgs
+Route::name('msgs.')->controller(MsgsController::class)->group(function () {
+    Route::get('/msgs', 'index')->name('index');
+    Route::get('/msgs/create', 'create')->name('create');
+    Route::post('/msgs/store', 'store')->name('store');
+    Route::get('/msgs/{msg}/show', 'show')->name('show');
+    Route::get('/msgs/{msg}/edit', 'edit')->name('edit');
+    Route::put('/msgs/{msg}', 'update')->name('update');
+    Route::put('/msgs/toggle/{msg}', 'toggle')->name('toggle');
+    Route::delete('/msgs/{msg}', 'destroy')->name('destroy');
+});
+#msgs
+
+
+#trades
+Route::name('trades.')->controller(TradesController::class)->group(function () {
+    Route::post('/trades/store', 'store')->name('store');
+    Route::get('/api/launchpad/{launchpad:contract}/candles', 'getCandles')->name('candles');
+});
+#trades
+
+
+================================================
+File: routes/web3.php
+================================================
+<?php
+
+use App\Http\Controllers\Auth\Web3AuthController;
+use Illuminate\Support\Facades\Route;
+
+Route::middleware('guest')->group(function () {
+    Route::post('login', [Web3AuthController::class, 'create'])
+        ->name('login');
+    Route::post('code', [Web3AuthController::class, 'authCode'])->name('auth.code');
+});
+
+Route::middleware('auth')->group(function () {
+    Route::post('logout', [Web3AuthController::class, 'destroy'])
+        ->name('logout');
+});
+
+
+================================================
+File: storage/app/.gitignore
+================================================
+*
+!private/
+!public/
+!.gitignore
+
+
+================================================
+File: storage/app/private/.gitignore
+================================================
+*
+!.gitignore
+
+
+================================================
+File: storage/app/public/.gitignore
+================================================
+*
+!.gitignore
+
+
+================================================
+File: storage/framework/.gitignore
+================================================
+compiled.php
+config.php
+down
+events.scanned.php
+maintenance.php
+routes.php
+routes.scanned.php
+schedule-*
+services.json
+
+
+================================================
+File: storage/framework/cache/.gitignore
+================================================
+*
+!data/
+!.gitignore
+
+
+================================================
+File: storage/framework/cache/data/.gitignore
+================================================
+*
+!.gitignore
+
+
+================================================
+File: storage/framework/sessions/.gitignore
+================================================
+*
+!.gitignore
+
+
+================================================
+File: storage/framework/testing/.gitignore
+================================================
+*
+!.gitignore
+
+
+================================================
+File: storage/framework/views/.gitignore
+================================================
+*
+!.gitignore
+
+
+================================================
+File: storage/logs/.gitignore
+================================================
+*
+!.gitignore
+
+
+================================================
+File: tests/TestCase.php
+================================================
+<?php
+
+namespace Tests;
+
+use Illuminate\Foundation\Testing\TestCase as BaseTestCase;
+
+abstract class TestCase extends BaseTestCase
+{
+    //
+}
+
+
+================================================
+File: tests/Feature/ExampleTest.php
+================================================
+<?php
+
+namespace Tests\Feature;
+
+// use Illuminate\Foundation\Testing\RefreshDatabase;
+use Tests\TestCase;
+
+class ExampleTest extends TestCase
+{
+    /**
+     * A basic test example.
+     */
+    public function test_the_application_returns_a_successful_response(): void
+    {
+        $response = $this->get('/');
+
+        $response->assertStatus(200);
+    }
+}
+
+
+================================================
+File: tests/Feature/ProfileTest.php
+================================================
+<?php
+
+namespace Tests\Feature;
+
+use App\Models\User;
+use Illuminate\Foundation\Testing\RefreshDatabase;
+use Tests\TestCase;
+
+class ProfileTest extends TestCase
+{
+    use RefreshDatabase;
+
+    public function test_profile_page_is_displayed(): void
+    {
+        $user = User::factory()->create();
+
+        $response = $this
+            ->actingAs($user)
+            ->get('/profile');
+
+        $response->assertOk();
+    }
+
+    public function test_profile_information_can_be_updated(): void
+    {
+        $user = User::factory()->create();
+
+        $response = $this
+            ->actingAs($user)
+            ->patch('/profile', [
+                'name' => 'Test User',
+                'email' => 'test@example.com',
+            ]);
+
+        $response
+            ->assertSessionHasNoErrors()
+            ->assertRedirect('/profile');
+
+        $user->refresh();
+
+        $this->assertSame('Test User', $user->name);
+        $this->assertSame('test@example.com', $user->email);
+        $this->assertNull($user->email_verified_at);
+    }
+
+    public function test_email_verification_status_is_unchanged_when_the_email_address_is_unchanged(): void
+    {
+        $user = User::factory()->create();
+
+        $response = $this
+            ->actingAs($user)
+            ->patch('/profile', [
+                'name' => 'Test User',
+                'email' => $user->email,
+            ]);
+
+        $response
+            ->assertSessionHasNoErrors()
+            ->assertRedirect('/profile');
+
+        $this->assertNotNull($user->refresh()->email_verified_at);
+    }
+
+    public function test_user_can_delete_their_account(): void
+    {
+        $user = User::factory()->create();
+
+        $response = $this
+            ->actingAs($user)
+            ->delete('/profile', [
+                'password' => 'password',
+            ]);
+
+        $response
+            ->assertSessionHasNoErrors()
+            ->assertRedirect('/');
+
+        $this->assertGuest();
+        $this->assertNull($user->fresh());
+    }
+
+    public function test_correct_password_must_be_provided_to_delete_account(): void
+    {
+        $user = User::factory()->create();
+
+        $response = $this
+            ->actingAs($user)
+            ->from('/profile')
+            ->delete('/profile', [
+                'password' => 'wrong-password',
+            ]);
+
+        $response
+            ->assertSessionHasErrors('password')
+            ->assertRedirect('/profile');
+
+        $this->assertNotNull($user->fresh());
+    }
+}
+
+
+================================================
+File: tests/Feature/Auth/AuthenticationTest.php
+================================================
+<?php
+
+namespace Tests\Feature\Auth;
+
+use App\Models\User;
+use Illuminate\Foundation\Testing\RefreshDatabase;
+use Tests\TestCase;
+
+class AuthenticationTest extends TestCase
+{
+    use RefreshDatabase;
+
+    public function test_login_screen_can_be_rendered(): void
+    {
+        $response = $this->get('/login');
+
+        $response->assertStatus(200);
+    }
+
+    public function test_users_can_authenticate_using_the_login_screen(): void
+    {
+        $user = User::factory()->create();
+
+        $response = $this->post('/login', [
+            'email' => $user->email,
+            'password' => 'password',
+        ]);
+
+        $this->assertAuthenticated();
+        $response->assertRedirect(route('dashboard', absolute: false));

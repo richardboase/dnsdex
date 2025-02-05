@@ -1,0 +1,523 @@
+use App\Http\Resources\Trade as ResourcesTrade;
+use App\Http\Resources\User as ResourcesUser;
+
+use App\Models\Launchpad;
+use App\Models\Msg;
+use App\Models\Setting;
+use App\Models\Trade;
+use App\Models\User;
+use Illuminate\Http\Request;
+use Inertia\Inertia;
+
+class DashboardController extends Controller
+{
+    /**
+     * Display a listing of the resource.
+     * @return \Inertia\Response;
+     */
+    public function dashboard(Request $request)
+    {
+        $users  = User::count();
+        $userToday = User::whereDate('created_at', today())->count();
+        $trades  = Trade::query()->count();
+        $tradesToday = Trade::whereDate('created_at', today())->count();
+        $launchpads  = Launchpad::count();
+        $launchpadsToday = Launchpad::whereDate('created_at', today())->count();
+        $msgs  = Msg::count();
+        $msgsToday = Msg::whereDate('created_at', today())->count();
+        return Inertia::render('Admin/Dashboard', [
+            'setting' => Setting::find(1),
+            'rpcs' => collect(SettingRpc::cases())->map(fn(SettingRpc $s) => ['label' => ucfirst($s->value), 'value' => $s->value]),
+            'trades' => function () {
+                $trades = Trade::query()->with('launchpad')->latest()->take(10)->get();
+                return ResourcesTrade::collection($trades);
+            },
+            'users' => function () {
+                $users = User::query()->latest()->take(10)->get();
+                return ResourcesUser::collection($users);
+            },
+            'mail' => [
+                'mailer' => config('mail.from'),
+                'mailgun' => config('services.mailgun'),
+                'smtp' => collect(config('mail.mailers.smtp'))->only([
+                    'host',
+                    'port',
+                    'encryption',
+                    'username',
+                    'password',
+                ])->toArray(),
+                'posmark' => config('services.postmark'),
+                'mailersend' => config('services.mailersend'),
+                'resend' => config('services.resend'),
+            ],
+            'stats' => [
+                [
+                    'name' => 'users',
+                    'title' => "Registered Users",
+                    'subtitle' => "Total Members count",
+                    'total' => $users,
+                    'today' => $userToday
+                ],
+                [
+                    'name' => 'trades',
+                    'title' => "Trades History",
+                    'subtitle' => "Lifetime Trades Created",
+                    'total' => $trades,
+                    'symbol' => 'USD',
+                    'today' => $tradesToday
+                ],
+                [
+                    'name' => 'launchpads',
+                    'title' => "Launchpads Created",
+                    'subtitle' => "Total launchpads Created",
+                    'total' => $launchpads,
+                    'today' => $launchpadsToday
+                ],
+                [
+                    'name' => 'chat',
+                    'title' => 'Live Chat Activity',
+                    'subtitle' => "Messages and Chat History",
+                    'total' => $msgs,
+                    'today' => $msgsToday
+                ]
+            ]
+        ]);
+    }
+
+    /**
+     * Display a listing of the resource.
+     * @return \Inertia\Response;
+     */
+    public function index(Request $request)
+    {
+        $keyword = $request->get('search');
+        $perPage = 25;
+        $query  = User::query()->withCount([
+            'launchpads',
+            'trades',
+            'msgs',
+            'holders',
+        ]);
+        if (!empty($keyword)) {
+            $query->where('name', 'LIKE', "%$keyword%")
+                ->orWhere('email', 'LIKE', "%$keyword%");
+        }
+        $usersItems = $query->latest()->paginate($perPage);
+        $users = ResourcesUser::collection($usersItems);
+        return Inertia::render('Admin/Users/Index', compact('users'));
+    }
+
+
+
+
+
+    /**
+     * toggle status of  the specified resource in storage.
+     *
+     * @param \Illuminate\Http\Request $request
+     * @param  int  $id
+     *
+     * @return \Illuminate\Http\RedirectResponse|\Illuminate\Routing\Redirector
+     */
+    public function toggle(Request $request, User $user)
+    {
+        $user->active = !$user->active;
+        $user->save();
+        return back()->with('success', $user->active ? __(' :name User Enabled !', ['name' => $user->name]) : __(' :name  User Disabled!', ['name' => $user->name]));
+    }
+    /**
+     * toggle status of  the specified resource in storage.
+     *
+     * @param \Illuminate\Http\Request $request
+     * @param  int  $id
+     *
+     * @return \Illuminate\Http\RedirectResponse|\Illuminate\Routing\Redirector
+     */
+    public function banned(Request $request, User $user)
+    {
+        $user->banned = !$user->banned;
+        $user->save();
+        return back()->with('success', $user->banned ? __(' :name User Enabled !', ['name' => $user->name]) : __(' :name  User Disabled!', ['name' => $user->name]));
+    }
+}
+
+
+================================================
+File: app/Http/Controllers/Admin/FactoriesController.php
+================================================
+<?php
+
+namespace App\Http\Controllers\Admin;
+
+use App\Http\Controllers\Controller;
+use App\Http\Resources\Factory as FactoryResource;
+use App\Models\Factory;
+use Inertia\Inertia;
+
+use Illuminate\Http\Request;
+use Illuminate\Support\Facades\File;
+
+class FactoriesController extends Controller
+{
+    /**
+     * Display a listing of the resource.
+     * @return \Illuminate\View\View
+     */
+    public function index(Request $request)
+    {
+        $keyword = $request->get('search');
+        $perPage = 25;
+        $query  = Factory::query()->with(['launchpads']);
+        if (!empty($keyword)) {
+            $query->where('version', 'LIKE', "%$keyword%");
+        }
+        $query->withCount('launchpads');
+        $factoriesItems = $query->latest()->paginate($perPage);
+        $factories = FactoryResource::collection($factoriesItems);
+        return Inertia::render('Admin/Factories/Index', compact('factories'));
+    }
+
+    /**
+     * Show the form for creating a new resource.
+     * @return \Illuminate\View\View
+     */
+    public function create()
+    {
+        $foundry = json_decode(File::get(base_path('evm/Foundry.json')));
+        return Inertia::render('Admin/Factories/Create', [
+            'foundry' => $foundry,
+            'config' => collect(config('evm'))->reject(function ($evm) {
+                return !is_array($evm) || !isset($evm['chainId']) || !isset($evm['symbol']);
+            })->keyBy('chainId')
+        ]);
+    }
+
+    /**
+     * Store a newly created resource in storage.
+     * @param \Illuminate\Http\Request $request
+     * @return \Illuminate\Http\RedirectResponse|\Illuminate\Routing\Redirector
+     */
+    public function store(Request $request)
+    {
+        $request->validate([
+            'name' => ['required', 'string'],
+            'chainId' => ['required', 'integer'],
+            'foundry' => ['required', 'string', 'max:44'],
+            'contract' => ['required', 'string', 'max:44'],
+            'lock' => ['required', 'string', 'max:44'],
+        ]);
+        $lockImplementation = json_decode(File::get(base_path('evm/Lock.json')));
+        $factoryImplementation = json_decode(File::get(base_path('evm/Factory.json')));
+        $curveImplementation = json_decode(File::get(base_path('evm/BondingCurve.json')));
+        $factory = new Factory;
+        $factory->version = $request->name;
+        $factory->chainId = $request->chainId;
+        $factory->foundry = $request->foundry;
+        $factory->contract = $request->contract;
+        $factory->lock = $request->lock;
+        $factory->lock_abi = $lockImplementation->abi;
+        $factory->factory_abi = $factoryImplementation->abi;
+        $factory->abi = $curveImplementation->abi;
+        $factory->active = true;
+        $factory->save();
+        return redirect()->route('admin.factories.index')->with('success', 'Factory added!');
+    }
+
+    /**
+     * Display the specified resource.
+     * @param  int  $id
+     * @return \Illuminate\View\View
+     */
+    public function show(Request $request, Factory $factory)
+    {
+        $factory->load(['launchpads']);
+        return Inertia::render('Factories/Show', [
+            'factory' => new FactoryResource($factory)
+        ]);
+    }
+
+    /**
+     * Show the form for editing the specified resource.
+     * @param  int  $id
+     * @return \Illuminate\View\View
+     */
+    public function edit(Request $request, Factory $factory)
+    {
+        $factory->loadCount(['launchpads']);
+        return Inertia::render('Admin/Factories/Edit', [
+            'factory' => new FactoryResource($factory)
+        ]);
+    }
+
+    /**
+     * Update the specified resource in storage.
+     *
+     * @param \Illuminate\Http\Request $request
+     * @param  int  $id
+     *
+     * @return \Illuminate\Http\RedirectResponse|\Illuminate\Routing\Redirector
+     */
+    public function update(Request $request, Factory $factory)
+    {
+        $request->validate([
+            'name' => ['required', 'string'],
+        ]);
+        $factory->version = $request->name;
+        $factory->save();
+        return back();
+    }
+
+    /**
+     * toggle status of  the specified resource in storage.
+     *
+     * @param \Illuminate\Http\Request $request
+     * @param  int  $id
+     *
+     * @return \Illuminate\Http\RedirectResponse|\Illuminate\Routing\Redirector
+     */
+    public function toggle(Request $request, Factory $factory)
+    {
+        $factory->active = !$factory->active;
+        $factory->save();
+        return back()->with('success', $factory->active ? __(' :name Factory Enabled !', ['name' => $factory->name]) : __(' :name  Factory Disabled!', ['name' => $factory->name]));
+    }
+
+    /**
+     * Remove the specified resource from storage.
+     *
+     * @param  int  $id
+     *
+     * @return \Illuminate\Http\RedirectResponse|\Illuminate\Routing\Redirector
+     */
+    public function destroy(Request $request, Factory $factory)
+    {
+        $factory->delete();
+        return back();
+    }
+}
+
+
+================================================
+File: app/Http/Controllers/Admin/HoldersController.php
+================================================
+<?php
+
+namespace App\Http\Controllers\Admin;
+
+use App\Http\Controllers\Controller;
+use App\Http\Resources\Holder as HolderResource;
+use App\Models\Holder;
+use Inertia\Inertia;
+
+use Illuminate\Http\Request;
+
+class HoldersController extends Controller
+{
+    /**
+     * Display a listing of the resource.
+     * @return \Illuminate\View\View
+     */
+    public function index(Request $request)
+    {
+        $keyword = $request->get('search');
+        $perPage = 25;
+        $query  = Holder::query()->with(['launchpad', 'user']);
+        if (!empty($keyword)) {
+            $query->where('launchpad_id', 'LIKE', "%$keyword%")
+                ->orWhere('user_id', 'LIKE', "%$keyword%")
+                ->orWhere('address', 'LIKE', "%$keyword%")
+                ->orWhere('qty', 'LIKE', "%$keyword%")
+                ->orWhere('prebond', 'LIKE', "%$keyword%");
+        }
+        $holdersItems = $query->latest()->paginate($perPage);
+        $holders = HolderResource::collection($holdersItems);
+        return Inertia::render('Holders/Index', compact('holders'));
+    }
+
+    /**
+     * Show the form for creating a new resource.
+     * @return \Illuminate\View\View
+     */
+    public function create()
+    {
+        return Inertia::render('Holders/Create');
+    }
+
+    /**
+     * Store a newly created resource in storage.
+     * @param \Illuminate\Http\Request $request
+     * @return \Illuminate\Http\RedirectResponse|\Illuminate\Routing\Redirector
+     */
+    public function store(Request $request)
+    {
+        $request->validate([
+            'launchpad_id' => ['required', 'integer', 'exists:launchpads,id'],
+            'user_id' => ['required', 'integer', 'exists:users,id'],
+            'address' => ['required', 'string'],
+            'qty' => ['required', 'string'],
+            'prebond' => ['nullable', 'boolean'],
+        ]);
+        $holder = new Holder;
+        $holder->launchpad_id = $request->launchpad_id;
+        $holder->user_id = $request->user_id;
+        $holder->address = $request->address;
+        $holder->qty = $request->qty;
+        $holder->prebond = $request->prebond;
+        $holder->save();
+
+        return redirect()->route('holders.index')->with('success', 'Holder added!');
+    }
+
+    /**
+     * Display the specified resource.
+     * @param  int  $id
+     * @return \Illuminate\View\View
+     */
+    public function show(Request $request, Holder $holder)
+    {
+        $holder->load(['launchpad', 'user']);
+        return Inertia::render('Holders/Show', [
+            'holder' => new HolderResource($holder)
+        ]);
+    }
+
+    /**
+     * Show the form for editing the specified resource.
+     * @param  int  $id
+     * @return \Illuminate\View\View
+     */
+    public function edit(Request $request, Holder $holder)
+    {
+        $holder->load(['launchpad', 'user']);
+        return Inertia::render('Holders/Edit', [
+            'holder' => new HolderResource($holder)
+        ]);
+    }
+
+    /**
+     * Update the specified resource in storage.
+     *
+     * @param \Illuminate\Http\Request $request
+     * @param  int  $id
+     *
+     * @return \Illuminate\Http\RedirectResponse|\Illuminate\Routing\Redirector
+     */
+    public function update(Request $request, Holder $holder)
+    {
+        $request->validate([
+            'launchpad_id' => ['required', 'integer', 'exists:launchpads,id'],
+            'user_id' => ['required', 'integer', 'exists:users,id'],
+            'address' => ['required', 'string'],
+            'qty' => ['required', 'string'],
+            'prebond' => ['nullable', 'boolean'],
+        ]);
+
+        $holder->launchpad_id = $request->launchpad_id;
+        $holder->user_id = $request->user_id;
+        $holder->address = $request->address;
+        $holder->qty = $request->qty;
+        $holder->prebond = $request->prebond;
+        $holder->save();
+        return back()->with('success', 'Holder updated!');
+    }
+
+    /**
+     * toggle status of  the specified resource in storage.
+     *
+     * @param \Illuminate\Http\Request $request
+     * @param  int  $id
+     *
+     * @return \Illuminate\Http\RedirectResponse|\Illuminate\Routing\Redirector
+     */
+    public function toggle(Request $request, Holder $holder)
+    {
+        $holder->active = !$holder->active;
+        $holder->save();
+        return back()->with('success', $holder->active ? __(' :name Holder Enabled !', ['name' => $holder->name]) : __(' :name  Holder Disabled!', ['name' => $holder->name]));
+    }
+
+    /**
+     * Remove the specified resource from storage.
+     *
+     * @param  int  $id
+     *
+     * @return \Illuminate\Http\RedirectResponse|\Illuminate\Routing\Redirector
+     */
+    public function destroy(Request $request, Holder $holder)
+    {
+        $holder->delete();
+        return redirect()->route('holders.index')->with('success', 'Holder deleted!');
+    }
+}
+
+
+================================================
+File: app/Http/Controllers/Admin/LaunchpadsController.php
+================================================
+<?php
+
+namespace App\Http\Controllers\Admin;
+
+use App\Http\Controllers\Controller;
+use App\Http\Resources\Launchpad as LaunchpadResource;
+use App\Models\Launchpad;
+use Illuminate\Http\Request;
+use Inertia\Inertia;
+
+class LaunchpadsController extends Controller
+{
+    /**
+     * Display a listing of the resource.
+     * @return \Illuminate\View\View
+     */
+    public function index(Request $request)
+    {
+        $keyword = $request->get('search');
+        $perPage = 25;
+        $query  = Launchpad::query()->with(['factory', 'user', 'trades', 'msgs', 'uploads']);
+        if (!empty($keyword)) {
+            $query->where('contract', 'LIKE', "%$keyword%")
+                ->orWhere('token', 'LIKE', "%$keyword%")
+                ->orWhere('name', 'LIKE', "%$keyword%")
+                ->orWhere('symbol', 'LIKE', "%$keyword%")
+                ->orWhere('description', 'LIKE', "%$keyword%")
+            ;
+        }
+        $launchpadsItems = $query->latest()->paginate($perPage);
+        $launchpads = LaunchpadResource::collection($launchpadsItems);
+        return Inertia::render('Admin/Launchpads/Index', compact('launchpads'));
+    }
+
+
+    /**
+     * toggle status of  the specified resource in storage.
+     *
+     * @param \Illuminate\Http\Request $request
+     * @param  int  $id
+     *
+     * @return \Illuminate\Http\RedirectResponse|\Illuminate\Routing\Redirector
+     */
+    public function toggle(Request $request, Launchpad $launchpad)
+    {
+        $launchpad->active = !$launchpad->active;
+        $launchpad->save();
+        return back()->with('success', $launchpad->active ? __(' :name Launchpad Enabled !', ['name' => $launchpad->name]) : __(' :name  Launchpad Disabled!', ['name' => $launchpad->name]));
+    }
+
+    /**
+     * toggle featured status of  the specified resource in storage.
+     *
+     * @param \Illuminate\Http\Request $request
+     * @param  int  $id
+     *
+     * @return \Illuminate\Http\RedirectResponse|\Illuminate\Routing\Redirector
+     */
+    public function featured(Request $request, Launchpad $launchpad)
+    {
+        $launchpad->featured = !$launchpad->featured;
+        $launchpad->save();
+        return back()->with('success', $launchpad->featured ? __(' :name Launchpad Enabled !', ['name' => $launchpad->name]) : __(' :name  Launchpad Disabled!', ['name' => $launchpad->name]));
+    }
+
+
+    /**

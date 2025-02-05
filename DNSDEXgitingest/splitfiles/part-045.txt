@@ -1,0 +1,523 @@
+				</div>
+			</RadioGroupOption>
+		</div>
+	</RadioGroup>
+</template>
+
+
+================================================
+File: resources/js/Components/ResponsiveNavLink.vue
+================================================
+<script setup>
+	import { computed } from "vue";
+
+	import { Link } from "@inertiajs/vue3";
+
+	const props = defineProps({
+		href: {
+			type: String,
+			required: true,
+		},
+		active: {
+			type: Boolean,
+		},
+	});
+
+	const classes = computed(() =>
+		props.active
+			? "block w-full ps-3 pe-4 py-2 border-l-4 border-indigo-400 text-start text-base font-medium text-indigo-700 bg-indigo-50 focus:outline-none focus:text-indigo-800 focus:bg-indigo-100 focus:border-indigo-700 transition duration-150 ease-in-out"
+			: "block w-full ps-3 pe-4 py-2 border-l-4 border-transparent text-start text-base font-medium text-gray-300 hover:text-white hover:bg-gray-750 hover:border-gray-300 focus:outline-none focus:text-gray-800 focus:bg-gray-50 focus:border-gray-300 transition duration-150 ease-in-out",
+	);
+</script>
+
+<template>
+	<Link :href="href" :class="classes">
+		<slot />
+	</Link>
+</template>
+
+
+================================================
+File: resources/js/Components/SearchInput.vue
+================================================
+<script setup>
+	import { onMounted, ref } from "vue";
+
+	import { useElementHover } from "@vueuse/core";
+	import { HiSearch, HiX } from "oh-vue-icons/icons";
+
+	import VueIcon from "@/Components/VueIcon.vue";
+	const el = ref();
+	const hover = useElementHover(el);
+	const emit = defineEmits(["update:modelValue"]);
+	defineProps({
+		modelValue: String,
+		loading: Boolean,
+	});
+	const input = ref(null);
+	onMounted(() => {
+		if (input.value.hasAttribute("autofocus")) {
+			input.value.focus();
+		}
+	});
+	defineExpose({ focus: () => input.value.focus() });
+	const reset = () => {
+		input.value.value = "";
+		emit("update:modelValue", "");
+	};
+</script>
+<template>
+	<div class="w-full" ref="el">
+		<div class="relative rounded-md shadow-sm">
+			<div
+				class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+				<VueIcon :icon="HiSearch" class="text-gray-400 w-5 h-5" />
+			</div>
+			<input
+				ref="input"
+				type="text"
+				name="price"
+				class="bg-white px-10 border-gray-300 text-gray-900 rounded-md focus:ring-primary focus:border-primary dark:bg-gray-900 dark:border-gray-600 dark:placeholder-gray-400 dark:text-white py-2 text-sm border block w-full focus:outline-none focus:ring-1 appearance-none"
+				placeholder="Search"
+				aria-describedby="price-currency"
+				:value="modelValue"
+				@input="$emit('update:modelValue', $event.target.value)" />
+			<a
+				v-if="hover"
+				href="#"
+				class="absolute inset-y-0 right-0 pr-3 flex items-center"
+				@click="reset()">
+				<VueIcon :icon="HiX" class="text-gray-400 w-5 h-5" />
+			</a>
+		</div>
+	</div>
+</template>
+
+
+================================================
+File: resources/js/Components/SecondaryButton.vue
+================================================
+<script setup>
+	import { computed } from "vue";
+
+	import { Link } from "@inertiajs/vue3";
+
+	const props = defineProps({
+		outlined: {
+			type: Boolean,
+			default: false,
+		},
+		link: {
+			type: Boolean,
+			default: false,
+		},
+		size: {
+			type: String,
+			default: "sm",
+			validator: (value) =>
+				["xs", "sm", "md", "lg", "xl"].includes(value),
+		},
+		iconMode: {
+			type: Boolean,
+			default: false,
+		},
+	});
+	const comp = computed(() =>
+		props.link ? Link : props.url ? "href" : "button",
+	);
+	const sizeClasses = computed(() => ({
+		xs: props.iconMode
+			? "w-6 h-6 text-xs"
+			: "px-2.5 py-1.5 font-semibold text-xs",
+		sm: props.iconMode ? "w-8 h-8 text-sm" : "px-3 py-2 text-sm",
+		md: props.iconMode ? "w-10 h-10 text-base" : "px-4 py-2.5 text-base",
+		lg: props.iconMode ? "w-12 h-12 text-lg" : "px-5 py-3 text-lg",
+		xl: props.iconMode ? "w-14 h-14 text-xl" : "px-6 py-3.5 text-xl",
+	}));
+</script>
+
+<template>
+	<component
+		:is="comp"
+		:class="[
+			'inline-flex items-center justify-center font-medium transition-colors duration-200',
+			'focus:outline-none focus:ring-2 focus:ring-gray-400 focus:ring-offset-2',
+			sizeClasses[size],
+			iconMode ? 'aspect-square p-0' : '',
+			outlined
+				? 'bg-transparent border-2 border-gray-400 text-gray-300 hover:bg-gray-700 hover:text-white'
+				: 'bg-gray-600 text-white border-2 border-transparent hover:bg-gray-500 active:bg-gray-700',
+			'rounded cursor-pointer',
+		]"
+		v-bind="$attrs">
+		<slot></slot>
+	</component>
+</template>
+
+
+================================================
+File: resources/js/Components/SmallSwitch.vue
+================================================
+<script setup>
+defineProps(["modelValue", "name"]);
+defineEmits(["update:modelValue"]);
+</script>
+<template>
+	<label
+		:for="name"
+		class="inline-flex relative items-center cursor-pointer"
+	>
+		<input
+			type="checkbox"
+			:name="name"
+			:id="name"
+			:value="modelValue"
+			:checked="modelValue"
+			@input="(event) => $emit('update:modelValue', event.target.checked)"
+			class="sr-only peer"
+		/>
+		<div
+			class="w-9 h-5 bg-gray-200 peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-amber-300 dark:peer-focus:ring-amber-800 rounded-full peer dark:bg-gray-700 peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-4 after:w-4 after:transition-all dark:border-gray-600 peer-checked:bg-amber-600"
+		></div>
+		<span class="ml-3 text-sm font-medium text-gray-600 dark:text-gray-300"><slot /></span>
+	</label>
+</template>
+
+
+================================================
+File: resources/js/Components/TextInput.vue
+================================================
+<script setup>
+import { onMounted, ref } from 'vue';
+
+const model = defineModel({
+    type: String,
+    required: true,
+});
+
+const input = ref(null);
+
+onMounted(() => {
+    if (input.value.hasAttribute('autofocus')) {
+        input.value.focus();
+    }
+});
+
+defineExpose({ focus: () => input.value.focus() });
+</script>
+
+<template>
+    <input
+        class="rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500"
+        v-model="model"
+        ref="input"
+    />
+</template>
+
+
+================================================
+File: resources/js/Components/TxHash.vue
+================================================
+<script setup>
+	import { useTxHash } from "@/hooks/explorers";
+
+	const props = defineProps({
+		txhash: String,
+		chainId: [String, Number],
+		len: { type: Number, default: 33 },
+	});
+	const [shortTx, etherScanLink] = useTxHash(
+		props.txhash,
+		props.chainId,
+		props.len,
+	);
+</script>
+<template>
+	<a
+		:href="etherScanLink"
+		target="_blank"
+		class="cursor-pointer select-none font-semibold hover:text-primary">
+		<slot>{{ shortTx }}</slot>
+	</a>
+</template>
+
+
+================================================
+File: resources/js/Components/TxStatus.vue
+================================================
+<script setup>
+	defineProps({ state: Object });
+</script>
+<template>
+	<p
+		v-if="state.error"
+		class="mt-1 p-3 bg-red-300/10 !text-red-400 text-sm font-mono">
+		{{ state.error }}
+	</p>
+	<p
+		v-else
+		:class="
+			state.isConfirmed
+				? '!text-green-500 bg-green-300/10'
+				: '!text-gray-200 bg-gray-750'
+		"
+		class="p-3 text-sm font-mono">
+		<span :class="{ 'text-green-500': state.isConfirmed }">
+			{{ state.status }}
+		</span>
+		<a
+			:href="state.etherScanLink"
+			class="ml-2 mt-1 text-emerald-500"
+			target="_blank"
+			v-if="state.txhash">
+			{{ state.shortTx }}
+		</a>
+	</p>
+</template>
+
+
+================================================
+File: resources/js/Components/VueIcon.vue
+================================================
+<script setup>
+import { addIcons, OhVueIcon } from "oh-vue-icons";
+const props = defineProps({
+    icon: Object,
+});
+addIcons(props.icon);
+</script>
+<template>
+    <OhVueIcon :name="icon.name" />
+</template>
+
+
+================================================
+File: resources/js/Components/WeCopy.vue
+================================================
+<script setup>
+import {ref} from "vue";
+
+import {useClipboard, useElementHover} from "@vueuse/core";
+defineProps({
+	text: {
+		type: [String, Number],
+		required: true,
+	},
+	after: Boolean,
+});
+const {copy, copied} = useClipboard({
+	copiedDuring: 1000,
+});
+const hover = ref(null);
+const isHovered = useElementHover(hover);
+</script>
+
+<template>
+	<div
+		ref="hover"
+		@click.prevent="copy(text)"
+		class="items-center flex"
+		:class="[{[$style.copying]: copied}, $style.clickToCopy, 'inline']"
+	>
+		<span
+			data-label="Copied"
+			v-if="!after"
+			:class="[{[$style.hidden]: !isHovered}, $style.label, 'ml-1 mr-1']"
+			>{{ $t("Copy") }}</span
+		>
+		<span
+			class="font-medium mr-1"
+			:class="[$style.clickToCopyText]"
+		>
+			<slot :copied="copied" />
+		</span>
+		<span
+			data-label="Copied"
+			v-if="after"
+			:class="[{[$style.hidden]: !isHovered}, $style.label, 'ml-1 mr-1 font-semibold']"
+			>{{ $t("Copy") }}</span
+		>
+	</div>
+</template>
+
+<style module>
+@keyframes floatup {
+	20% {
+		opacity: 0.999;
+	}
+
+	100% {
+		transform: translate3d(-50%, -17px, 0);
+	}
+}
+
+.clickToCopy {
+	cursor: pointer;
+}
+
+.clickToCopy .clickToCopyText.Highlighted {
+	background-color: #d16c25;
+	color: #fff;
+}
+
+.clickToCopy .label {
+	color: #d16c25;
+	display: inline-block;
+	font-size: 13px;
+	line-height: 100%;
+	position: relative;
+	opacity: 0.999;
+	transition: opacity 0.2s ease-in-out;
+	top: -1px;
+}
+
+.clickToCopy .label.hidden {
+	opacity: 0.001;
+}
+
+.clickToCopy .label::after {
+	content: attr(data-label);
+	color: #d16c25;
+	display: inline-block;
+	position: absolute;
+	top: -2px;
+	left: 50%;
+	opacity: 0.001;
+	text-align: center;
+	transform: translate3d(-50%, 0, 0);
+	-webkit-backface-visibility: hidden;
+	backface-visibility: hidden;
+	white-space: nowrap;
+}
+
+.clickToCopy.copying .label::after {
+	animation: floatup 0.5s ease-in-out;
+}
+</style>
+
+
+================================================
+File: resources/js/Components/YoutubeInput.vue
+================================================
+<script setup>
+import { ref, watch } from 'vue';
+
+
+
+import { useForm } from '@inertiajs/vue3';
+
+import BaseButton from './BaseButton.vue';
+import FormTextArea from './FormTextArea.vue';
+import Loading from './Loading.vue';
+
+const props = defineProps({
+    launchpad: Object
+});
+const emit = defineEmits(['update:livestreamId', 'error']);
+
+const form = useForm({
+    input: '',
+    livestreamId: null
+});
+
+const error = ref('');
+const copyStatus = ref('Copy');
+
+// Universal YouTube URL regex pattern
+const youtubeRegex = /(?:youtube\.com\/\S*(?:(?:\/e(?:mbed))?\/|watch\/?\?(?:\S*?&?v\=))|youtu\.be\/)([a-zA-Z0-9_-]{6,11})/g;
+
+const extractLivestreamId = () => {
+    // Reset states
+    form.livestreamId = null;
+    error.value = '';
+
+    if (!form.input.trim()) return;
+
+    // Extract video ID using the regex
+    const matches = [...form.input.matchAll(youtubeRegex)];
+    if (matches.length > 0 && matches[0][1]) {
+        form.livestreamId = matches[0][1];
+        emit('update:livestreamId', matches[0][1]);
+        return;
+    }
+    // If no pattern matches, show error and emit
+    error.value = 'Could not extract video ID. Please check the URL format.';
+    emit('error', error.value);
+};
+
+const copyToClipboard = async () => {
+    try {
+        await navigator.clipboard.writeText(form.livestreamId);
+        copyStatus.value = 'Copied!';
+        setTimeout(() => {
+            copyStatus.value = 'Copy';
+        }, 2000);
+    } catch (err) {
+        error.value = 'Failed to copy to clipboard';
+    }
+};
+
+// Watch for input changes
+watch(() => form.input, () => {
+    if (copyStatus.value === 'Copied!') {
+        copyStatus.value = 'Copy';
+    }
+    extractLivestreamId();
+});
+
+const updateLivestream = () => {
+    form.post(window.route('launchpads.update.livestream', { launchpad: props.launchpad.id }), {
+        preserveScroll: true,
+        preserveState: true,
+        onSuccess: () => form.input = ''
+    });
+};
+</script>
+<template>
+    <div class=" mx-auto py-3">
+        <div class="space-y-4">
+            <!-- Input Area -->
+            <div class="space-y-2">
+                <label for="youtubeInput" class="block text-sm font-medium text-gray-300">
+                    Paste YouTube Livestream URL or Embed Code
+                </label>
+                <FormTextArea rows="2" placeholder="Enter YouTube Livestream URL or Embed Code" :emoji="false"
+                    v-model="form.input">
+                    <template #clear>
+                        <BaseButton @click="form.input = ''" danger size="xs">Clear</BaseButton>
+                    </template>
+                </FormTextArea>
+            </div>
+            <!-- Result Area -->
+            <div v-if="form.livestreamId" class="space-y-4">
+                <div class="p-4 bg-green-700/10 rounded-md">
+                    <h3 class="text-lg font-medium !text-green-400">Extracted livestream ID:</h3>
+                    <div class="mt-2 flex items-center space-x-2">
+                        <code class="px-2 py-1 bg-black rounded border border-green-600/10 text-green-400">
+                {{ form.livestreamId }}
+            </code>
+                        <button @click="copyToClipboard"
+                            class="px-3 py-1 text-sm bg-green-100 text-green-700 rounded hover:bg-green-200 focus:outline-none focus:ring-2 focus:ring-green-500">
+                            {{ copyStatus }}
+                        </button>
+                        <BaseButton @click="updateLivestream" :outlined="form.recentlySuccessful"
+                            :class="{ '!text-emerald-400 !border-emerald-400': form.recentlySuccessful }" size="xs">
+                            <Loading v-if="form.processing" class="!w-4 !h-4 mr-2 -ml-1" />
+                            {{
+                                form.recentlySuccessful
+                                    ? 'Livestream Updated!'
+                                    : 'Update Livestream'
+                            }}
+                        </BaseButton>
+                    </div>
+                </div>
+            </div>
+            <!-- Error Message -->
+            <div v-if="error" class="p-4 bg-red-700/10 rounded-md">
+                <p class="text-sm !text-red-400 font-mono">{{ error }}</p>
+            </div>
+        </div>
+    </div>
+</template>
+
+

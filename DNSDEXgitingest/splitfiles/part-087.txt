@@ -1,0 +1,523 @@
+	 * @param to Unix timestamp (rightmost visible bar)
+	 * @param onDataCallback Callback function containing an array of marks
+	 * @param resolution Resolution of the symbol
+	 */
+	getTimescaleMarks?(symbolInfo: LibrarySymbolInfo, from: number, to: number, onDataCallback: GetMarksCallback<TimescaleMark>, resolution: ResolutionString): void;
+	/**
+	 * This function is called if configuration flag supports_time is set to true when chart needs to know the server time.
+	 * The library expects callback to be called once.
+	 * The time is provided without milliseconds. Example: `1445324591`. It is used to display Countdown on the price scale.
+	 */
+	getServerTime?(callback: ServerTimeCallback): void;
+	/**
+	 * Provides a list of symbols that match the user's search query.
+	 *
+	 * @param userInput Text entered by user in the symbol search field
+	 * @param exchange The requested exchange. Empty value means no filter was specified
+	 * @param symbolType Type of symbol. Empty value means no filter was specified
+	 * @param onResult Callback function that returns an array of results ({@link SearchSymbolResultItem}) or empty array if no symbols found
+	 */
+	searchSymbols(userInput: string, exchange: string, symbolType: string, onResult: SearchSymbolsCallback): void;
+	/**
+	 * The library will call this function when it needs to get SymbolInfo by symbol name.
+	 *
+	 * @param symbolName Symbol name or `ticker`
+	 * @param onResolve Callback function returning a SymbolInfo ({@link LibrarySymbolInfo})
+	 * @param onError Callback function whose only argument is a text error message
+	 * @param extension An optional object with additional parameters
+	 */
+	resolveSymbol(symbolName: string, onResolve: ResolveCallback, onError: ErrorCallback, extension?: SymbolResolveExtension): void;
+	/**
+	 * This function is called when the chart needs a history fragment defined by dates range.
+	 *
+	 * @param symbolInfo A SymbolInfo object
+	 * @param resolution Resolution of the symbol
+	 * @param periodParams An object used to pass specific requirements for getting bars
+	 * @param onResult Callback function for historical data
+	 * @param onError Callback function whose only argument is a text error message
+	 */
+	getBars(symbolInfo: LibrarySymbolInfo, resolution: ResolutionString, periodParams: PeriodParams, onResult: HistoryCallback, onError: ErrorCallback): void;
+	/**
+	 * The library calls this function when it wants to receive real-time updates for a symbol.
+	 * The library assumes that you will call the callback provided by the `onTick` parameter every time you want to update the most recent bar or to add a new one.
+	 *
+	 * @param symbolInfo A SymbolInfo object
+	 * @param resolution Resolution of the symbol
+	 * @param onTick Callback function returning a Bar object
+	 * @param listenerGuid
+	 * @param onResetCacheNeededCallback Function to be executed when bar data has changed
+	 */
+	subscribeBars(symbolInfo: LibrarySymbolInfo, resolution: ResolutionString, onTick: SubscribeBarsCallback, listenerGuid: string, onResetCacheNeededCallback: () => void): void;
+	/**
+	 * The library calls this function when it doesn't want to receive updates anymore.
+	 *
+	 * @param listenerGuid id to unsubscribe from
+	 */
+	unsubscribeBars(listenerGuid: string): void;
+	/**
+	 * Trading Terminal calls this function when it wants to receive real-time level 2 (DOM) for a symbol.
+	 *
+	 * @param symbol A SymbolInfo object
+	 * @param callback Function returning an object to update Depth Of Market (DOM) data
+	 * @returns A unique identifier that will be used to unsubscribe from the data
+	 */
+	subscribeDepth?(symbol: string, callback: DOMCallback): string;
+	/**
+	 * Trading Terminal calls this function when it doesn't want to receive updates for this listener anymore.
+	 *
+	 * @param subscriberUID A string returned by `subscribeDepth`
+	 */
+	unsubscribeDepth?(subscriberUID: string): void;
+	/**
+	 * The library calls this function to get the resolution that will be used to calculate the Volume Profile Visible Range indicator.
+	 *
+	 * Usually you might want to implement this method to calculate the indicator more accurately.
+	 * The implementation really depends on how much data you can transfer to the library and the depth of data in your data feed.
+	 * **Remark:** If this function is not provided the library uses currentResolution.
+	 *
+	 * @param currentResolution Resolution of the symbol
+	 * @param from Unix timestamp (leftmost visible bar)
+	 * @param to Unix timestamp (rightmost visible bar)
+	 * @param symbolInfo A Symbol object
+	 * @returns A resolution
+	 */
+	getVolumeProfileResolutionForPeriod?(currentResolution: ResolutionString, from: number, to: number, symbolInfo: LibrarySymbolInfo): ResolutionString;
+}
+/** Quotes datafeed API */
+export interface IDatafeedQuotesApi {
+	/**
+	 * This function is called when the library needs quote data.
+	 * The library assumes that `onDataCallback` is called once when all the requested data is received.
+	 * @param  {string[]} symbols - symbol names.
+	 * @param  {QuotesCallback} onDataCallback - callback to return the requested data.
+	 * @param  {QuotesErrorCallback} onErrorCallback - callback for responding with an error.
+	 */
+	getQuotes(symbols: string[], onDataCallback: QuotesCallback, onErrorCallback: QuotesErrorCallback): void;
+	/**
+	 * Trading Terminal calls this function when it wants to receive real-time quotes for a symbol.
+	 * The library assumes that you will call `onRealtimeCallback` every time you want to update the quotes.
+	 * @param  {string[]} symbols - list of symbols that should be updated rarely (once per minute). These symbols are included in the watchlist but they are not visible at the moment.
+	 * @param  {string[]} fastSymbols - list of symbols that should be updated frequently (at least once every 10 seconds)
+	 * @param  {QuotesCallback} onRealtimeCallback - callback to send realtime quote data updates
+	 * @param  {string} listenerGUID - unique identifier of the listener
+	 */
+	subscribeQuotes(symbols: string[], fastSymbols: string[], onRealtimeCallback: QuotesCallback, listenerGUID: string): void;
+	/**
+	 * Trading Terminal calls this function when it doesn't want to receive updates for this listener anymore.
+	 * `listenerGUID` will be the same object that the Library passed to `subscribeQuotes` before.
+	 * @param  {string} listenerGUID - unique identifier of the listener
+	 */
+	unsubscribeQuotes(listenerGUID: string): void;
+}
+export interface IExternalDatafeed {
+	/**
+	 * This call is intended to provide the object filled with the configuration data.
+	 * The lib assumes that you will call the callback function and pass your datafeed {@link DatafeedConfiguration} as an argument.
+	 *
+	 * @param  {OnReadyCallback} callback - callback to return your datafeed configuration ({@link DatafeedConfiguration}) to the library.
+	 */
+	onReady(callback: OnReadyCallback): void;
+}
+export interface LibrarySubsessionInfo {
+	/**
+	 * Description of the subsession.
+	 *
+	 * @example "Regular Trading Hours"
+	 */
+	description: string;
+	/**
+	 * Subsession ID.
+	 */
+	id: LibrarySessionId;
+	/**
+	 * Session string. See {@link LibrarySymbolInfo.session}.
+	 */
+	session: string;
+	/**
+	 * Session corrections string. See {@link LibrarySymbolInfo.corrections}.
+	 */
+	"session-correction"?: string;
+}
+export interface LibrarySymbolInfo {
+	/**
+	 * Symbol Name
+	 * It's the name of the symbol. It is a string that your users will be able to see.
+	 * Also, it will be used for data requests if you are not using tickers.
+	 */
+	name: string;
+	/**
+	 * The full name of the symbol (contains name and exchange)
+	 * Example: `BTCE:BTCUSD`
+	 */
+	full_name: string;
+	/**
+	 * Array of base symbols
+	 * Example: for `AAPL*MSFT` it is `['NASDAQ:AAPL', 'NASDAQ:MSFT']`
+	 */
+	base_name?: [
+		string
+	];
+	/**
+	 * Unique symbol id
+	 * It's an unique identifier for this particular symbol in your symbology.
+	 * If you specify this property then its value will be used for all data requests for this symbol. ticker will be treated the same as {@link LibrarySymbolInfo.name} if not specified explicitly.
+	 */
+	ticker?: string;
+	/**
+	 * The description of the symbol.
+	 * Will be displayed in the chart legend for this symbol.
+	 */
+	description: string;
+	/**
+	 * Symbol Long description
+	 *
+	 * Optional long(er) description for the symbol.
+	 */
+	long_description?: string;
+	/**
+	 * Type of the instrument.
+	 * Possible values: {@link SymbolType}
+	 */
+	type: string;
+	/**
+	 * Trading hours for this symbol. See the [Trading Sessions article](https://www.tradingview.com/charting-library-docs/latest/connecting_data/Trading-Sessions) to learn more details.
+	 * @example "1700-0200"
+	 */
+	session: string;
+	/**
+	 * The session value to display in the UI. If not specified, then `session` is used.
+	 */
+	session_display?: string;
+	/** @deprecated Use session_holidays instead */
+	holidays?: string;
+	/**
+	 * List of holidays for this symbol. These dates are not displayed on the chart.
+	 * It's a string in the following format: `YYYYMMDD[,YYYYMMDD]`.
+	 * @example "20181105,20181107,20181112"
+	 */
+	session_holidays?: string;
+	/**
+	 * List of corrections for this symbol. Corrections are days with specific trading sessions. They can be applied to holidays as well.
+	 *
+	 * It's a string in the following format: `SESSION:YYYYMMDD[,YYYYMMDD][;SESSION:YYYYMMDD[,YYYYMMDD]]`
+	 * Where SESSION has the same format as [Trading Sessions](https://www.tradingview.com/charting-library-docs/latest/connecting_data/Trading-Sessions).
+	 *
+	 * @example "1900F4-2350F4,1000-1845:20181113;1000-1400:20181114"
+	 */
+	corrections?: string;
+	/**
+	 * Traded exchange (current (proxy) exchange).
+	 * The name will be displayed in the chart legend for this symbol.
+	 *
+	 * @example "NYSE"
+	 */
+	exchange: string;
+	/**
+	 * short name of the exchange where this symbol is traded (real listed exchange).
+	 * The name will be displayed in the chart legend for this symbol.
+	 *
+	 * @example "NYSE"
+	 */
+	listed_exchange: string;
+	/**
+	 * Timezone of the exchange for this symbol. We expect to get the name of the time zone in `olsondb` format.
+	 * See [Timezones](https://www.tradingview.com/charting-library-docs/latest/connecting_data/Symbology#timezone) for a full list of supported timezones
+	 */
+	timezone: Timezone;
+	/**
+	 * Format of displaying labels on the price scale:
+	 *
+	 * `price` - formats decimal or fractional numbers based on `minmov`, `pricescale`, `minmove2`, `fractional` and `variableMinTick` values. See [Price Formatting](https://www.tradingview.com/charting-library-docs/latest/connecting_data/Symbology#price-format) for more details
+	 * `volume` - formats decimal numbers in thousands, millions, billions or trillions
+	 */
+	format: SeriesFormat;
+	/**
+	 * Code (Tick)
+	 * @example 8/16/.../256 (1/8/100 1/16/100 ... 1/256/100) or 1/10/.../10000000 (1 0.1 ... 0.0000001)
+	 */
+	pricescale: number;
+	/**
+	 * The number of units that make up one tick.
+	 * @example For example, U.S. equities are quotes in decimals, and tick in decimals, and can go up +/- .01. So the tick increment is 1. But the e-mini S&P futures contract, though quoted in decimals, goes up in .25 increments, so the tick increment is 25. (see also Tick Size)
+	 */
+	minmov: number;
+	/**
+	 * For common prices this can be skipped.
+	 *
+	 * Fractional prices are displayed 2 different forms: 1) `xx'yy` (for example, `133'21`) 2) `xx'yy'zz` (for example, `133'21'5`).
+	 *
+	 * - `xx` is an integer part.
+	 * - `minmov/pricescale` is a Fraction.
+	 * - `minmove2` is used in form 2.
+	 * - `fractional` is `true`.
+	 * - `variableMinTick` is skipped.
+	 *
+	 * Example:
+	 *
+	 * If `minmov = 1`, `pricescale = 128` and `minmove2 = 4`:
+	 *
+	 * - `119'16'0` represents `119 + 16/32`
+	 * - `119'16'2` represents `119 + 16.25/32`
+	 * - `119'16'5` represents `119 + 16.5/32`
+	 * - `119'16'7` represents `119 + 16.75/32`
+	 *
+	 * More examples:
+	 *
+	 * - `ZBM2014 (T-Bond)` with `1/32`: `minmov = 1`, `pricescale = 32`, `minmove2 = 0`
+	 * - `ZCM2014 (Corn)` with `2/8`: `minmov = 2`, `pricescale = 8`, `minmove2 = 0`
+	 * - `ZFM2014 (5 year t-note)` with `1/4 of 1/32`: `minmov = 1`, `pricescale = 128`, `minmove2 = 4`
+	 */
+	fractional?: boolean;
+	/**
+	 * For common prices this can be skipped.
+	 * @example Quarters of 1/32: pricescale=128, minmovement=1, minmovement2=4
+	 */
+	minmove2?: number;
+	/**
+	 * Boolean value showing whether the symbol includes intraday (minutes) historical data.
+	 *
+	 * If it's `false` then all buttons for intraday resolutions will be disabled for this particular symbol.
+	 * If it is set to `true`, all intradays resolutions that are supplied directly by the datafeed must be provided in `intraday_multipliers` array.
+	 *
+	 * **WARNING** Any daily, weekly or monthly resolutions cannot be inferred from intraday resolutions!
+	 *
+	 * `false` if DWM only
+	 * @default false
+	 */
+	has_intraday?: boolean;
+	/**
+	 * An array of resolutions which should be enabled in resolutions picker for this symbol.
+	 *
+	 * Each item of an array is expected to be a string. Format is described in another article.
+	 *
+	 * If one changes the symbol and new symbol does not support the selected resolution then resolution will be switched to the first available one in the list.
+	 *
+	 * **Resolution availability logic (pseudocode):**
+	 * ```
+	 * resolutionAvailable  =
+	 *     resolution.isIntraday
+	 *         ? symbol.has_intraday && symbol.supported_resolutions(resolution)
+	 *         : symbol.supported_resolutions(resolution);
+	 * ```
+	 *
+	 * In case of absence of `supported_resolutions` in a symbol info all DWM resolutions will be available. Intraday resolutions will be available if `has_intraday` is `true`.
+	 * Supported resolutions affect available timeframes too. The timeframe will not be available if it requires the resolution that is not supported.
+	 */
+	supported_resolutions: ResolutionString[];
+	/**
+	 * Array of resolutions (in minutes) supported directly by the data feed. Each such resolution may be passed to, and should be implemented by, `getBars`. The default of [] means that the data feed supports aggregating by any number of minutes.
+	 *
+	 * If the data feed only supports certain minute resolutions but not the requested resolution, `getBars` will be called (repeatedly if needed) with a higher resolution as a parameter, in order to build the requested resolution.
+	 *
+	 * For example, if the data feed only supports minute resolution, set `intraday_multipliers` to `['1']`.
+	 *
+	 * When the user wants to see 5-minute data, `getBars` will be called with the resolution set to 1 until the library builds all the 5-minute resolution by itself.
+	 * @example (for ex.: "1,5,60") - only these resolutions will be requested, all others will be built using them if possible
+	 * @default []
+	 */
+	intraday_multipliers?: string[];
+	/**
+	 * Boolean value showing whether the symbol includes seconds in the historical data.
+	 *
+	 * If it's `false` then all buttons for resolutions that include seconds will be disabled for this particular symbol.
+	 *
+	 * If it is set to `true`, all resolutions that are supplied directly by the data feed must be provided in `seconds_multipliers` array.
+	 * @default false
+	 */
+	has_seconds?: boolean;
+	/**
+	 * Boolean value showing whether the symbol includes ticks in the historical data.
+	 *
+	 * If it's `false` then all buttons for resolutions that include ticks will be disabled for this particular symbol.
+	 * @default false
+	 */
+	has_ticks?: boolean;
+	/**
+	 * It is an array containing resolutions that include seconds (excluding postfix) that the data feed provides.
+	 * E.g., if the data feed supports resolutions such as `["1S", "5S", "15S"]`, but has 1-second bars for some symbols then you should set `seconds_multipliers` of this symbol to `[1]`.
+	 * This will make the library build 5S and 15S resolutions by itself.
+	 */
+	seconds_multipliers?: string[];
+	/**
+	 * The boolean value showing whether data feed has its own daily resolution bars or not.
+	 *
+	 * If `has_daily` = `false` then the library will build the respective resolutions using 1-minute bars by itself.
+	 * If not, then it will request those bars from the data feed only if specified resolution belongs to `daily_multipliers`, otherwise an error will be thrown.
+	 * @default true
+	 */
+	has_daily?: boolean;
+	/**
+	 * Array (of strings) containing the [resolutions](https://www.tradingview.com/charting-library-docs/latest/core_concepts/Resolution#days) (in days - without the suffix) supported by the data feed. {@link ResolutionString}
+	 *
+	 * For example it could be something like
+	 *
+	 * ```javascript
+	 * daily_multipliers = ['1', '3', '4', '6', '7'];
+	 * ```
+	 * @default ['1']
+	 */
+	daily_multipliers?: string[];
+	/**
+	 * The boolean value showing whether data feed has its own weekly and monthly resolution bars or not.
+	 *
+	 * If `has_weekly_and_monthly` = `false` then the library will build the respective resolutions using daily bars by itself.
+	 * If not, then it will request those bars from the data feed using either the `weekly_multipliers` or `monthly_multipliers` if specified.
+	 * If resolution is not within either list an error will be raised.
+	 * @default false
+	 */
+	has_weekly_and_monthly?: boolean;
+	/**
+	 * Array (of strings) containing the [resolutions](https://www.tradingview.com/charting-library-docs/latest/core_concepts/Resolution#weeks) (in weeks - without the suffix) supported by the data feed. {@link ResolutionString}
+	 *
+	 * For example it could be something like
+	 *
+	 * ```javascript
+	 * weekly_multipliers = ['1', '5', '10'];
+	 * ```
+	 * @default ['1']
+	 */
+	weekly_multipliers?: string[];
+	/**
+	 * Array (of strings) containing the [resolutions](https://www.tradingview.com/charting-library-docs/latest/core_concepts/Resolution#months) (in months - without the suffix) supported by the data feed. {@link ResolutionString}
+	 *
+	 * For example it could be something like
+	 *
+	 * ```javascript
+	 * monthly_multipliers = ['1', '3', '4', '12'];
+	 * ```
+	 * @default ['1']
+	 */
+	monthly_multipliers?: string[];
+	/**
+	 * The boolean value showing whether the library should generate empty bars in the session when there is no data from the data feed for this particular time.
+	 *
+	 * I.e., if your session is `0900-1600` and your data has gaps between `11:00` and `12:00` and your `has_empty_bars` is `true`, then the Library will fill the gaps with bars for this time.
+	 *
+	 * Flag `has_empty_bars` = `true` cannot be used if featureset `disable_resolution_rebuild` is enabled.
+	 * @default false
+	 */
+	has_empty_bars?: boolean;
+	/**
+	 * @deprecated
+	 * use visible_plots_set instead
+	 */
+	has_no_volume?: boolean;
+	/**
+	 * Represents what values are supported by the symbol. Possible values:
+	 *
+	 * - `ohlcv` - the symbol supports open, high, low, close and has volume
+	 * - `ohlc` - the symbol supports open, high, low, close, but doesn't have volume
+	 * - `c` - the symbol supports only close, it's displayed on the chart using line-based styles only
+	 * @default 'ohlcv'
+	 */
+	visible_plots_set?: VisiblePlotsSet;
+	/**
+	 * Integer showing typical volume value decimal places for a particular symbol.
+	 * 0 means volume is always an integer.
+	 * 1 means that there might be 1 numeric character after the comma.
+	 * @default '0'
+	 */
+	volume_precision?: number;
+	/**
+	 * The status code of a series with this symbol.
+	 * This could be represented as an icon in the legend, next to the market status icon for `delayed_streaming` & `endofday` type of data.
+	 * When declaring `delayed_streaming` you also have to specify its {@link LibrarySymbolInfo.delay} in seconds.
+	 */
+	data_status?: "streaming" | "endofday" | "pulsed" | "delayed_streaming";
+	/**
+	 * Type of delay that is associated to the data or real delay for real time data.
+	 * - `0` for realtime
+	 * - `-1` for endofday
+	 * - `-2` for pulsed
+	 * - or delay in seconds (for delayed realtime)
+	 */
+	delay?: number;
+	/**
+	 * Boolean showing whether this symbol is expired futures contract or not.
+	 * @default false
+	 */
+	expired?: boolean;
+	/**
+	 * Unix timestamp of the expiration date. One must set this value when `expired` = `true`.
+	 * The library will request data for this symbol starting from that time point.
+	 */
+	expiration_date?: number;
+	/** Sector for stocks to be displayed in the Symbol Info. */
+	sector?: string;
+	/** Industry for stocks to be displayed in the Symbol Info. */
+	industry?: string;
+	/**
+	 * The currency in which the instrument is traded or some other currency if currency conversion is enabled.
+	 * It is displayed in the Symbol Info dialog and on the price axes.
+	 */
+	currency_code?: string;
+	/** The currency in which the instrument is traded. */
+	original_currency_code?: string;
+	/**
+	 * A unique identifier of a unit in which the instrument is traded or some other identifier if unit conversion is enabled.
+	 * It is displayed on the price axes.
+	 */
+	unit_id?: string;
+	/**
+	 * A unique identifier of a unit in which the instrument is traded.
+	 */
+	original_unit_id?: string;
+	/**
+	 * Allowed unit conversion group names.
+	 */
+	unit_conversion_types?: string[];
+	/**
+	 * Subsession ID. Must match the `id` property of one of the subsessions.
+	 */
+	subsession_id?: string;
+	/**
+	 * Subsessions definitions.
+	 */
+	subsessions?: LibrarySubsessionInfo[];
+	/**
+	 * Optional ID of a price source for this symbol. Should match one of the price sources from the {@link price_sources} array.
+	 */
+	price_source_id?: string;
+	/**
+	 * Supported price sources for the symbol. The source of the values that this symbol's bars represent.
+	 *
+	 * For example 'Spot Price', 'Ask', 'Bid', etc.
+	 *
+	 * Mostly useful when viewing non-OHLC series types. The price source will be shown in the series legend.
+	 *
+	 * @example [{ id: '1', name: 'Spot Price' }, { id: '321', name: 'Bid' }]
+	 */
+	price_sources?: SymbolInfoPriceSource[];
+	/**
+	 * URL of image/s to be displayed as the logo/s for the symbol. The `show_symbol_logos` featureset needs to be enabled for this to be visible in the UI.
+	 *
+	 * - If a single url is returned then that url will solely be used to display the symbol logo.
+	 * - If two urls are provided then the images will be displayed as two partially overlapping
+	 * circles with the first url appearing on top. This is typically used for FOREX where you would
+	 * like to display two country flags are the symbol logo.
+	 *
+	 * The image/s should ideally be square in dimension. You can use any image type which
+	 * the browser supports natively.
+	 *
+	 * Examples:
+	 * - `https://yourserver.com/apple.svg`
+	 * - `/images/myImage.png`
+	 * - `data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3...`
+	 * - `data:image/jpeg;base64,/9j/4AAQSkZJRgABAQAASABIAAD/4...`
+	 */
+	logo_urls?: [
+		string
+	] | [
+		string,
+		string
+	];
+	/**
+	 * URL of image to be displayed as the logo for the exchange. The `show_exchange_logos` featureset needs to be enabled for this to be visible in the UI.
+	 *
+	 * The image should ideally be square in dimension. You can use any image type which
+	 * the browser supports natively. Simple SVG images are recommended.
+	 *
+	 * Examples:
+	 * - `https://yourserver.com/exchangeLogo.svg`
+	 * - `/images/myImage.png`
+	 * - `data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3...`

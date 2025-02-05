@@ -1,0 +1,523 @@
+	}
+
+	.crud-switch.is-outline {
+		@apply before:w-[calc((100%/2)-(var(--thumb-border)*2)-1px)]
+  checked:before:translate-x-[calc(100%+(var(--thumb-border)*2)+2px)];
+	}
+</style>
+
+
+================================================
+File: resources/js/Components/FormTextArea.vue
+================================================
+<script setup>
+	import { computed, onMounted, ref } from "vue";
+
+	import { FaceSmileIcon } from "@heroicons/vue/24/solid";
+	import { createPopper } from "@popperjs/core";
+	import { onClickOutside } from "@vueuse/core";
+	import EmojiPicker from "vue3-emoji-picker";
+	import "../../../node_modules/vue3-emoji-picker/dist/style.css";
+	const emit = defineEmits(["update:modelValue"]);
+	const props = defineProps({
+		modelValue: String,
+		emoji: { type: Boolean, default: true },
+		rows: { type: Number, default: 5 },
+		placeholder: { type: String, default: "Enter Details..." },
+	});
+	const textarea = ref(null);
+	const open = ref(false);
+	const picker = ref(null);
+	const button = ref(null);
+	const cursor = ref(null);
+	onClickOutside(picker, () => (open.value = false));
+	onMounted(() => {
+		if (button.value && picker.value) {
+			const offset = 6;
+			createPopper(button.value, picker.value, {
+				placement: "right-end",
+				modifiers: [
+					{
+						name: "offset",
+						options: {
+							offset: [0, offset],
+						},
+					},
+				],
+			});
+		}
+	});
+
+	const onSelect = (emoji) => {
+		if (cursor.value !== -1) {
+			emit(
+				"update:modelValue",
+				`${props.modelValue.slice(0, cursor.value)}${
+					emoji.i
+				}${props.modelValue.slice(cursor.value)}`,
+			);
+			cursor.value += emoji.i.length;
+		} else {
+			emit("update:modelValue", props.modelValue + emoji.i);
+		}
+		open.value = false;
+	};
+
+	const updateCursor = () => {
+		if (textarea.value) {
+			cursor.value = textarea.value?.selectionEnd || -1;
+		}
+	};
+	const modelVal = computed({
+		set(val) {
+			emit("update:modelValue", val);
+		},
+		get() {
+			return props.modelValue;
+		},
+	});
+</script>
+<template>
+	<div class="flex items-start space-x-4">
+		<div class="min-w-0 flex-1 relative">
+			<div
+				class="border border-gray-300 dark:border-gray-600 rounded-lg shadow-sm overflow-hidden focus-within:border-amber-500 focus-within:ring-1 focus-within:ring-amber-500">
+				<textarea
+					ref="textarea"
+					:rows="rows"
+					v-model="modelVal"
+					@blur="updateCursor"
+					@keyup="updateCursor"
+					class="block w-full p-3 border-0 text-gray-700 dark:text-gray-300 resize-none focus:ring-0 sm:text-sm outline-none focus:outline-none bg-transparent"
+					:placeholder="placeholder" />
+				<!-- Spacer textareaent to match the height of the toolbar -->
+				<div aria-hidden="true">
+					<!-- Matches height of button in toolbar (1px border + 36px content height) -->
+					<div class="py-px">
+						<div class="h-9" />
+					</div>
+				</div>
+			</div>
+
+			<div
+				ref="close"
+				class="absolute bottom-0 inset-x-0 pl-3 pr-2 py-2 flex justify-between">
+				<div v-if="emoji" class="flex items-center space-x-5">
+					<div class="flex items-center">
+						<button
+							ref="button"
+							type="button"
+							@click="open = !open"
+							class="-m-2.5 w-10 h-10 rounded-full flex items-center justify-center text-gray-400 hover:text-gray-500">
+							<FaceSmileIcon
+								class="flex-shrink-0 h-5 w-5"
+								aria-hidden="true" />
+						</button>
+						<div ref="picker">
+							<EmojiPicker
+								class=""
+								v-if="open"
+								@select="onSelect" />
+						</div>
+					</div>
+				</div>
+				<div class="flex-shrink-0">
+					<slot name="clear">
+						<button
+							type="button"
+							@click="$emit('update:modelValue', '')"
+							class="ease-in-out duration-150 inline-flex items-center px-4 py-1 border border-transparent text-sm leading-4 font-medium rounded-md shadow-sm text-white bg-red-600 hover:bg-red-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-red-500 transition-colors">
+							Clear
+						</button>
+					</slot>
+				</div>
+			</div>
+		</div>
+	</div>
+</template>
+
+
+================================================
+File: resources/js/Components/InputError.vue
+================================================
+<script setup>
+defineProps({
+    message: {
+        type: String,
+    },
+});
+</script>
+
+<template>
+    <div v-show="message">
+        <p class="text-sm text-red-600">
+            {{ message }}
+        </p>
+    </div>
+</template>
+
+
+================================================
+File: resources/js/Components/InputLabel.vue
+================================================
+<script setup>
+defineProps({
+    value: {
+        type: String,
+    },
+});
+</script>
+
+<template>
+    <label class="block text-sm font-medium text-gray-700">
+        <span v-if="value">{{ value }}</span>
+        <span v-else><slot /></span>
+    </label>
+</template>
+
+
+================================================
+File: resources/js/Components/LargeDecimal.vue
+================================================
+<template>
+	<span class="inline-flex items-baseline" :class="className">
+		{{ formatNumber.whole }}
+		<sub v-if="formatNumber.zeroCount > 0" class="text-[9px] mx-0.5">
+			{{ formatNumber.zeroCount }}
+		</sub>
+		{{ formatNumber.remainingDecimals }}
+	</span>
+</template>
+
+<script setup>
+	import { computed } from "vue";
+
+	const props = defineProps({
+		value: {
+			type: [Number, String],
+			required: true,
+		},
+		className: {
+			type: String,
+			default: "",
+		},
+	});
+
+	const formatNumber = computed(() => {
+		// Convert number to string, ensuring we don't get scientific notation
+		const strNum =
+			typeof props.value === "string"
+				? props.value
+				: props.value.toString();
+
+		// If not a decimal, return original
+		if (!strNum.includes(".")) {
+			return { whole: strNum, zeroCount: 0, remainingDecimals: "" };
+		}
+
+		const [whole, decimal] = strNum.split(".");
+		let zeroCount = 0;
+
+		// Count leading zeros
+		for (let i = 0; i < decimal.length; i++) {
+			if (decimal[i] === "0") {
+				zeroCount++;
+			} else {
+				return {
+					whole: whole + ".0",
+					zeroCount,
+					remainingDecimals: decimal.slice(i),
+				};
+			}
+		}
+
+		// If all zeros after decimal
+		return {
+			whole: whole + ".0",
+			zeroCount,
+			remainingDecimals: "",
+		};
+	});
+</script>
+
+
+================================================
+File: resources/js/Components/Loading.vue
+================================================
+<template>
+	<svg
+		class="animate-spin h-5 w-5 text-inherit"
+		xmlns="http://www.w3.org/2000/svg"
+		fill="none"
+		viewBox="0 0 24 24"
+	>
+		<circle
+			class="opacity-25"
+			cx="12"
+			cy="12"
+			r="10"
+			stroke="currentColor"
+			stroke-width="4"
+		></circle>
+		<path
+			class="opacity-75"
+			fill="currentColor"
+			d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"
+		></path>
+	</svg>
+</template>
+
+
+================================================
+File: resources/js/Components/LogoInput.vue
+================================================
+<script setup>
+import { computed, ref, watch } from "vue";
+
+import {
+    ArrowUpTrayIcon,
+    ClipboardDocumentCheckIcon,
+    ClipboardDocumentIcon,
+    CloudArrowUpIcon,
+    XMarkIcon,
+} from "@heroicons/vue/24/outline";
+import axios from "axios";
+
+import Loading from "@/Components/Loading.vue";
+import WeCopy from "@/Components/WeCopy.vue";
+const props = defineProps({
+    modelValue: String,
+    file: String,
+    errors: String,
+    auto: Boolean,
+    deleteUri: String,
+    disk: String,
+});
+const circumference = 30 * 2 * Math.PI;
+const logo = ref(null);
+const logoUri = ref(null);
+const percent = ref(0);
+const busy = ref(false);
+const deleteUrl = ref(props.deleteUri);
+const onUploadProgress = (bytes) => {
+    percent.value = (bytes / logo.value.size) * 100;
+};
+
+const emit = defineEmits(["update:modelValue", "update:file"]);
+const spacesPath = computed({
+    get() {
+        return props.modelValue;
+    },
+    set(value) {
+        emit("update:modelValue", value);
+    },
+});
+const logoError = computed({
+    get() {
+        return props.logoError;
+    },
+    set(value) {
+        emit("update:logoError", value);
+    },
+});
+const uploadPath = computed({
+    get() {
+        return props.file;
+    },
+    set(value) {
+        emit("update:file", value);
+    },
+});
+
+const uploadToSpaces = async () => {
+    if (!logo.value) return false;
+
+    const fileExtension = logo.value.type.split("/").pop();
+    const {
+        data: { url, link, file, remove },
+    } = await axios.post(window.route("s3.sign", { disk: props.disk }), {
+        ext: fileExtension,
+        name: logo.value.name,
+        type: logo.value.type,
+    });
+
+    await axios.put(url, logo.value, {
+        headers: {
+            "x-amz-acl": "public-read",
+            "Content-Type": logo.value.type,
+        },
+        onUploadProgress,
+        crossdomain: true,
+    });
+    busy.value = false;
+    spacesPath.value = link;
+    uploadPath.value = file;
+    deleteUrl.value = remove;
+};
+
+const reader = new FileReader();
+reader.onload = function (e) {
+    logoUri.value = e.target.result;
+};
+
+const setLogo = async (lgo) => {
+    if (lgo.size > 512000) {
+        return (logoError.value = "Max 512Kb");
+    }
+    if (
+        !["image/jpeg", "image/gif", "image/png", "image/svg+xml"].includes(
+            lgo.type
+        )
+    )
+        return (logoError.value = "Unsupported");
+    logoError.value = null;
+    busy.value = true;
+    logo.value = lgo;
+    props.auto && uploadToSpaces();
+};
+
+watch(logo, (logo) => {
+    if (logo) reader.readAsDataURL(logo);
+    else logoUri.value = null;
+});
+const deleting = ref(false);
+const clearFile = async () => {
+    deleting.value = true;
+    if (deleteUrl.value) {
+        await axios.delete(deleteUrl.value);
+    }
+    logoUri.value = null;
+    logo.value = null;
+    spacesPath.value = null;
+    percent.value = 0;
+    deleting.value = false;
+};
+
+const preview = computed(() => {
+    return spacesPath.value ?? logoUri.value;
+});
+</script>
+<template>
+    <div class="flex items-center align-middle">
+        <span class="text-red-600 dark:text-red-400" v-if="logoError">{{
+            logoError
+        }}</span>
+        <WeCopy
+            :text="preview"
+            v-else-if="spacesPath"
+            v-slot="{ copied }"
+            after
+        >
+            <ClipboardDocumentCheckIcon v-if="copied" class="w-5 h-6" />
+            <ClipboardDocumentIcon v-else class="w-5 h-6" />
+        </WeCopy>
+        <div
+            class="inline-flex items-center justify-center overflow-hidden rounded-full bottom-5 left-5"
+        >
+            <!-- Building a Progress Ring: https://css-tricks.com/building-progress-ring-quickly/ -->
+            <svg class="w-20 h-20">
+                <circle
+                    class="text-gray-300"
+                    stroke-width="5"
+                    stroke="currentColor"
+                    fill="transparent"
+                    r="30"
+                    cx="40"
+                    cy="40"
+                />
+                <circle
+                    class="text-emerald-600 dark:text-emerald-400"
+                    stroke-width="5"
+                    :stroke-dasharray="circumference"
+                    :stroke-dashoffset="
+                        circumference - (percent / 100) * circumference
+                    "
+                    stroke-linecap="round"
+                    stroke="currentColor"
+                    fill="transparent"
+                    r="30"
+                    cx="40"
+                    cy="40"
+                />
+            </svg>
+            <label
+                :class="
+                    preview
+                        ? ''
+                        : ' bg-emerald-500 hover:bg-emerald-600  hover:shadow-emerald-500/50 focus:bg-emerald-600 active:bg-emerald-600/90'
+                "
+                class="absolute btn h-9 w-9 rounded-full p-0 font-medium text-white hover:shadow-lg"
+            >
+                <input
+                    tabindex="-1"
+                    type="file"
+                    @input="setLogo($event.target.files[0])"
+                    class="pointer-events-none absolute inset-0 h-full w-full opacity-0"
+                />
+                <img
+                    v-if="preview"
+                    class="w-9 h-9 rounded-full"
+                    :src="preview"
+                />
+                <ArrowUpTrayIcon v-else class="h-5 w-5" />
+            </label>
+        </div>
+        <button
+            v-if="spacesPath"
+            @click.prevent="clearFile()"
+            class="btn space-x-2 bg-error text-base py-1.5 font-medium text-white hover:bg-error hover:shadow-lg hover:shadow-error/50 focus:bg-error focus:shadow-lg focus:shadow-error/50 active:bg-error/90"
+        >
+            <span>Delete</span>
+            <Loading class="w-4 h-4 text-white ml-2 -mr-1" v-if="deleting" />
+            <XMarkIcon v-else class="w-4 h-4 text-white ml-2 -mr-1" />
+        </button>
+        <button
+            v-else-if="logo"
+            @click.prevent="uploadToSpaces()"
+            :disabled="busy"
+            class="btn space-x-2 bg-info text-base py-1.5 font-medium text-white hover:bg-info hover:shadow-lg hover:shadow-info/50 focus:bg-info focus:shadow-lg focus:shadow-info/50 active:bg-info/90"
+        >
+            <span v-if="busy">Uploading</span>
+            <span v-else>Upload</span>
+            <Loading v-if="busy" />
+            <CloudArrowUpIcon v-else class="h-6 w-6" />
+        </button>
+    </div>
+</template>
+<style></style>
+
+
+================================================
+File: resources/js/Components/LogoInputLocal.vue
+================================================
+<script setup>
+import { computed, reactive, ref } from "vue";
+
+import { usePage } from "@inertiajs/vue3";
+import FilePondPluginFileValidateType from "filepond-plugin-file-validate-type";
+import FilePondPluginImagePreview from "filepond-plugin-image-preview";
+import "filepond-plugin-image-preview/dist/filepond-plugin-image-preview.min.css";
+import vueFilePond from "vue-filepond";
+
+defineProps({
+    modelValue: String,
+    file: Object,
+    errors: String,
+    label: String,
+});
+const emit = defineEmits(["update:modelValue", "update:file"]);
+const FilePond = vueFilePond(
+    FilePondPluginFileValidateType,
+    FilePondPluginImagePreview
+);
+const server = reactive({
+    url: "/filepond/api",
+    process: "/process",
+    revert: "/process",
+    patch: "?patch=",
+    headers: {
+        "X-CSRF-TOKEN": computed(() => usePage().props.csrf_token),
+    },
+});
+const uploadError = ref(null);
+const handleProcessFile = (error, file) => {

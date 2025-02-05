@@ -1,0 +1,523 @@
+use Illuminate\Support\Facades\Log;
+use Illuminate\Support\Collection;
+use Exception;
+
+class TokenHolderService
+{
+    protected $apiKey;
+    protected $baseUrl = 'https://rpc.ankr.com/multichain';
+    protected const CHUNK_SIZE = 1000; // Number of records to process at once
+
+    public function __construct()
+    {
+        $this->apiKey = config('evm.ankr_key');
+    }
+
+    /**
+     * Update holders for all active launchpads
+     */
+    public function updateAllHolders()
+    {
+        try {
+            $launchpads = Launchpad::query()
+                ->whereNotNull('token')
+                ->get();
+
+            foreach ($launchpads as $launchpad) {
+                $this->updateHolders($launchpad);
+            }
+        } catch (Exception $e) {
+            Log::error('Failed to update all holders: ' . $e->getMessage());
+        }
+    }
+
+    /**
+     * Update holders for a specific launchpad using bulk upsert
+     */
+    public function updateHolders(Launchpad $launchpad)
+    {
+        try {
+            $response = $this->fetchHolders($launchpad->token, $launchpad->chainId);
+
+            if (!isset($response['holders'])) {
+                Log::error("Invalid response for token {$launchpad->token}");
+                return;
+            }
+
+            // Get all user addresses and IDs once
+            $users = User::query()->pluck('id', 'address');
+            $checksumAddresses = $users->keys()->mapWithKeys(function ($address) use ($users) {
+                return [strtolower($address) => $users[$address]];
+            });
+            $userAddresses = $users->union($checksumAddresses);
+
+            // Prepare holder records for bulk upsert
+            $holders = collect($response['holders'])->map(function ($holder) use ($launchpad, $userAddresses) {
+                return [
+                    'launchpad_id' => $launchpad->id,
+                    'address' => strtolower($holder['holderAddress']),
+                    'qty' => $holder['balance'],
+                    'user_id' => $userAddresses[$holder['holderAddress']] ?? null,
+                    'updated_at' => now(),
+                    'created_at' => now(),
+                ];
+            });
+
+            // Process in chunks to avoid memory issues
+            $holders->chunk(self::CHUNK_SIZE)->each(function ($chunk) {
+                Holder::upsert(
+                    $chunk->toArray(),
+                    ['launchpad_id', 'address'], // Unique keys for matching
+                    ['qty', 'user_id', 'updated_at'] // Columns to update if record exists
+                );
+            });
+
+            // Clean up old holders that no longer exist
+            $currentHolderAddresses = collect($response['holders'])->pluck('holderAddress')->toArray();
+            Holder::where('launchpad_id', $launchpad->id)
+                ->whereNotIn('address', $currentHolderAddresses)
+                ->delete();
+        } catch (Exception $e) {
+            Log::error("Failed to update holders for launchpad {$launchpad->id}: " . $e->getMessage());
+        }
+    }
+
+    /**
+     * Fetch holders from Ankr API
+     */
+    protected function fetchHolders(string $tokenAddress, string $chainId, int $page = 1): array
+    {
+        $response = Http::post($this->baseUrl . '/' . $this->apiKey, [
+            'jsonrpc' => '2.0',
+            'method' => 'ankr_getTokenHolders',
+            'params' => [
+                'blockchain' => $this->getBlockchainName($chainId),
+                'contractAddress' => $tokenAddress,
+                'pageSize' => 10000,
+                'pageNumber' => $page
+            ],
+            'id' => 1
+        ]);
+
+        if ($response->failed()) {
+            throw new Exception('Ankr API request failed: ' . $response->body());
+        }
+
+        return $response->json()['result'] ?? [];
+    }
+
+    /**
+     * Convert chainId to blockchain name for Ankr API
+     */
+    protected function getBlockchainName(string $chainId): string
+    {
+        return match ($chainId) {
+            '1' => 'eth',
+            '5' => 'eth_holesky',
+            '10' => 'optimism',
+            '11155111' => 'eth_sepolia',
+            '56' => 'bsc',
+            '100' => 'gnosis',
+            '137' => 'polygon',
+            '420' => 'optimism_testnet',
+            '8453' => 'base',
+            '84532' => 'base_sepolia',
+            '42161' => 'arbitrum',
+            '43114' => 'avalanche',
+            '43113' => 'avalanche_fuji',
+            '250' => 'fantom',
+            '1101' => 'polygon_zkevm',
+            '59144' => 'linea',
+            '534352' => 'scroll',
+            '57' => 'syscoin',
+            '40' => 'telos',
+            '14' => 'flare',
+            '570' => 'rollux',
+            '660279' => 'xai',
+            default => throw new Exception("Unsupported chainId: {$chainId}")
+        };
+    }
+}
+
+
+================================================
+File: app/Services/UniswapV3GraphService.php
+================================================
+<?php
+
+namespace App\Services;
+
+use Illuminate\Support\Facades\Http;
+use Illuminate\Support\Facades\Log;
+use Carbon\Carbon;
+
+class UniswapV3GraphService
+{
+
+    protected Http $client;
+
+    public function __construct(protected string $endpoint)
+    {
+        // Different endpoints for different networks
+        $this->client = Http::timeout(30);
+    }
+
+    /**
+     * Fetch pool statistics for a specific pool
+     */
+    public function getPoolStats(string $poolAddress): array
+    {
+        $query = '
+            query GetPoolStats($poolAddress: String!, $startTime: Int!) {
+                pool(id: $poolAddress) {
+                    token0Price
+                    token1Price
+                    totalValueLockedUSD
+                    feeTier
+                    liquidity
+                    txCount
+                    volumeUSD
+                    poolDayData(
+                        first: 7
+                        orderBy: date
+                        orderDirection: desc
+                        where: { date_gt: $startTime }
+                    ) {
+                        date
+                        volumeUSD
+                        tvlUSD
+                        token0Price
+                        token1Price
+                        txCount
+                    }
+                }
+            }
+        ';
+
+        try {
+            $startTime = Carbon::now()->subDays(7)->startOfDay()->timestamp;
+
+            $response = $this->client->post($this->endpoint, [
+                'query' => $query,
+                'variables' => [
+                    'poolAddress' => strtolower($poolAddress),
+                    'startTime' => $startTime
+                ]
+            ])->throw()->json();
+
+            $pool = $response['data']['pool'] ?? null;
+            if (!$pool) {
+                throw new \Exception("Pool not found: {$poolAddress}");
+            }
+
+            $dayData = $pool['poolDayData'] ?? [];
+
+            // Calculate price changes
+            $priceChanges = $this->calculatePriceChanges($dayData, $pool['token0Price']);
+
+            return [
+                'token0_price' => $pool['token0Price'],
+                'token1_price' => $pool['token1Price'],
+                'tvl_usd' => $pool['totalValueLockedUSD'],
+                'volume_24h' => $dayData[0]['volumeUSD'] ?? 0,
+                'fee_tier' => $pool['feeTier'] / 10000, // Convert from basis points
+                'transactions_24h' => $dayData[0]['txCount'] ?? 0,
+                'total_transactions' => $pool['txCount'],
+                'liquidity' => $pool['liquidity'],
+                'price_change_1h' => $priceChanges['1h'],
+                'price_change_24h' => $priceChanges['24h'],
+                'price_change_7d' => $priceChanges['7d'],
+                'min_price_24h' => $this->calculateMinPrice($dayData),
+                'max_price_24h' => $this->calculateMaxPrice($dayData),
+                'timestamp' => now()
+            ];
+        } catch (\Exception $e) {
+            Log::error('Failed to fetch pool stats', [
+                'pool' => $poolAddress,
+                'error' => $e->getMessage()
+            ]);
+            throw $e;
+        }
+    }
+
+    /**
+     * Calculate price changes for different time periods
+     */
+    protected function calculatePriceChanges(array $dayData, string $currentPrice): array
+    {
+        $currentPrice = (float) $currentPrice;
+        $changes = [
+            '1h' => 0,
+            '24h' => 0,
+            '7d' => 0
+        ];
+
+        if (empty($dayData)) {
+            return $changes;
+        }
+
+        // 24h change
+        if (isset($dayData[0]['token0Price'])) {
+            $price24hAgo = (float) $dayData[0]['token0Price'];
+            $changes['24h'] = $this->calculatePercentageChange($price24hAgo, $currentPrice);
+        }
+
+        // 7d change
+        if (isset($dayData[6]['token0Price'])) {
+            $price7dAgo = (float) $dayData[6]['token0Price'];
+            $changes['7d'] = $this->calculatePercentageChange($price7dAgo, $currentPrice);
+        }
+
+        // Note: 1h change requires additional query to get hourly data
+        // You might want to add that separately if needed
+
+        return $changes;
+    }
+
+    /**
+     * Calculate minimum price in the last 24 hours
+     */
+    protected function calculateMinPrice(array $dayData): float
+    {
+        if (empty($dayData)) {
+            return 0;
+        }
+
+        $prices = array_column($dayData, 'token0Price');
+        return (float) min($prices);
+    }
+
+    /**
+     * Calculate maximum price in the last 24 hours
+     */
+    protected function calculateMaxPrice(array $dayData): float
+    {
+        if (empty($dayData)) {
+            return 0;
+        }
+
+        $prices = array_column($dayData, 'token0Price');
+        return (float) max($prices);
+    }
+
+    /**
+     * Calculate percentage change between two values
+     */
+    protected function calculatePercentageChange(float $oldValue, float $newValue): float
+    {
+        if ($oldValue == 0) {
+            return 0;
+        }
+
+        return (($newValue - $oldValue) / $oldValue) * 100;
+    }
+}
+
+
+================================================
+File: app/Services/UrlCrypt.php
+================================================
+<?php
+
+namespace App\Services;
+
+class UrlCrypt
+{
+
+    private static $method = 'AES-128-ECB'; // Note: ECB is used here for compactness, see security note below
+
+
+    public static function encrypt(string $data): string
+    {
+        $encrypted = openssl_encrypt(
+            $data,
+            static::$method,
+            config('app.key'),
+            OPENSSL_RAW_DATA
+        );
+
+        // Convert to URL-safe base64
+        return static::base64UrlEncode($encrypted);
+    }
+
+    public static function decrypt(string $data): string
+    {
+        // Convert from URL-safe base64
+        $decoded = static::base64UrlDecode($data);
+        return openssl_decrypt(
+            $decoded,
+            static::$method,
+            config('app.key'),
+            OPENSSL_RAW_DATA
+        );
+    }
+
+    private static function base64UrlEncode(string $data): string
+    {
+        return rtrim(strtr(base64_encode($data), '+/', '-_'), '=');
+    }
+
+    private static function base64UrlDecode(string $data): string
+    {
+        return base64_decode(strtr($data, '-_', '+/'));
+    }
+}
+
+
+================================================
+File: app/Services/Util.php
+================================================
+<?php
+
+namespace App\Services;
+
+use InvalidArgumentException;
+use kornrunner\Keccak;
+
+class Util
+{
+
+    /**
+     * get checksummed address from lowercase
+     */
+    public static function toChecksumAddress(string $address): string
+    {
+        // Remove '0x' prefix if present and convert to lowercase
+        $address = strtolower(str_replace('0x', '', $address));
+
+        // Check if the address is valid length (40 characters without prefix)
+        if (!preg_match('/^[0-9a-f]{40}$/i', $address)) {
+            throw new InvalidArgumentException('Invalid Ethereum address format');
+        }
+
+        // Get the keccak hash of the address
+        $hash = Keccak::hash(strtolower($address), 256);
+
+        // Build the checksum address
+        $checksumAddress = '0x';
+
+        // Compare the hash with the address to determine which characters should be uppercase
+        for ($i = 0; $i < 40; $i++) {
+            // Get the current character from the hash and address
+            $hashChar = hexdec($hash[$i]);
+            $addressChar = $address[$i];
+
+            // If the hash character is greater than or equal to 8, make the address character uppercase
+            if ($hashChar >= 8) {
+                $checksumAddress .= strtoupper($addressChar);
+            } else {
+                $checksumAddress .= $addressChar;
+            }
+        }
+
+        return $checksumAddress;
+    }
+}
+
+
+================================================
+File: app/Traits/HasProfilePhoto.php
+================================================
+<?php
+
+namespace App\Traits;
+
+use Illuminate\Http\UploadedFile;
+use Illuminate\Support\Facades\Storage;
+use Illuminate\Support\Str;
+
+trait HasProfilePhoto
+{
+    /**
+     * Update the user's profile photo.
+     *
+     * @param  \Illuminate\Http\UploadedFile  $photo
+     * @return void
+     */
+    public function updateProfilePhoto(UploadedFile $photo)
+    {
+        tap($this->profile_photo_path, function ($previous) use ($photo) {
+            $this->forceFill([
+                'profile_photo_path' => $photo->storePublicly(
+                    'profile-photos',
+                    ['disk' => $this->profilePhotoDisk()]
+                ),
+            ])->save();
+
+            if ($previous) {
+                Storage::disk($this->profilePhotoDisk())->delete($previous);
+            }
+        });
+    }
+
+    /**
+     * Delete the user's profile photo.
+     *
+     * @return void
+     */
+    public function deleteProfilePhoto()
+    {
+        if (is_null($this->profile_photo_path)) {
+            return;
+        }
+
+        Storage::disk($this->profilePhotoDisk())->delete($this->profile_photo_path);
+
+        $this->forceFill([
+            'profile_photo_path' => null,
+        ])->save();
+    }
+
+    /**
+     * Get the URL to the user's profile photo.
+     *
+     * @return string
+     */
+    public function getProfilePhotoUrlAttribute()
+    {
+        return $this->profile_photo_path
+            ? Storage::disk($this->profilePhotoDisk())->url($this->profile_photo_path)
+            : $this->defaultProfilePhotoUrl();
+    }
+
+    /**
+     * Get the default profile photo URL if no profile photo has been uploaded.
+     *
+     * @return string
+     */
+    protected function defaultProfilePhotoUrl()
+    {
+        $name = trim(collect(explode(' ', $this->name))->map(function ($segment) {
+            return mb_substr($segment, 0, 1);
+        })->join(' '));
+
+        return 'https://ui-avatars.com/api/?name=' . urlencode($name) . '&color=7F9CF5&background=EBF4FF';
+    }
+
+    /**
+     * Get the disk that profile photos should be stored on.
+     *
+     * @return string
+     */
+    function profilePhotoDisk()
+    {
+        return  config('filesystems.profile_photo_disk', 'public');
+    }
+}
+
+
+================================================
+File: app/Traits/HasUuid.php
+================================================
+<?php
+
+namespace App\Traits;
+
+use Illuminate\Support\Str;
+
+trait HasUuid
+{
+
+    /**
+     * Boot function from laravel.
+     */

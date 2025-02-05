@@ -1,0 +1,523 @@
+    [bsc.id]: {
+        link: 'https://bscscan.com',
+        builder: explorers.etherscan,
+    },
+    [bscTestnet.id]: {
+        link: 'https://testnet.bscscan.com',
+        builder: explorers.etherscan,
+    },
+    [arbitrum.id]: {
+        link: 'https://arbiscan.io',
+        builder: explorers.etherscan,
+    },
+
+    [avalanche.id]: {
+        link: 'https://cchain.explorer.avax.network',
+        builder: explorers.blockscout,
+    },
+    [avalancheFuji.id]: {
+        link: 'https://cchain.explorer.avax-test.network',
+        builder: explorers.etherscan,
+    },
+    [optimism.id]: {
+        link: 'https://optimistic.etherscan.io',
+        builder: explorers.etherscan,
+    },
+    [arbitrumNova.id]: {
+        link: 'https://nova-explorer.arbitrum.io',
+        builder: explorers.blockscout,
+    },
+    [base.id]: {
+        link: 'https://basescan.org/',
+        builder: explorers.etherscan,
+    },
+    [celo.id]: {
+        link: 'https://celoscan.io/',
+        builder: explorers.etherscan,
+    },
+    [blast.id]: {
+        link: 'https://blastscan.io/',
+        builder: explorers.etherscan,
+    },
+    [zora.id]: {
+        link: 'https://explorer.zora.energy/',
+        builder: explorers.etherscan,
+    },
+    [worldchain.id]: {
+        link: 'https://worldscan.org/',
+        builder: explorers.etherscan,
+    }
+};
+
+export function getExplorerLink(
+    chainId,
+    data,
+    type
+) {
+    if (!chainId) return '';
+    const chain = chains[chainId];
+    return chain.builder(chain.link, data, type);
+}
+
+
+export function shortenAddress(address, chars = 4) {
+    if (!address) return null;
+    if (address?.length <= chars) return address;
+    return `${address.substring(0, parseInt(chars) + 2)}...${address.substring(
+        42 - chars,
+    )}`;
+}
+// shorten the checksummed version of the input address to have 0x + 4 characters at start and end
+
+export function truncateTx(fullStr = "", strLen = 33, separator = "...") {
+    if (fullStr?.length <= strLen) return fullStr;
+    const sepLen = separator.length;
+    const charsToShow = strLen - sepLen;
+    const frontChars = Math.ceil(charsToShow / 2);
+    const backChars = Math.floor(charsToShow / 2);
+    return (
+        fullStr.substring(0, frontChars + 3) +
+        separator +
+        fullStr.substring(fullStr.length - backChars - 3)
+    );
+}
+
+
+export function useTxHash(txhash, chId = null, chars = 18) {
+    const chainId = useChainId();
+    const shortTx = computed(() => {
+        if (!get(txhash) || get(txhash).length < 30) return "";
+        return truncateTx(get(txhash), chars);
+    });
+    const etherScanLink = computed(() => {
+        if (!get(txhash) || get(txhash).length < 30) return "";
+        return getExplorerLink(chId ?? chainId.value, get(txhash), 'transaction');
+    });
+    return [shortTx, etherScanLink];
+}
+
+export function useAddress(txAddress, chId = null, chars = 4) {
+    const chainId = useChainId();
+    const shortTx = computed(() => {
+        const address = isAddress(get(txAddress));
+        if (!address) return "";
+        return shortenAddress(address, chars);
+    });
+    const etherScanLink = computed(() => {
+        const address = isAddress(get(txAddress));
+        if (!address) return "";
+        return getExplorerLink(chId ?? chainId.value, get(txAddress), 'address');
+    });
+    return [shortTx, etherScanLink];
+}
+
+export function isAddress(value) {
+    try {
+        return getAddress(value);
+    } catch {
+        return null;
+    }
+}
+
+
+================================================
+File: resources/js/hooks/index.js
+================================================
+import { ref } from "vue";
+// ucfirst
+export const ucfirst = (string) => {
+    return string.charAt(0).toUpperCase() + string.slice(1);
+};
+
+
+export const camel = (string) => {
+    return string.replace(/-([a-z])/g, function (g) { return g[1].toUpperCase(); });
+};
+
+export const kebab = (string) => {
+    return string.replace(/([a-z])([A-Z])/g, '$1-$2').toLowerCase();
+};
+
+export const lcfirst = (string) => {
+    return string.charAt(0).toLowerCase() + string.slice(1);
+};
+
+export const limit = (string, limit = 100, end = '...') => {
+    if (string.length <= limit) {
+        return string;
+    }
+    return string.slice(0, limit) + end;
+};
+
+export const lower = (string) => {
+    return string.toLowerCase();
+};
+
+export const upper = (string) => {
+    return string.toUpperCase();
+};
+
+export const rtrim = (string, charlist = " \t\n\r\0\x0B") => {
+    return string.replace(new RegExp(`[${charlist}]+$`), '');
+};
+
+export const slug = (string, separator = '-') => {
+    string = string.replace(/[^a-z0-9\-_]/gi, separator);
+    string = string.replace(new RegExp(`${separator}{2,}`, 'g'), separator);
+    string = string.replace(new RegExp(`^${separator}|${separator}$`, 'g'), '');
+    return string.toLowerCase();
+};
+
+export const snake = (string, delimiter = '_') => {
+    return string.replace(/([a-z])([A-Z])/g, '$1' + delimiter + '$2').toLowerCase();
+};
+
+export const trim = (string, charlist = " \t\n\r\0\x0B") => {
+    return string.replace(new RegExp(`^[${charlist}]+|[${charlist}]+$`, 'g'), '');
+};
+
+export const title = (string) => {
+    return string.replace(/(^|\s)([a-z])/g, function (m, p1, p2) { return p1 + p2.toUpperCase(); });
+};
+
+export const take = (string, length = 1) => {
+    return string.substr(0, length);
+};
+
+export const substr = (string, start, length = null) => {
+    return string.substr(start, length);
+};
+
+export const start = (string, startwith = '') => {
+    return `${startwith}${string}`;
+};
+
+export const squish = (string, delimiter = ' ') => {
+    return string.replace(new RegExp(`${delimiter}{2,}`, 'g'), delimiter);
+};
+
+
+export const useToggle = () => {
+    const isOpen = ref(false);
+    const open = () => isOpen.value = true;
+    const close = () => isOpen.value = false;
+    const toggle = () => isOpen.value ? close() : open();
+    return {
+        isOpen,
+        toggle,
+        open,
+        close
+    };
+};
+
+export const useBillions = (billion) => {
+    let newValue = parseInt(billion) ?? 0;
+    if (!newValue) return 0;
+    if (newValue < 1000) return newValue;
+    const suffixes = ["", "K", "M", "B", "T"];
+    let suffixNum = 0;
+    while (newValue >= 1000) {
+        newValue /= 1000;
+        suffixNum++;
+    }
+    newValue =
+        newValue.toString().length > 2
+            ? newValue.toPrecision(3)
+            : newValue.toPrecision();
+    newValue += suffixes[suffixNum];
+    return newValue;
+};
+
+
+================================================
+File: resources/js/hooks/multicall.js
+================================================
+import { get } from '@vueuse/core';
+import omit from "lodash/omit";
+import toPairs from "lodash/toPairs";
+import zip from "lodash/zip";
+
+export const DataTypes = Object.freeze({
+    originAddress: "originAddress",
+});
+const createIndexSet = (data) => {
+    return data.reduce((acc, item) => ({
+        lastIndex: acc.lastIndex + item.length,
+        built: acc.built.concat([[acc.lastIndex, acc.lastIndex + item.length]]),
+    }),
+        { lastIndex: 0, built: [] }
+    ).built;
+};
+
+
+
+const mergeFromIndexSet = (arr, indexes) =>
+    indexes.map(([before, after]) => arr.slice(before, after));
+
+const stripLabels = (groupsOfShapes) => {
+    return groupsOfShapes.map((group) =>
+        group.map((relay) => {
+            const pairs = toPairs(relay);
+            const keysToRemove = pairs
+                .filter(([key, value]) => {
+                    const isContract = (typeof value === "object") && !!value?.functionName && !!value?.abi;
+                    return !isContract;
+                })
+                .map(([key]) => key);
+
+            return omit(relay, keysToRemove);
+        })
+    );
+};
+const recoverLabels = (original, withData) => {
+
+    const nameRecall = zip(original, withData);
+    const toReturn = nameRecall.map(([plainShape, withOrigin]) => {
+        const zipped = zip(plainShape, withOrigin);
+        return zipped.map(([plain, origin]) => {
+            const keysToAdd = toPairs(plain)
+                .filter(([key, value]) => typeof value !== "object")
+                .map(([key, value]) => [
+                    key,
+                    value,
+                ]);
+            const keysAdded = keysToAdd.reduce(
+                (acc, [key, value]) => ({
+                    ...acc,
+                    [key]: value,
+                }),
+                origin
+            );
+            return keysAdded;
+        });
+    });
+    return toReturn;
+};
+const encodeAbi = (groupsOfShapes) => {
+    return groupsOfShapes.map((group) =>
+        group.map((shape) => {
+            return Object.keys(shape).reduce((memo, key) => {
+                if (typeof shape[key] === 'object' && shape[key]?.functionName !== undefined && isContractFunction(shape.contract.abi, shape[key]?.functionName)) {
+                    return {
+                        ...memo,
+                        [key]: {
+                            ...shape.contract,
+                            ...shape[key]
+                        }
+                    };
+                }
+                if ((!shape[key] || Array.isArray(shape[key])) && isContractFunction(shape.contract.abi, key)) {
+                    return {
+                        ...memo,
+                        [key]: {
+                            ...shape.contract,
+                            ...shape[key] ? { args: shape[key] } : {},
+                            functionName: key,
+                        }
+                    };
+                }
+                if (key === 'contract') {
+                    return {
+                        ...memo,
+                        [key]: shape.contract.address,
+                    };
+                }
+                return {
+                    ...memo,
+                    [key]: shape[key],
+                };
+
+            }, {});
+        })
+    );
+};
+const multiCallGroups = async (calls, options = {}) => {
+    const viem = options.client;
+    if (options.client) delete options.client;
+    if (calls.length === 0) return [];
+    const indexes = createIndexSet(calls);
+    const flatCalls = calls.flat(1);
+    const res = await get(viem).multicall({
+        ...options,
+        contracts: flatCalls
+    });
+    return mergeFromIndexSet(res, indexes);
+};
+
+const isContractFunction = (abi = [], func) => {
+    return abi.filter(a => a.type === 'function').map(a => a.name).includes(func);
+};
+
+export const multicall = async (groupsOfShapes = [], options = {}) => {
+    /** const groups = [[{
+        contract: { abi: ERC20_ABI, address: '0x8290333ceF9e6D528dD5618Fb97a76f268f3EDD4' },
+        id: 7636,
+        decimals: [],
+        symbol: [],
+        name: [],
+        balanceOf: ['0x91F708a8D27F2BCcCe8c00A5f812e59B1A5e48E6']
+    }, {
+        contract: { abi: ERC20_ABI, address: '0xB8c77482e45F1F44dE1745F52C74426C631bDD52' },
+        id: 334,
+        decimals: [],
+        symbol: [],
+        name: [],
+        balanceOf: ['0x91F708a8D27F2BCcCe8c00A5f812e59B1A5e48E6']
+    }]];**/
+    const callables = encodeAbi(groupsOfShapes);
+    const plainShapes = stripLabels(callables);
+    const groupsIndexSet = createIndexSet(callables);
+    const multiCalls = plainShapes.flatMap((encodedGroup) =>
+        encodedGroup.map((group) => Object.values(group)
+        )
+    );
+    const res = await multiCallGroups(multiCalls, options);
+    const rebuiltRes = mergeFromIndexSet(res, groupsIndexSet);
+    const answer = zip(plainShapes, rebuiltRes);
+    const better = answer.map(([abi, res]) => zip(abi, res));
+    const rawMatch = better.map((group) =>
+        group.map(([shape, resultsArr]) => zip(toPairs(shape), resultsArr))
+    );
+    const withOrigin = rawMatch.map((group) =>
+        group.map((keys) => {
+            return keys.reduce(
+                // changes this
+                (acc, [[key, value], data]) => {
+                    return {
+                        ...acc,
+                        [key]: data.error ?? data.result,
+                    };
+                },
+                {}
+            );
+        })
+    );
+    const renamed = recoverLabels(callables, withOrigin);
+    return renamed;
+};
+
+
+================================================
+File: resources/js/hooks/positionManager.json
+================================================
+[
+    {
+        "inputs": [
+            {
+                "internalType": "uint256",
+                "name": "tokenId",
+                "type": "uint256"
+            }
+        ],
+        "name": "positions",
+        "outputs": [
+            {
+                "internalType": "uint96",
+                "name": "nonce",
+                "type": "uint96"
+            },
+            {
+                "internalType": "address",
+                "name": "operator",
+                "type": "address"
+            },
+            {
+                "internalType": "address",
+                "name": "token0",
+                "type": "address"
+            },
+            {
+                "internalType": "address",
+                "name": "token1",
+                "type": "address"
+            },
+            {
+                "internalType": "uint24",
+                "name": "fee",
+                "type": "uint24"
+            },
+            {
+                "internalType": "int24",
+                "name": "tickLower",
+                "type": "int24"
+            },
+            {
+                "internalType": "int24",
+                "name": "tickUpper",
+                "type": "int24"
+            },
+            {
+                "internalType": "uint128",
+                "name": "liquidity",
+                "type": "uint128"
+            },
+            {
+                "internalType": "uint256",
+                "name": "feeGrowthInside0LastX128",
+                "type": "uint256"
+            },
+            {
+                "internalType": "uint256",
+                "name": "feeGrowthInside1LastX128",
+                "type": "uint256"
+            },
+            {
+                "internalType": "uint128",
+                "name": "tokensOwed0",
+                "type": "uint128"
+            },
+            {
+                "internalType": "uint128",
+                "name": "tokensOwed1",
+                "type": "uint128"
+            }
+        ],
+        "stateMutability": "view",
+        "type": "function"
+    }
+]
+
+================================================
+File: resources/js/hooks/swapMath.js
+================================================
+import { formatEther, formatUnits, parseEther, parseUnits } from 'viem';
+
+export const tokenAmount = (
+    ethReserve,    // ETH reserve in wei (bigint)
+    tokenReserve,  // Token reserve in smallest unit (bigint)
+    ethAmount,     // Amount of ETH as decimal string (e.g., "1.5")
+    slippage,      // Slippage tolerance in percentage (e.g., 0.5 for 0.5%)
+    tokenDecimals = 18  // Token decimals, defaults to 18
+) => {
+
+    try {
+        // Convert ETH amount to Wei (returns bigint)
+        const amountInWei = parseEther(ethAmount);
+
+        // Input validation
+        if (ethReserve <= 0n || tokenReserve <= 0n || amountInWei <= 0n || slippage < 0) {
+            return {
+                expectedOutputAmount: 0,      // ETH formatted string
+                minimumOutputAmount: 0,        // ETH formatted string
+                expectedOutputAmountWei: 0,    // Wei as string
+                minimumOutputAmountWei: 0,     // Wei as string
+                priceImpact: "0%"
+            };
+        }
+
+        // Calculate constant product (k)
+        const k = ethReserve * tokenReserve;
+
+        // Calculate new ETH reserve after swap
+        const newEthReserve = ethReserve + amountInWei;
+
+        // Calculate new token reserve using constant product formula
+        // k = (ethReserve + amountInWei) * (tokenReserve - outputAmount)
+        const newTokenReserve = k / newEthReserve;
+
+        // Calculate expected token output amount
+        const expectedOutputAmount = tokenReserve - newTokenReserve;
+
+        // Calculate minimum acceptable amount with slippage
+        const slippageMultiplier = 100n - BigInt(slippage);
+        const minimumOutputAmount = (expectedOutputAmount * slippageMultiplier) / 100n;

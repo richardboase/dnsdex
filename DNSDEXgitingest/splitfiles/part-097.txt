@@ -1,0 +1,523 @@
+     * use simulation
+     */
+    info.updateCheckFees = async () => {
+        const [owner, , isLocked, lockedAt] = await publicClient.readContract({
+            abi: launchpad.factory.lock_abi,
+            address: launchpad.factory.lock,
+            functionName: 'lockedNFTs',
+            args: [info.lpTokenId]
+        });
+        info.owner = owner;
+        info.isLocked = isLocked;
+        info.lockedAt = lockedAt;
+        info.unlocksAt = parseInt(lockedAt) + (60 * 60 * 24 * 365 * 10);
+        const [, , token0] = await publicClient.readContract({
+            abi: positionAbi,
+            address: info.positionManager,
+            functionName: 'positions',
+            args: [info.lpTokenId]
+        });
+        // simulation method? // could revert!!!
+        const result = await publicClient.simulateContract({
+            account: address.value,
+            abi: launchpad.factory.lock_abi,
+            address: launchpad.factory.lock,
+            functionName: 'claimFees',
+            args: [info.lpTokenId]
+        });
+
+        if (`${token0}`.toLowerCase() === `${info.weth}`.toLocaleLowerCase()) {
+            info.wethFees = formatEther(result.result[0]);
+            info.tokenFees = formatEther(result.result[1]);
+        } else {
+            info.wethFees = formatEther(result.result[1]);
+            info.tokenFees = formatEther(result.result[0]);
+        }
+    };
+    const { chainId } = useAccount();
+    watch(chainId, () => {
+        info.updateInfo();
+    }, { immediate: true });
+    return info;
+};
+
+
+================================================
+File: resources/js/hooks/useCountDown.js
+================================================
+
+import { ref, watch } from "vue";
+
+import { get } from "@vueuse/core";
+
+export const useCountDown = (eventCountDown, up = false) => {
+    const years = ref(null);
+    const months = ref(null);
+    const days = ref(null);
+    const hours = ref(null);
+    const minutes = ref(null);
+    const seconds = ref(null);
+    const totalDays = ref(null);
+    const timeout = ref(null);
+
+    const stop = () => {
+        if (timeout.value) clearInterval(timeout.value);
+        timeout.value = null;
+        years.value = null;
+        months.value = null;
+        days.value = null;
+        hours.value = null;
+        minutes.value = null;
+        seconds.value = null;
+        totalDays.value = null;
+    };
+
+    const calculateTimeUnits = (timeleft) => {
+        const totalDaysValue = Math.floor(timeleft / (1000 * 60 * 60 * 24));
+        totalDays.value = totalDaysValue;
+
+        if (totalDaysValue >= 365) {
+            // For periods longer than a year
+            years.value = Math.floor(totalDaysValue / 365);
+            const remainingDays = totalDaysValue % 365;
+            months.value = Math.floor(remainingDays / 30);
+            days.value = remainingDays % 30;
+            hours.value = null;
+            minutes.value = null;
+            seconds.value = Math.floor((timeleft % (1000 * 60)) / 1000);
+        } else if (totalDaysValue >= 100) {
+            // For periods between 100 days and a year
+            years.value = null;
+            months.value = Math.floor(totalDaysValue / 30);
+            days.value = totalDaysValue % 30;
+            hours.value = Math.floor((timeleft % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60));
+            minutes.value = null;
+            seconds.value = Math.floor((timeleft % (1000 * 60)) / 1000);
+        } else {
+            // For periods less than 100 days
+            years.value = null;
+            months.value = null;
+            days.value = totalDaysValue;
+            hours.value = Math.floor((timeleft % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60));
+            minutes.value = Math.floor((timeleft % (1000 * 60 * 60)) / (1000 * 60));
+            seconds.value = Math.floor((timeleft % (1000 * 60)) / 1000);
+        }
+    };
+
+    const start = () => {
+        if (!get(eventCountDown)) {
+            return;
+        }
+        stop();
+        timeout.value = setInterval(function () {
+            const now = new Date().getTime();
+            const timeleft = up
+                ? Math.abs(now - get(eventCountDown))
+                : get(eventCountDown) - now;
+
+            if (timeleft < 0) {
+                stop();
+                return;
+            }
+
+            calculateTimeUnits(timeleft);
+        }, 1000);
+    };
+
+    start();
+    watch(eventCountDown, start);
+
+    return {
+        years,
+        months,
+        days,
+        hours,
+        minutes,
+        seconds,
+        totalDays
+    };
+};
+
+================================================
+File: resources/js/hooks/useLaunchpadsData.js
+================================================
+
+import { ref, watch } from "vue";
+
+import { usePage } from '@inertiajs/vue3';
+import { get } from "@vueuse/core";
+import { useChains } from "@wagmi/vue";
+import groupBy from 'lodash/groupBy';
+import { createPublicClient, fallback, formatEther, http } from "viem";
+
+import { multicall } from "@/hooks/multicall";
+import {
+    ankrTransports,
+    blastapiTransports,
+    infuraTransports
+} from "@/lib/wagmi.js";
+
+// Function to get all possible transport URLs for a chain
+function getTransportUrls(chainId, rpcConfig) {
+    const { ankrKey, infuraKey, blastKey } = rpcConfig;
+    const urls = [];
+    // Add additional transport URLs from different providers based on configuration
+    if (ankrKey && ankrTransports(ankrKey)[chainId]) {
+        urls.push(ankrTransports(ankrKey)[chainId]);
+    }
+    if (infuraKey && infuraTransports(infuraKey)[chainId]) {
+        urls.push(infuraTransports(infuraKey)[chainId]);
+    }
+    if (blastKey && blastapiTransports(blastKey)[chainId]) {
+        urls.push(blastapiTransports(blastKey)[chainId]);
+    }
+
+    return [...new Set(urls)]; // Remove duplicates
+}
+
+// Simple async function to fetch launchpad data for a specific chain
+async function getLaunchpadDataByChainId(launchpads, rates, chainId, chains, rpcConfig) {
+    try {
+        const transportUrls = getTransportUrls(chainId, rpcConfig);
+
+        if (transportUrls.length === 0) {
+            console.warn(`No transport URLs configured for chain ${chainId}`);
+            return [];
+        }
+        // Create transport array with fallback options
+        const transports = transportUrls.map(url => http(url));
+        // Create a client specific to this chain using fallback transport
+        const client = createPublicClient({
+            chain: chains.find(chain => chain.id === chainId),
+            transport: fallback(transports, {
+                rank: true,
+                retryCount: 2,
+                timeout: 10000
+            })
+        });
+
+        const calls = launchpads.map(s => ({
+            ...s,
+            contract: {
+                abi: s.factory.abi,
+                address: s.contract
+            },
+            currentPhase: { functionName: 'currentPhase', args: [] },
+            isFinalized: { functionName: 'isFinalized', args: [] },
+            totalETHCollected: { functionName: 'totalETHCollected', args: [] },
+            getBondingCurveSettings: { functionName: 'getBondingCurveSettings', args: [] }
+        }));
+
+        const [results] = await multicall([calls], { client }).catch(e => {
+            console.error(`Error in multicall for chain ${chainId}:`, e);
+            return [];
+        });
+
+        return results.map(r => {
+            const rate = rates[chainId] ?? 1;
+            const totalETHCollected = formatEther(r?.totalETHCollected ?? '0');
+            const targetEther = formatEther(r.getBondingCurveSettings?.bondingTarget ?? '0');
+            return {
+                ...r,
+                chainId,
+                status: r.currentPhase === 0 ? 'prebond' : r.currentPhase === 1 ? 'bonding' : 'finalized',
+                totalETHCollected,
+                targetEther,
+                marketCap: (totalETHCollected * 2 * rate).toFixed(6) * 1,
+                percentage: (totalETHCollected / targetEther * 100).toFixed(2) * 1
+            };
+        });
+    } catch (error) {
+        console.error(`Error fetching launchpad data for chain ${chainId}:`, error);
+        return [];
+    }
+}
+
+// Main hook to handle all launchpads across different chains
+export const useLaunchpadsData = (launchpads, rates) => {
+    const allStakes = ref([]);
+    const loading = ref(false);
+    const chains = useChains();
+    // Create RPC configuration object
+    const rpcConfig = {
+        ankrKey: usePage().props.ankr,
+        infuraKey: usePage().props.infura,
+        blastKey: usePage().props.blast,
+    };
+
+    const update = async () => {
+        loading.value = true;
+        allStakes.value = [];
+        try {
+            // Group launchpads by chainId
+            const groupedLaunchpads = groupBy(get(launchpads), 'chainId');
+            // Process each chain's launchpads
+            const chainPromises = Object.entries(groupedLaunchpads).map(([chainId, chainLaunchpads]) =>
+                getLaunchpadDataByChainId(chainLaunchpads, rates, Number(chainId), chains.value, rpcConfig)
+            );
+            // Wait for all chain updates to complete
+            const results = await Promise.all(chainPromises);
+            // Combine and set results from all chains
+            allStakes.value = results.flat();
+        } catch (error) {
+            console.error('Error updating all launchpads:', error);
+        } finally {
+            loading.value = false;
+        }
+        return allStakes.value;
+    };
+
+    // Watch for changes in the launchpads data
+    watch([launchpads], ([newLaunchpads]) => {
+        if (newLaunchpads && newLaunchpads.length > 0) {
+            update();
+        }
+    }, { immediate: true });
+
+    return {
+        launchpads: allStakes,
+        update,
+        loading
+    };
+};
+
+================================================
+File: resources/js/hooks/usePriceInfo.js
+================================================
+import { computed, reactive, watch } from 'vue';
+
+import { get } from '@vueuse/core';
+import { getPublicClient } from '@wagmi/core';
+import { useChainId, useConfig } from '@wagmi/vue';
+import { formatEther } from 'viem';
+
+// Uniswap V3 Pool ABI for price data
+const POOL_ABI = [
+    {
+        "inputs": [],
+        "name": "slot0",
+        "outputs": [
+            {
+                "internalType": "uint160",
+                "name": "sqrtPriceX96",
+                "type": "uint160"
+            },
+            {
+                "internalType": "int24",
+                "name": "tick",
+                "type": "int24"
+            },
+            {
+                "internalType": "uint16",
+                "name": "observationIndex",
+                "type": "uint16"
+            },
+            {
+                "internalType": "uint16",
+                "name": "observationCardinality",
+                "type": "uint16"
+            },
+            {
+                "internalType": "uint16",
+                "name": "observationCardinalityNext",
+                "type": "uint16"
+            },
+            {
+                "internalType": "uint8",
+                "name": "feeProtocol",
+                "type": "uint8"
+            },
+            {
+                "internalType": "bool",
+                "name": "unlocked",
+                "type": "bool"
+            }
+        ],
+        "stateMutability": "view",
+        "type": "function"
+    }
+];
+
+export const usePriceInfo = (launchpad, usdRate) => {
+    const publicClient = getPublicClient(useConfig());
+    const chainId = useChainId();
+    const info = reactive({
+        // Price metrics
+        currentPrice: 0,
+        priceInUsd: 0,
+        initialPrice: 0,
+        initialPriceUsd: 0,
+
+        // Progress metrics
+        preBondingProgress: 0,
+        bondingProgress: 0,
+        totalProgress: 0,
+
+        // Market cap metrics
+        currentMarketCap: 0,
+        fullyDilutedMarketCap: 0,
+
+        // Contract state
+        isFinalized: false,
+        currentPhase: 0,
+        ethReserve: 0n,
+        tokenReserve: 0n,
+        totalPreBondingContributions: 0n,
+        totalETHCollected: 0n,
+        virtualEth: 0n,
+        preBondingTarget: 0n,
+        bondingTarget: 0n,
+        uniswapPool: null,
+
+        // Update function
+        update: async () => {
+            try {
+                // Fetch all needed contract data in a single multicall
+                const calls = {
+                    'isFinalized': [],
+                    'currentPhase': [],
+                    'ethReserve': [],
+                    'tokenReserve': [],
+                    'totalPreBondingContributions': [],
+                    'totalETHCollected': [],
+                    'getBondingCurveSettings': [],
+                    'uniswapPool': [],
+                };
+
+                const results = await publicClient.multicall({
+                    contracts: Object.keys(calls).map((functionName) => ({
+                        address: launchpad.contract,
+                        abi: launchpad.factory.abi,
+                        functionName,
+                        args: calls[functionName]
+                    }))
+                });
+
+                // Process results
+                const [
+                    isFinalized,
+                    currentPhase,
+                    ethReserve,
+                    tokenReserve,
+                    totalPreBondingContributions,
+                    totalETHCollected,
+                    settings,
+                    uniswapPool
+                ] = results;
+
+                // Update state with contract data
+                if (isFinalized.status === 'success') info.isFinalized = isFinalized.result;
+                if (currentPhase.status === 'success') info.currentPhase = currentPhase.result;
+                if (ethReserve.status === 'success') info.ethReserve = ethReserve.result;
+                if (tokenReserve.status === 'success') info.tokenReserve = tokenReserve.result;
+                if (totalPreBondingContributions.status === 'success') {
+                    info.totalPreBondingContributions = totalPreBondingContributions.result;
+                }
+                if (totalETHCollected.status === 'success') info.totalETHCollected = totalETHCollected.result;
+                if (settings.status === 'success') {
+                    info.virtualEth = settings.result.virtualEth;
+                    info.preBondingTarget = settings.result.preBondingTarget;
+                    info.bondingTarget = settings.result.bondingTarget;
+                }
+                if (uniswapPool.status === 'success') info.uniswapPool = uniswapPool.result;
+
+                // Calculate price based on phase and finalization status
+                if (info.isFinalized && info.uniswapPool) {
+                    try {
+                        // Get price from Uniswap pool
+                        const poolData = await publicClient.readContract({
+                            address: info.uniswapPool,
+                            abi: POOL_ABI,
+                            functionName: 'slot0'
+                        });
+
+                        // Get sqrtPriceX96 from slot0
+                        const sqrtPriceX96 = poolData[0];
+
+                        // Convert sqrtPriceX96 to price
+                        // For token1/token0 price: (sqrtPriceX96 ** 2) * (1e18) / (2 ** 192)
+                        const price = (BigInt(sqrtPriceX96) * BigInt(sqrtPriceX96) * BigInt(1e18)) / (2n ** 192n);
+
+                        // If token0 is WETH, we need to invert the price
+                        const token0 = await publicClient.readContract({
+                            address: info.uniswapPool,
+                            abi: [{
+                                "inputs": [],
+                                "name": "token0",
+                                "outputs": [{ "type": "address" }],
+                                "stateMutability": "view",
+                                "type": "function"
+                            }],
+                            functionName: 'token0'
+                        });
+
+                        // Get settings for WETH address comparison
+                        const settings = await publicClient.readContract({
+                            address: launchpad.contract,
+                            abi: launchpad.factory.abi,
+                            functionName: 'getBondingCurveSettings'
+                        });
+
+                        // Determine if we need to invert the price
+                        const wethIsToken0 = token0.toLowerCase() === settings.weth.toLowerCase();
+
+                        if (wethIsToken0) {
+                            // If WETH is token0, we need the reciprocal
+                            info.currentPrice = 1 / Number(formatEther(price));
+                        } else {
+                            // If WETH is token1, use price directly
+                            info.currentPrice = Number(formatEther(price));
+                        }
+
+                        console.log({
+                            sqrtPriceX96: sqrtPriceX96.toString(),
+                            price: price.toString(),
+                            wethIsToken0,
+                            currentPrice: info.currentPrice
+                        });
+
+                    } catch (error) {
+                        console.error('Error calculating Uniswap price:', error);
+                        // Fallback to reserve-based price if Uniswap calculation fails
+                        if (info.ethReserve && info.tokenReserve) {
+                            info.currentPrice = Number(formatEther(info.ethReserve)) / Number(formatEther(info.tokenReserve));
+                        }
+                    }
+                } else {
+                    // Calculate price from reserves
+                    if (info.ethReserve && info.tokenReserve) {
+                        info.currentPrice = Number(formatEther(info.ethReserve)) / Number(formatEther(info.tokenReserve));
+                    }
+                }
+
+                // Update USD price
+                info.priceInUsd = info.currentPrice * Number(usdRate);
+
+                // Calculate initial price from virtual ETH
+                if (info.virtualEth) {
+                    info.initialPrice = Number(formatEther(info.virtualEth)) / 1000000000; // 1B total supply
+                    info.initialPriceUsd = info.initialPrice * Number(usdRate);
+                }
+
+                // Calculate progress
+                if (info.preBondingTarget) {
+                    info.preBondingProgress = (Number(formatEther(info.totalPreBondingContributions)) /
+                        Number(formatEther(info.preBondingTarget))) * 100;
+                }
+
+                if (info.bondingTarget) {
+                    info.bondingProgress = (Number(formatEther(info.totalETHCollected)) /
+                        Number(formatEther(info.bondingTarget))) * 100;
+                }
+
+                info.totalProgress = Math.min(100, Math.max(info.preBondingProgress, info.bondingProgress));
+
+                // Calculate market caps
+                if (info.tokenReserve && info.priceInUsd) {
+                    info.currentMarketCap = Number(formatEther(info.tokenReserve)) * info.priceInUsd;
+                    info.fullyDilutedMarketCap = 1000000000 * info.priceInUsd;
+                }
+            } catch (error) {
+                console.error('Error updating price info:', error);
+            }
+        }

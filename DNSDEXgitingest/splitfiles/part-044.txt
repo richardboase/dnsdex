@@ -1,0 +1,523 @@
+    if (error) uploadError.value = error;
+    console.log(file);
+    emit("update:file", {
+        serverId: file.serverId,
+        fileExtension: file.fileExtension,
+        fileType: file.fileType,
+        filenameWithoutExtension: file.filenameWithoutExtension,
+        id: file.id,
+    });
+    emit("update:modelValue", file.filename);
+};
+</script>
+<template>
+    <div class="flex items-center">
+        <div>
+            <FilePond
+                name="filepond"
+                ref="pond"
+                class-name="logo filepond fp-bordered label-icon w-20 "
+                label-idle="Upload Logo"
+                :allow-multiple="false"
+                :allowImagePreview="true"
+                stylePanelAspectRatio="1:1"
+                stylePanelLayout="compact circle"
+                labelIdle="<svg xmlns='http://www.w3.org/2000/svg' class='h-6 w-6' fill='none' viewbox='0 0 24 24' stroke='currentColor'>
+                                      <path stroke-linecap='round' stroke-linejoin='round' stroke-width='2' d='M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-8l-4-4m0 0L8 8m4-4v12'></path>
+                                    </svg>"
+                accepted-file-types="image/jpeg, image/png, image/svg+xml"
+                :server="server"
+                @processfile="handleProcessFile"
+            />
+        </div>
+        <p
+            v-if="errors || uploadError"
+            class="text-sm mb-4 ml-4 font-medium text-red"
+        >
+            {{ errors ?? uploadError }}
+        </p>
+        <p
+            v-else-if="label"
+            class="text-sm mb-4 ml-4 font-medium text-gray-900 dark:text-gray-300"
+        >
+            {{ label }}
+        </p>
+    </div>
+</template>
+<style>
+.filepond.filepond--root[data-style-panel-layout~="circle"]
+    .filepond--file
+    [data-align*="right"] {
+    right: calc(50% - 1em);
+    top: calc(50% - 1em);
+}
+</style>
+
+
+================================================
+File: resources/js/Components/Modal.vue
+================================================
+<script setup>
+	import { computed, onMounted, onUnmounted, ref, watch } from "vue";
+
+	const props = defineProps({
+		show: {
+			type: Boolean,
+			default: false,
+		},
+		maxWidth: {
+			type: String,
+			default: "2xl",
+		},
+		closeable: {
+			type: Boolean,
+			default: true,
+		},
+	});
+
+	const emit = defineEmits(["close"]);
+	const dialog = ref();
+	const showSlot = ref(props.show);
+
+	watch(
+		() => props.show,
+		() => {
+			if (props.show) {
+				document.body.style.overflow = "hidden";
+				showSlot.value = true;
+
+				dialog.value?.showModal();
+			} else {
+				document.body.style.overflow = "";
+
+				setTimeout(() => {
+					dialog.value?.close();
+					showSlot.value = false;
+				}, 200);
+			}
+		},
+	);
+
+	const close = () => {
+		if (props.closeable) {
+			emit("close");
+		}
+	};
+
+	const closeOnEscape = (e) => {
+		if (e.key === "Escape") {
+			e.preventDefault();
+
+			if (props.show) {
+				close();
+			}
+		}
+	};
+
+	onMounted(() => document.addEventListener("keydown", closeOnEscape));
+
+	onUnmounted(() => {
+		document.removeEventListener("keydown", closeOnEscape);
+
+		document.body.style.overflow = "";
+	});
+
+	const maxWidthClass = computed(() => {
+		return {
+			sm: "sm:max-w-sm",
+			md: "sm:max-w-md",
+			lg: "sm:max-w-lg",
+			xl: "sm:max-w-xl",
+			"2xl": "sm:max-w-2xl",
+		}[props.maxWidth];
+	});
+</script>
+
+<template>
+	<dialog
+		class="z-50 m-0 min-h-full min-w-full overflow-y-auto bg-transparent backdrop:bg-transparent"
+		ref="dialog">
+		<div
+			class="fixed inset-0 z-50 overflow-y-auto px-4 py-6 sm:px-0"
+			scroll-region>
+			<Transition
+				enter-active-class="ease-out duration-300"
+				enter-from-class="opacity-0"
+				enter-to-class="opacity-100"
+				leave-active-class="ease-in duration-200"
+				leave-from-class="opacity-100"
+				leave-to-class="opacity-0">
+				<div
+					v-show="show"
+					class="fixed inset-0 transform transition-all"
+					@click="close">
+					<div
+						class="absolute inset-0 bg-gray-700 opacity-85 blur-xl" />
+				</div>
+			</Transition>
+
+			<Transition
+				enter-active-class="ease-out duration-300"
+				enter-from-class="opacity-0 translate-y-4 sm:translate-y-0 sm:scale-95"
+				enter-to-class="opacity-100 translate-y-0 sm:scale-100"
+				leave-active-class="ease-in duration-200"
+				leave-from-class="opacity-100 translate-y-0 sm:scale-100"
+				leave-to-class="opacity-0 translate-y-4 sm:translate-y-0 sm:scale-95">
+				<div
+					v-show="show"
+					class="mb-6 transform overflow-hidden rounded-lg bg-white dark:bg-gray-850 shadow-xl transition-all sm:mx-auto sm:w-full"
+					:class="maxWidthClass">
+					<slot v-if="showSlot" />
+				</div>
+			</Transition>
+		</div>
+	</dialog>
+</template>
+
+
+================================================
+File: resources/js/Components/NavLink.vue
+================================================
+<script setup>
+	import { computed } from "vue";
+
+	import { Link } from "@inertiajs/vue3";
+
+	const props = defineProps({
+		href: {
+			type: String,
+			required: true,
+		},
+		active: {
+			type: Boolean,
+		},
+	});
+
+	const classes = computed(() =>
+		props.active
+			? "inline-flex rounded items-center bg-gray-800 hover:bg-gray-750 px-3 py-2  text-sm font-medium leading-5  text-primary focus:outline-none focus:border-primary transition duration-150 ease-in-out"
+			: "inline-flex rounded items-center  bg-gray-800 hover:bg-gray-750  px-3 py-2   text-sm font-medium leading-5 text-gray-500 dark:text-gray-300 hover:text-gray-700 dark:hover:text-gray-200 hover:border-gray-300 dark:hover:border-gray-700 focus:outline-none focus:text-gray-700 dark:focus:text-gray-300  transition duration-150 ease-in-out",
+	);
+</script>
+
+<template>
+	<div class="flex items-center">
+		<Link :href="href" :class="classes">
+			<slot />
+		</Link>
+	</div>
+</template>
+
+
+================================================
+File: resources/js/Components/Pagination.vue
+================================================
+<script setup>
+	import {
+		ChevronLeftIcon,
+		ChevronRightIcon,
+	} from "@heroicons/vue/24/outline";
+	import { Link } from "@inertiajs/vue3";
+
+	defineProps({
+		meta: Object,
+	});
+</script>
+<template>
+	<!-- pagination buttons -->
+	<div
+		v-if="meta?.links?.length > 3"
+		class="mt-5 flex space-x-2 text-xs items-center justify-center">
+		<template v-for="link in meta.links" :key="link.label">
+			<Link
+				v-if="link.label == 'pagination.previous'"
+				:href="link.url"
+				as="button"
+				:disabled="!link.url"
+				class="disabled:pointer-events-none disabled:bg-gray-50 dark:disabled:bg-gray-700 disabled:text-gray-400 rounded px-2 py-1 text-gray-500 dark:text-white font-semibold bg-white dark:bg-gray-800 border-2 border-gray-200 dark:border-gray-600 hover:border-emerald-500 dark:hover:border-emerald-500 transition duration-200">
+				<ChevronLeftIcon class="w-4 h-4" />
+			</Link>
+			<Link
+				v-else-if="link.label == 'pagination.next'"
+				:href="link.url"
+				:disabled="!link.url"
+				class="disabled:pointer-events-none disabled:bg-gray-50 dark:disabled:bg-gray-700 disabled:text-gray-400 rounded px-2 py-1 text-gray-500 dark:text-white font-semibold bg-white dark:bg-gray-800 border-2 border-gray-200 dark:border-gray-600 hover:border-emerald-500 dark:hover:border-emerald-500 transition duration-200">
+				<ChevronRightIcon class="w-4 h-4" />
+			</Link>
+
+			<Link
+				v-else
+				:disabled="link.active"
+				:href="link.url"
+				:class="
+					link.active
+						? 'text-emerald-500 dark:text-emerald-400  border-emerald-500 dark:border-emerald-500'
+						: ' text-gray-900 dark:text-white  border-gray-200 dark:border-gray-600'
+				"
+				class="rounded px-2 py-1 font-semibold bg-white dark:bg-gray-800 border hover:border-emerald-500 dark:hover:border-emerald-500 transition duration-200">
+				{{ link.label }}
+			</Link>
+		</template>
+
+		<!-- active class text-emerald-500 border-emerald-500 dark:border-emerald-500 -->
+	</div>
+	<!-- ./ pagination buttons -->
+</template>
+
+
+================================================
+File: resources/js/Components/PrimaryButton.vue
+================================================
+<script setup>
+import { computed } from "vue";
+
+import { Link } from "@inertiajs/vue3";
+
+const props = defineProps({
+    outlined: {
+        type: Boolean,
+        default: false,
+    },
+
+    link: {
+        type: Boolean,
+        default: false,
+    },
+    url: {
+        type: Boolean,
+        default: false,
+    },
+
+    size: {
+        type: String,
+        default: "sm",
+        validator: (value) =>
+            ["xs", "sm", "md", "lg", "xl"].includes(value),
+    },
+    iconMode: {
+        type: Boolean,
+        default: false,
+    },
+});
+
+const sizeClasses = computed(() => ({
+    xss: props.iconMode
+        ? "w-5 h-5 text-xs"
+        : "px-2 py-1 font-semibold text-xs",
+    xs: props.iconMode
+        ? "w-6 h-6 text-xs"
+        : "px-2.5 py-1.5 font-semibold text-xs",
+    sm: props.iconMode ? "w-8 h-8 text-sm" : "px-3 py-2 text-sm",
+    md: props.iconMode ? "w-10 h-10 text-base" : "px-4 py-2.5 text-base",
+    lg: props.iconMode ? "w-12 h-12 text-lg" : "px-5 py-3 text-lg",
+    xl: props.iconMode ? "w-14 h-14 text-xl" : "px-6 py-3.5 text-xl",
+}));
+const comp = computed(() =>
+    props.link ? Link : props.url ? "a" : "button",
+);
+</script>
+
+<template>
+    <component
+        :is="comp"
+        :class="[
+            'inline-flex items-center justify-center font-medium transition-colors duration-200',
+            'focus:outline-none focus:ring-2 focus:ring-primary focus:ring-offset-2',
+            sizeClasses[size],
+            iconMode ? 'aspect-square p-0' : '',
+            outlined
+                ? 'bg-transparent border-2 border-primary text-primary hover:bg-primary hover:text-black'
+                : 'bg-primary text-black border-2 border-transparent hover:bg-primary-dark',
+            'rounded cursor-pointer disabled:pointer-events-none disabled:opacity-70',
+        ]"
+        v-bind="$attrs"
+    >
+        <slot></slot>
+    </component>
+</template>
+
+
+================================================
+File: resources/js/Components/RadioCards.vue
+================================================
+<script setup>
+	import { computed } from "vue";
+
+	import {
+		RadioGroup,
+		RadioGroupDescription,
+		RadioGroupLabel,
+		RadioGroupOption,
+	} from "@headlessui/vue";
+	const props = defineProps({
+		modelValue: [String, Boolean],
+		options: Array,
+		label: String,
+		grid: Number,
+	});
+	const emit = defineEmits(["update:modelValue"]);
+	const value = computed({
+		get() {
+			return props.modelValue;
+		},
+		set(value) {
+			emit("update:modelValue", value);
+		},
+	});
+	const gridcols = computed(() => {
+		if ((props.grid ?? props.options.length) <= 2) return "sm:grid-cols-2";
+		if ((props.grid ?? props.options.length) === 3) return "sm:grid-cols-3";
+		if ((props.grid ?? props.options.length) === 4) return "sm:grid-cols-4";
+		if ((props.grid ?? props.options.length) === 5) return "sm:grid-cols-5";
+		if ((props.grid ?? props.options.length) === 6) return "sm:grid-cols-6";
+		return "sm:grid-cols-4";
+	});
+</script>
+<template>
+	<RadioGroup v-model="value">
+		<RadioGroupLabel
+			class="text-base font-medium text-gray-900 dark:text-gray-200">
+			{{ label }}
+		</RadioGroupLabel>
+		<div :class="gridcols" class="mt-4 grid grid-cols-1 gap-y-6 sm:gap-x-4">
+			<RadioGroupOption
+				as="template"
+				v-for="option in options"
+				:key="option.key"
+				:value="option.value"
+				v-slot="{ checked, active }">
+				<div
+					:class="[
+						checked
+							? 'border-transparent'
+							: 'border-gray-300 dark:border-gray-600',
+						active ? 'ring ring-emerald-500' : '',
+						'relative bg-white dark:bg-gray-900 border rounded-sm shadow-sm px-4 py-2 flex cursor-pointer focus:outline-none',
+					]">
+					<div class="flex-1 flex">
+						<img
+							v-if="option.img"
+							:src="option.img"
+							class="w-7 h-7 mr-3" />
+						<div class="flex flex-col">
+							<RadioGroupLabel
+								as="span"
+								class="block text-sm font-medium text-gray-900 dark:text-gray-200 dark:text-gray-200">
+								{{ option.title }}
+							</RadioGroupLabel>
+							<RadioGroupDescription
+								as="span"
+								class="flex items-center text-sm text-gray-500 dark:text-gray-400">
+								{{ option.subtitle }}
+							</RadioGroupDescription>
+						</div>
+					</div>
+					<svg
+						id="Layer_1"
+						data-name="Layer 1"
+						xmlns="http://www.w3.org/2000/svg"
+						viewBox="0 0 122.881 122.879"
+						:class="[
+							!checked ? 'invisible' : '',
+							'h-5 w-5 text-emerald-600 dark:text-emerald-400',
+						]">
+						<path
+							d="M61.44,0A61.44,61.44,0,1,1,0,61.439,61.44,61.44,0,0,1,61.44,0Z"
+							class="fill-emerald-600 dark:fill-emerald-400" />
+						<path
+							d="M34.106,68.678l-.015-.014a3.875,3.875,0,0,1-.272-5.446l.029-.031a3.873,3.873,0,0,1,5.46-.258L52.264,74.677,83.353,42.118h0a3.887,3.887,0,0,1,5.49-.137h0a3.886,3.886,0,0,1,.137,5.491l-33.7,35.3a.762.762,0,0,1-.073.067,3.879,3.879,0,0,1-5.342.13L34.118,68.688l-.012-.01Z"
+							class="fill-white" />
+					</svg>
+					<div
+						:class="[
+							active ? 'border' : 'border',
+							checked
+								? 'border-emerald-600 dark:border-emerald-400'
+								: 'border-transparent',
+							'absolute -inset-px rounded-sm pointer-events-none',
+						]"
+						aria-hidden="true" />
+				</div>
+			</RadioGroupOption>
+		</div>
+	</RadioGroup>
+</template>
+
+
+================================================
+File: resources/js/Components/RadioSelect.vue
+================================================
+<script setup>
+	import { computed } from "vue";
+
+	import {
+		RadioGroup,
+		RadioGroupLabel,
+		RadioGroupOption,
+	} from "@headlessui/vue";
+
+	import Loading from "./Loading.vue";
+	const props = defineProps({
+		options: { type: Array, required: true },
+		modelValue: [Number, String, Boolean],
+		grid: Number,
+	});
+	const classes = computed(() => {
+		if ((props.grid ?? props.options.length) < 2) return "gap-2";
+		if ((props.grid ?? props.options.length) === 2)
+			return "sm:grid-cols-2 gap-3";
+		if ((props.grid ?? props.options.length) === 3)
+			return "sm:grid-cols-3 gap-3";
+		if ((props.grid ?? props.options.length) === 4)
+			return "sm:grid-cols-4 gap-3";
+		if ((props.grid ?? props.options.length) === 5)
+			return "sm:grid-cols-5 gap-3";
+		if ((props.grid ?? props.options.length) === 6)
+			return "sm:grid-cols-6 gap-3";
+		return "sm:grid-cols-4 gap-3";
+	});
+	const emit = defineEmits(["update:modelValue"]);
+	const updateModelValue = (mv) => emit("update:modelValue", mv);
+</script>
+<template>
+	<RadioGroup
+		@update:model-value="updateModelValue"
+		:model-value="modelValue">
+		<div :class="classes" class="grid">
+			<RadioGroupOption
+				as="template"
+				v-for="item in options"
+				:key="item.key ?? item.value"
+				:value="item.value"
+				v-slot="{ active, checked }">
+				<div
+					:class="[
+						'cursor-pointer focus:outline-none',
+						active
+							? 'ring-2 dark:ring-0 ring-offset-2 dark:ring-offset-0 ring-transparent dark:ring-transparent'
+							: '',
+						checked
+							? 'border-amber-600 dark:border-amber-400 border text-amber-600  dark:text-amber-400 hover:ring-transparent dark:transparent'
+							: 'bg-white border dark:bg-gray-800 border-gray-200 dark:border dark:border-gray-500 text-gray-900 hover:bg-gray-50 ',
+						'border rounded-[3px] p-2 flex items-center justify-center text-xs font-semibold uppercase sm:flex-1 transition-colors duration-500',
+					]">
+					<RadioGroupLabel
+						class="flex flex-row align-middle items-center text-gray-500 dark:text-gray-100"
+						as="p">
+						<Loading
+							v-if="item.loading"
+							class="!h-4 !w-4 mr-2 -ml-1" />
+						<img
+							v-if="item.img"
+							:src="item.img"
+							class="h-7 w-7 mr-2 cursor-pointer rounded-full border border-slate-300/70 dark:border-slate-600/70 bg-white dark:bg-gray-900 p-0.5" />
+						<span
+							class="transition-colors duration-300"
+							:class="
+								checked
+									? 'text-amber-600 dark:text-amber-400'
+									: 'text-gray-700 dark:text-gray-400'
+							">
+							{{ item.label }}
+						</span>
+					</RadioGroupLabel>

@@ -1,0 +1,523 @@
+
+================================================
+File: resources/js/Components/ui/context-menu/ContextMenuRadioGroup.vue
+================================================
+<script setup>
+import { ContextMenuRadioGroup, useForwardPropsEmits } from 'radix-vue';
+
+const props = defineProps({
+  modelValue: { type: String, required: false },
+  asChild: { type: Boolean, required: false },
+  as: { type: null, required: false },
+});
+const emits = defineEmits(['update:modelValue']);
+
+const forwarded = useForwardPropsEmits(props, emits);
+</script>
+
+<template>
+  <ContextMenuRadioGroup v-bind="forwarded">
+    <slot />
+  </ContextMenuRadioGroup>
+</template>
+
+
+================================================
+File: resources/js/Components/ui/context-menu/ContextMenuRadioItem.vue
+================================================
+<script setup>
+import { cn } from '@/lib/utils';
+import { Circle } from 'lucide-vue-next';
+import {
+  ContextMenuItemIndicator,
+  ContextMenuRadioItem,
+  useForwardPropsEmits,
+} from 'radix-vue';
+import { computed } from 'vue';
+
+const props = defineProps({
+  value: { type: String, required: true },
+  disabled: { type: Boolean, required: false },
+  textValue: { type: String, required: false },
+  asChild: { type: Boolean, required: false },
+  as: { type: null, required: false },
+  class: { type: null, required: false },
+});
+const emits = defineEmits(['select']);
+
+const delegatedProps = computed(() => {
+  const { class: _, ...delegated } = props;
+
+  return delegated;
+});
+
+const forwarded = useForwardPropsEmits(delegatedProps, emits);
+</script>
+
+<template>
+  <ContextMenuRadioItem
+    v-bind="forwarded"
+    :class="
+      cn(
+        'relative flex cursor-default select-none items-center rounded-sm py-1.5 pl-8 pr-2 text-sm outline-none focus:bg-gray-100 focus:text-gray-900 data-[disabled]:pointer-events-none data-[disabled]:opacity-50 dark:focus:bg-gray-800 dark:focus:text-gray-50',
+        props.class,
+      )
+    "
+  >
+    <span class="absolute left-2 flex h-3.5 w-3.5 items-center justify-center">
+      <ContextMenuItemIndicator>
+        <Circle class="h-2 w-2 fill-current" />
+      </ContextMenuItemIndicator>
+    </span>
+    <slot />
+  </ContextMenuRadioItem>
+</template>
+
+
+================================================
+File: resources/js/Components/ui/context-menu/ContextMenuSeparator.vue
+================================================
+<script setup>
+import { cn } from '@/lib/utils';
+import { ContextMenuSeparator } from 'radix-vue';
+import { computed } from 'vue';
+
+const props = defineProps({
+  asChild: { type: Boolean, required: false },
+  as: { type: null, required: false },
+  class: { type: null, required: false },
+});
+
+const delegatedProps = computed(() => {
+  const { class: _, ...delegated } = props;
+
+  return delegated;
+});
+</script>
+
+<template>
+  <ContextMenuSeparator
+    v-bind="delegatedProps"
+    :class="cn('-mx-1 my-1 h-px bg-gray-200 dark:bg-gray-800', props.class)"
+  />
+</template>
+
+
+================================================
+File: resources/js/Components/ui/context-menu/ContextMenuShortcut.vue
+================================================
+<script setup>
+import { cn } from '@/lib/utils';
+
+const props = defineProps({
+  class: { type: null, required: false },
+});
+</script>
+
+<template>
+  <span
+    :class="
+      cn('ml-auto text-xs tracking-widest text-gray-500 dark:text-gray-400', props.class)
+    "
+  >
+    <slot />
+  </span>
+</template>
+
+
+================================================
+File: resources/js/Components/ui/context-menu/ContextMenuSub.vue
+================================================
+<script setup>
+import { ContextMenuSub, useForwardPropsEmits } from 'radix-vue';
+
+const props = defineProps({
+  defaultOpen: { type: Boolean, required: false },
+  open: { type: Boolean, required: false },
+});
+const emits = defineEmits(['update:open']);
+
+const forwarded = useForwardPropsEmits(props, emits);
+</script>
+
+<template>
+  <ContextMenuSub v-bind="forwarded">
+    <slot />
+  </ContextMenuSub>
+</template>
+
+
+================================================
+File: resources/js/Components/ui/context-menu/ContextMenuSubContent.vue
+================================================
+<script setup>
+import { cn } from '@/lib/utils';
+import { ContextMenuSubContent, useForwardPropsEmits } from 'radix-vue';
+import { computed } from 'vue';
+
+const props = defineProps({
+  forceMount: { type: Boolean, required: false },
+  loop: { type: Boolean, required: false },
+  sideOffset: { type: Number, required: false },
+  alignOffset: { type: Number, required: false },
+  avoidCollisions: { type: Boolean, required: false },
+  collisionBoundary: { type: null, required: false },
+  collisionPadding: { type: [Number, Object], required: false },
+  arrowPadding: { type: Number, required: false },
+  sticky: { type: String, required: false },
+  hideWhenDetached: { type: Boolean, required: false },
+  updatePositionStrategy: { type: String, required: false },
+  prioritizePosition: { type: Boolean, required: false },
+  asChild: { type: Boolean, required: false },
+  as: { type: null, required: false },
+  class: { type: null, required: false },
+});
+const emits = defineEmits([
+  'escapeKeyDown',
+  'pointerDownOutside',
+  'focusOutside',
+  'interactOutside',
+  'entryFocus',
+  'openAutoFocus',
+  'closeAutoFocus',
+]);
+
+const delegatedProps = computed(() => {
+  const { class: _, ...delegated } = props;
+
+  return delegated;
+});
+
+const forwarded = useForwardPropsEmits(delegatedProps, emits);
+</script>
+
+<template>
+  <ContextMenuSubContent
+    v-bind="forwarded"
+    :class="
+      cn(
+        'z-50 min-w-32 overflow-hidden rounded-md border border-gray-200 bg-white p-1 text-gray-950 shadow-md data-[state=open]:animate-in data-[state=closed]:animate-out data-[state=closed]:fade-out-0 data-[state=open]:fade-in-0 data-[state=closed]:zoom-out-95 data-[state=open]:zoom-in-95 data-[side=bottom]:slide-in-from-top-2 data-[side=left]:slide-in-from-right-2 data-[side=right]:slide-in-from-left-2 data-[side=top]:slide-in-from-bottom-2 dark:border-gray-800 dark:bg-gray-950 dark:text-gray-50',
+        props.class,
+      )
+    "
+  >
+    <slot />
+  </ContextMenuSubContent>
+</template>
+
+
+================================================
+File: resources/js/Components/ui/context-menu/ContextMenuSubTrigger.vue
+================================================
+<script setup>
+import { cn } from '@/lib/utils';
+import { ChevronRight } from 'lucide-vue-next';
+import { ContextMenuSubTrigger, useForwardProps } from 'radix-vue';
+import { computed } from 'vue';
+
+const props = defineProps({
+  disabled: { type: Boolean, required: false },
+  textValue: { type: String, required: false },
+  asChild: { type: Boolean, required: false },
+  as: { type: null, required: false },
+  class: { type: null, required: false },
+  inset: { type: Boolean, required: false },
+});
+
+const delegatedProps = computed(() => {
+  const { class: _, ...delegated } = props;
+
+  return delegated;
+});
+
+const forwardedProps = useForwardProps(delegatedProps);
+</script>
+
+<template>
+  <ContextMenuSubTrigger
+    v-bind="forwardedProps"
+    :class="
+      cn(
+        'flex cursor-default select-none items-center rounded-sm px-2 py-1.5 text-sm outline-none focus:bg-gray-100 focus:text-gray-900 data-[state=open]:bg-gray-100 data-[state=open]:text-gray-900 dark:focus:bg-gray-800 dark:focus:text-gray-50 dark:data-[state=open]:bg-gray-800 dark:data-[state=open]:text-gray-50',
+        inset && 'pl-8',
+        props.class,
+      )
+    "
+  >
+    <slot />
+    <ChevronRight class="ml-auto h-4 w-4" />
+  </ContextMenuSubTrigger>
+</template>
+
+
+================================================
+File: resources/js/Components/ui/context-menu/ContextMenuTrigger.vue
+================================================
+<script setup>
+import { ContextMenuTrigger, useForwardProps } from 'radix-vue';
+
+const props = defineProps({
+  disabled: { type: Boolean, required: false },
+  asChild: { type: Boolean, required: false },
+  as: { type: null, required: false },
+});
+
+const forwardedProps = useForwardProps(props);
+</script>
+
+<template>
+  <ContextMenuTrigger v-bind="forwardedProps">
+    <slot />
+  </ContextMenuTrigger>
+</template>
+
+
+================================================
+File: resources/js/Components/ui/context-menu/index.js
+================================================
+export { default as ContextMenu } from './ContextMenu.vue';
+export { default as ContextMenuCheckboxItem } from './ContextMenuCheckboxItem.vue';
+export { default as ContextMenuContent } from './ContextMenuContent.vue';
+export { default as ContextMenuGroup } from './ContextMenuGroup.vue';
+export { default as ContextMenuItem } from './ContextMenuItem.vue';
+export { default as ContextMenuLabel } from './ContextMenuLabel.vue';
+export { default as ContextMenuRadioGroup } from './ContextMenuRadioGroup.vue';
+export { default as ContextMenuRadioItem } from './ContextMenuRadioItem.vue';
+export { default as ContextMenuSeparator } from './ContextMenuSeparator.vue';
+export { default as ContextMenuShortcut } from './ContextMenuShortcut.vue';
+export { default as ContextMenuSub } from './ContextMenuSub.vue';
+export { default as ContextMenuSubContent } from './ContextMenuSubContent.vue';
+export { default as ContextMenuSubTrigger } from './ContextMenuSubTrigger.vue';
+export { default as ContextMenuTrigger } from './ContextMenuTrigger.vue';
+
+
+================================================
+File: resources/js/Components/ui/dialog/Dialog.vue
+================================================
+<script setup>
+import { DialogRoot, useForwardPropsEmits } from 'radix-vue';
+
+const props = defineProps({
+  open: { type: Boolean, required: false },
+  defaultOpen: { type: Boolean, required: false },
+  modal: { type: Boolean, required: false },
+});
+const emits = defineEmits(['update:open']);
+
+const forwarded = useForwardPropsEmits(props, emits);
+</script>
+
+<template>
+  <DialogRoot v-bind="forwarded">
+    <slot />
+  </DialogRoot>
+</template>
+
+
+================================================
+File: resources/js/Components/ui/dialog/DialogClose.vue
+================================================
+<script setup>
+import { DialogClose } from 'radix-vue';
+
+const props = defineProps({
+  asChild: { type: Boolean, required: false },
+  as: { type: null, required: false },
+});
+</script>
+
+<template>
+  <DialogClose v-bind="props">
+    <slot />
+  </DialogClose>
+</template>
+
+
+================================================
+File: resources/js/Components/ui/dialog/DialogContent.vue
+================================================
+<script setup>
+	import { computed } from "vue";
+
+	import { X } from "lucide-vue-next";
+	import {
+		DialogClose,
+		DialogContent,
+		DialogOverlay,
+		DialogPortal,
+		useForwardPropsEmits,
+	} from "radix-vue";
+
+	import { cn } from "@/lib/utils";
+
+	const props = defineProps({
+		forceMount: { type: Boolean, required: false },
+		trapFocus: { type: Boolean, required: false },
+		disableOutsidePointerEvents: { type: Boolean, required: false },
+		asChild: { type: Boolean, required: false },
+		as: { type: null, required: false },
+		class: { type: null, required: false },
+	});
+	const emits = defineEmits([
+		"escapeKeyDown",
+		"pointerDownOutside",
+		"focusOutside",
+		"interactOutside",
+		"openAutoFocus",
+		"closeAutoFocus",
+	]);
+
+	const delegatedProps = computed(() => {
+		const { class: _, ...delegated } = props;
+
+		return delegated;
+	});
+
+	const forwarded = useForwardPropsEmits(delegatedProps, emits);
+</script>
+
+<template>
+	<DialogPortal>
+		<DialogOverlay
+			class="fixed inset-0 z-50 bg-black/80 data-[state=open]:animate-in data-[state=closed]:animate-out data-[state=closed]:fade-out-0 data-[state=open]:fade-in-0" />
+		<DialogContent
+			v-bind="forwarded"
+			:class="
+				cn(
+					'fixed left-1/2 top-1/2 z-50 grid w-full max-w-lg -translate-x-1/2 -translate-y-1/2 gap-4 border border-gray-200 bg-white p-6 shadow-lg duration-200 data-[state=open]:animate-in data-[state=closed]:animate-out data-[state=closed]:fade-out-0 data-[state=open]:fade-in-0 data-[state=closed]:zoom-out-95 data-[state=open]:zoom-in-95 data-[state=closed]:slide-out-to-left-1/2 data-[state=closed]:slide-out-to-top-[48%] data-[state=open]:slide-in-from-left-1/2 data-[state=open]:slide-in-from-top-[48%] sm:rounded-lg dark:border-gray-700 dark:bg-gray-850',
+					props.class,
+				)
+			">
+			<slot />
+
+			<DialogClose
+				class="absolute right-4 top-4 rounded-sm opacity-70 ring-offset-white transition-opacity hover:opacity-100 focus:outline-none focus:ring-2 focus:ring-gray-950 focus:ring-offset-2 disabled:pointer-events-none data-[state=open]:bg-gray-100 data-[state=open]:text-gray-500 dark:ring-offset-gray-950 dark:focus:ring-gray-300 dark:data-[state=open]:bg-gray-800 dark:data-[state=open]:text-gray-400">
+				<X class="w-4 h-4 text-white" />
+				<span class="sr-only">Close</span>
+			</DialogClose>
+		</DialogContent>
+	</DialogPortal>
+</template>
+
+
+================================================
+File: resources/js/Components/ui/dialog/DialogDescription.vue
+================================================
+<script setup>
+import { cn } from '@/lib/utils';
+import { DialogDescription, useForwardProps } from 'radix-vue';
+import { computed } from 'vue';
+
+const props = defineProps({
+  asChild: { type: Boolean, required: false },
+  as: { type: null, required: false },
+  class: { type: null, required: false },
+});
+
+const delegatedProps = computed(() => {
+  const { class: _, ...delegated } = props;
+
+  return delegated;
+});
+
+const forwardedProps = useForwardProps(delegatedProps);
+</script>
+
+<template>
+  <DialogDescription
+    v-bind="forwardedProps"
+    :class="cn('text-sm text-gray-500 dark:text-gray-400', props.class)"
+  >
+    <slot />
+  </DialogDescription>
+</template>
+
+
+================================================
+File: resources/js/Components/ui/dialog/DialogFooter.vue
+================================================
+<script setup>
+import { cn } from '@/lib/utils';
+
+const props = defineProps({
+  class: { type: null, required: false },
+});
+</script>
+
+<template>
+  <div
+    :class="
+      cn(
+        'flex flex-col-reverse sm:flex-row sm:justify-end sm:gap-x-2',
+        props.class,
+      )
+    "
+  >
+    <slot />
+  </div>
+</template>
+
+
+================================================
+File: resources/js/Components/ui/dialog/DialogHeader.vue
+================================================
+<script setup>
+import { cn } from '@/lib/utils';
+
+const props = defineProps({
+  class: { type: null, required: false },
+});
+</script>
+
+<template>
+  <div
+    :class="cn('flex flex-col gap-y-1.5 text-center sm:text-left', props.class)"
+  >
+    <slot />
+  </div>
+</template>
+
+
+================================================
+File: resources/js/Components/ui/dialog/DialogScrollContent.vue
+================================================
+<script setup>
+import { cn } from '@/lib/utils';
+import { X } from 'lucide-vue-next';
+import {
+  DialogClose,
+  DialogContent,
+  DialogOverlay,
+  DialogPortal,
+  useForwardPropsEmits,
+} from 'radix-vue';
+import { computed } from 'vue';
+
+const props = defineProps({
+  forceMount: { type: Boolean, required: false },
+  trapFocus: { type: Boolean, required: false },
+  disableOutsidePointerEvents: { type: Boolean, required: false },
+  asChild: { type: Boolean, required: false },
+  as: { type: null, required: false },
+  class: { type: null, required: false },
+});
+const emits = defineEmits([
+  'escapeKeyDown',
+  'pointerDownOutside',
+  'focusOutside',
+  'interactOutside',
+  'openAutoFocus',
+  'closeAutoFocus',
+]);
+
+const delegatedProps = computed(() => {
+  const { class: _, ...delegated } = props;
+
+  return delegated;
+});
+
+const forwarded = useForwardPropsEmits(delegatedProps, emits);
+</script>
+
+<template>
+  <DialogPortal>

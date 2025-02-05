@@ -1,0 +1,523 @@
+SESSION_LIFETIME=120
+SESSION_ENCRYPT=false
+SESSION_PATH=/
+SESSION_DOMAIN=null
+
+BROADCAST_CONNECTION=reverb
+QUEUE_CONNECTION=database
+
+CACHE_STORE=database
+CACHE_PREFIX=
+
+MEMCACHED_HOST=127.0.0.1
+
+REDIS_CLIENT=phpredis
+REDIS_HOST=redis
+REDIS_PASSWORD=null
+REDIS_PORT=6379
+
+MAIL_MAILER=resend
+MAIL_HOST="mailpit"
+MAIL_PORT="1025"
+MAIL_USERNAME=null
+MAIL_PASSWORD=null
+MAIL_ENCRYPTION=null
+MAIL_FROM_ADDRESS="admin@scriptoshi.com"
+MAIL_FROM_NAME="Memex"
+#resend
+RESEND_KEY=
+#https://www.mailersend.com/
+MAILERSEND_API_KEY=
+
+#AWS
+AWS_ACCESS_KEY_ID=
+AWS_SECRET_ACCESS_KEY=
+AWS_DEFAULT_REGION=us-east-1
+AWS_BUCKET=
+AWS_USE_PATH_STYLE_ENDPOINT=false
+#digitalocean spaces /linode objects
+DO_SPACES_KEY=
+DO_SPACES_SECRET=
+#DE, Frankfurt: eu-central-1.linodeobjects.com
+DO_SPACES_ENDPOINT=https://eu-central-1.linodeobjects.com
+DO_SPACES_REGION=eu-central-1
+DO_SPACES_BUCKET=cdn.scriptoshi.com
+DO_SPACES_CDN=https://cdn.scriptoshi.com/
+
+#options are public, aws, do
+# public is your server disk
+# aws uses s3 settings above
+# do user digitalocean spaces above
+PROFILE_PHOTO_DISK=public
+FILESYSTEM_DISK=public
+
+VITE_APP_NAME="${APP_NAME}"
+
+SCOUT_DRIVER=meilisearch
+MEILISEARCH_HOST=http://meilisearch:7700
+
+MEILISEARCH_NO_ANALYTICS=false
+
+
+REVERB_APP_ID=489873
+REVERB_APP_KEY=sbf7mhlhmri46um457yw
+REVERB_APP_SECRET=n427b606x4nqx0knvy63
+REVERB_HOST="scriptoshi.com"
+REVERB_PORT=443
+REVERB_SCHEME=https
+
+VITE_REVERB_APP_KEY="${REVERB_APP_KEY}"
+VITE_REVERB_HOST="${REVERB_HOST}"
+VITE_REVERB_PORT="${REVERB_PORT}"
+VITE_REVERB_SCHEME="${REVERB_SCHEME}"
+
+#usdrates api (free apikey https://coincap.io/api-key)
+COINCAP_APIKEY=
+#appkit project id: https://cloud.reown.com/
+PROJECT_ID=
+## Ankr apikey https://www.ankr.com/rpc/projects/
+ANKR_KEY=
+BLASTAPI_KEY=
+INFURA_KEY=
+GRAPH_APIKEY=
+VITE_PROJECT_ID="${PROJECT_ID}"
+VITE_PROJECT_URL="${APP_URL}"
+VITE_PROJECT_APP_NAME="${APP_NAME}"
+VITE_ANKR_KEY="${ANKR_KEY}"
+## List of adresses that have admin dashboard access
+ADMIN=
+#SOCIAL MEDIA
+TWITTER="https://x.com/memex"
+YOUTUBE="https://youtube.com/@memex"
+TELEGRAM_GROUP="https://t.me/memex"
+TELEGRAM_CHANNEL="https://t.me/memex"
+DISCORD="https://discord.gg/memex"
+DOCUMENTATION="https://docs.memex.io"
+
+
+
+
+================================================
+File: .eslintrc.cjs
+================================================
+module.exports = {
+    env: {
+        browser: true,
+        es2021: true,
+        node: true
+    },
+
+    extends: [
+        'plugin:vue/vue3-essential',
+        'standard',
+        '@vue/standard',
+        'prettier'
+    ],
+
+    parserOptions: {
+        ecmaVersion: 2020,
+        sourceType: 'module'
+    },
+
+    plugins: ['vue'],
+
+    rules: {
+        'vue/multi-word-component-names': 0,
+        'no-return-assign': 'off',
+        'no-unused-vars': 2,
+        "semi": [2, "always"],
+        'no-console': process.env.NODE_ENV === 'production' ? 'warn' : 'off',
+        'no-debugger': process.env.NODE_ENV === 'production' ? 'warn' : 'off',
+        "import/order": [
+            "error",
+            {
+                "groups": ["builtin", "external", "internal"],
+                "pathGroups": [
+                    {
+                        "pattern": "vue",
+                        "group": "external",
+                        "position": "before"
+                    },
+                    {
+                        "pattern": "./web3js",
+                        "group": "internal",
+                        "position": "before"
+                    },
+
+                ],
+
+                "pathGroupsExcludedImportTypes": ["vue", "~/web3js"],
+                "newlines-between": "always",
+                "alphabetize": {
+                    "order": "asc",
+                    "caseInsensitive": true
+                }
+            }
+        ],
+    },
+    root: true,
+
+};
+
+
+================================================
+File: app/Actions/Candle.php
+================================================
+<?php
+
+namespace App\Actions;
+
+
+use App\Models\Trade;
+use App\Models\TradeCandle;
+use Illuminate\Support\Facades\Cache;
+
+class Candle
+{
+    /**
+     * The mapping of timeframe identifiers to their duration in seconds.
+     *
+     * @var array<string, int>
+     */
+    public $timeframeSeconds = [
+        '1m' => 60,
+        '5m' => 300,
+        '15m' => 900,
+        '1h' => 3600,
+        '4h' => 14400,
+        '1d' => 86400,
+    ];
+
+    /**
+     * Update or create a candle for each timeframe based on a new trade.
+     * This method is called internally when a new trade is created.
+     *
+     * @param  \App\Models\Trade  $trade
+     * @return void
+     *
+     * @throws \Exception When calculation errors occur
+     *
+     * Side effects:
+     * - Creates or updates candles in the trade_candles table
+     * - Clears related cache entries
+     * - Updates all timeframe candles (1m, 5m, 15m, 1h, 4h, 1d)
+     */
+    public function update(Trade $trade)
+    {
+        foreach ($this->timeframeSeconds as $timeframe => $seconds) {
+            $timestamp = $trade->created_at->timestamp;
+            $intervalStart = $timestamp - ($timestamp % $seconds);
+            $candle = TradeCandle::firstOrNew([
+                'launchpad_id' => $trade->launchpad_id,
+                'timeframe' => $timeframe,
+                'timestamp' => date('Y-m-d H:i:s', $intervalStart)
+            ]);
+            $price = bcdiv($trade->amount, $trade->qty, 18);
+            if (!$candle->exists) {
+                $candle->open = $price;
+                $candle->high = $price;
+                $candle->low = $price;
+                $candle->volume = $trade->qty;
+                $candle->trades_count = 1;
+            } else {
+                $candle->high = max($candle->high, $price);
+                $candle->low = min($candle->low, $price);
+                $candle->volume = bcadd($candle->volume, $trade->qty, 18);
+                $candle->trades_count++;
+            }
+            $candle->close = $price;
+            $candle->save();
+            // Clear the cache for this timeframe
+            Cache::forget("candles:{$trade->launchpad_id}:{$timeframe}:200");
+        }
+        // Clear price stats cache
+        Cache::forget("price_stats:{$trade->launchpad_id}");
+    }
+}
+
+
+================================================
+File: app/Actions/Signature.php
+================================================
+<?php
+
+namespace App\Actions;
+
+use Elliptic\EC;
+use kornrunner\Keccak;
+
+class Signature
+{
+    private static function pubKeyToAddress($pubkey)
+    {
+        return "0x" . substr(Keccak::hash(substr(hex2bin($pubkey->encode("hex")), 1), 256), 24);
+    }
+
+    public static function verify($message, $signature, $address): bool
+    {
+        $msglen = strlen($message);
+        $hash   = Keccak::hash("\x19Ethereum Signed Message:\n{$msglen}{$message}", 256);
+        $sign   = [
+            "r" => substr($signature, 2, 64),
+            "s" => substr($signature, 66, 64)
+        ];
+        if (str($signature)->endsWith('00')) {
+            $signature = str($signature)->replaceLast('00', '1B')->value();
+        }
+        if (str($signature)->endsWith('01')) {
+            $signature = str($signature)->replaceLast('01', '1C')->value();
+        }
+        $recid  = ord(hex2bin(substr($signature, 130, 2))) - 27;
+        if ($recid != ($recid & 1))
+            return false;
+        $ec = new EC('secp256k1');
+        $pubkey = $ec->recoverPubKey($hash, $sign, $recid);
+        $signer = static::pubKeyToAddress($pubkey);
+        if (is_array($address))
+            return in_array(strtolower($signer), array_map('strtolower', $address));
+        return strtolower($address) == strtolower($signer);
+    }
+}
+
+
+================================================
+File: app/Actions/Uploads.php
+================================================
+<?php
+
+namespace App\Actions;
+
+
+use Illuminate\Http\Request;
+
+use Illuminate\Database\Eloquent\Model;
+use Illuminate\Support\Facades\File;
+use Illuminate\Support\Facades\Storage;
+
+class Uploads
+{
+    // This class manages the sites uploads model.
+
+    private static function filepond(object $file)
+    {
+        $filepond = app(\Sopamo\LaravelFilepond\Filepond::class);
+        $path = $filepond->getPathFromServerId($file->serverId);
+        $disk = config('filepond.temporary_files_disk');
+        $fullpath = Storage::disk($disk)->path($path);
+        $extension = $file->fileExtension ?? File::guessExtension($fullpath);
+        $uploadedFile = 'uploads/' . File::hash($fullpath) . '.' . $extension;
+        File::move($fullpath, Storage::disk('public')->path($uploadedFile));
+        return $uploadedFile;
+    }
+
+    /**
+     * Handle uploads for profile photos
+     */
+    public function uploadProfilePhoto(Request $request,  $key = null)
+    {
+        $upload_key = $key ? "{$key}_upload" : 'upload';
+        $path_key = $key ? "{$key}_path" : 'path';
+        // user provided a file
+        if ($request->input($upload_key) == false) return false;
+        $request->validate([$path_key => "required"]);
+        // local disk
+        if (config('filesystems.profile_photo_disk', 'public') === 'public') {
+            return static::filepond((object)$request->input($path_key));
+        }
+        return $request->input($path_key);
+    }
+
+    public function upload(Request $request, Model $uploadable, $key = null)
+    {
+        $uri_key = $key ? "{$key}_uri" : 'uri';
+        $upload_key = $key ? "{$key}_upload" : 'upload';
+        $path_key = $key ? "{$key}_path" : 'path';
+
+        // user provided a file
+        if ($request->input($upload_key) == false) return static::url($request, $uploadable, $key);
+
+        // user uploaded a file
+        if (config('filesystems.default') === 'public') {
+            $path = static::filepond((object)$request->input($path_key));
+            $url = Storage::disk('public')->url($path);
+        } else {
+            $url = $request->input($uri_key);
+            $path = $request->input($path_key);
+        }
+        //delete uploaded file if any
+        if ($upload =  $uploadable->uploads()->where('key', $key)->first())
+            $upload->removeFile();
+
+        return  $uploadable->uploads()->updateOrCreate([
+            'key' => $key
+        ], [
+            'url' => $url,
+            'path' => $path,
+            'drive' => config('filesystems.default')
+        ]);
+    }
+
+    public function validation($uploadkey = null): array
+    {
+        $key = $uploadkey ? "{$uploadkey}_" : "";
+        return [
+            "{$key}uri" => ['required', 'string'],
+            "{$key}upload" => ['required', 'boolean'],
+            "{$key}path" => ['nullable',  "required_if:{$key}upload,true"],
+        ];
+    }
+
+    /**
+     * user provided a file url;
+     */
+    private static function url(Request $request, Model $uploadable, $key = null)
+    {
+        $uri_key = $key ? "{$key}_uri" : 'uri';
+        $path_key = $key ? "{$key}_path" : 'path';
+        $url = $request->input($uri_key);
+        $hasPath = $request->filled($path_key);
+        return $uploadable->uploads()->updateOrCreate([
+            'key' => $key
+        ], [
+            'url' => $url,
+            'is_external' =>  !$hasPath
+        ]);
+    }
+}
+
+
+================================================
+File: app/Console/Commands/UpdatePoolStats.php
+================================================
+<?php
+
+namespace App\Console\Commands;
+
+use App\Models\Launchpad;
+use App\Models\Poolstat;
+use App\Services\UniswapV3GraphService;
+use Illuminate\Console\Command;
+use Illuminate\Support\Facades\Log;
+
+class UpdatePoolStats extends Command
+{
+    protected $signature = 'pool:update-stats {launchpad? : Specific launchpad ID to update}';
+    protected $description = 'Update pool statistics from The Graph';
+
+
+    public function __construct()
+    {
+        parent::__construct();
+    }
+
+    public function handle(): int
+    {
+        $links = collect(config('evm', []))
+            ->values()
+            ->reject(fn($evm) => !isset($evm['chainId']) || !isset($evm['graph']))
+            ->pluck('graph', 'chainId')
+            ->all();
+        try {
+            $launchpads = Launchpad::query()
+                ->whereIn('chainId', array_keys($links))
+                //->whereNotNull('graph')
+                ->whereNotNull('pool')
+                ->get();
+            $bar = $this->output->createProgressBar($launchpads->count());
+            $bar->start();
+
+            foreach ($launchpads as $launchpad) {
+                $graphLink =  $links[$launchpad->chainId];
+                $url = str_replace('[api-key]', config('evm.graph_apikey'), $graphLink);
+                $graphService = new UniswapV3GraphService($url);
+                try {
+                    $stats = $graphService->getPoolStats($launchpad->pool);
+                    Poolstat::create([
+                        'launchpad_id' => $launchpad->id,
+                        ...$stats
+                    ]);
+                    $this->info(" Updated stats for launchpad {$launchpad->id}");
+                } catch (\Exception $e) {
+                    Log::error("Failed to update pool stats", [
+                        'launchpad_id' => $launchpad->id,
+                        'error' => $e->getMessage()
+                    ]);
+                    $this->error(" Failed to update launchpad {$launchpad->id}: {$e->getMessage()}");
+                }
+                $bar->advance();
+            }
+            $bar->finish();
+            $this->newLine();
+            return Command::SUCCESS;
+        } catch (\Exception $e) {
+            $this->error("Failed to update pool stats: {$e->getMessage()}");
+            return Command::FAILURE;
+        }
+    }
+}
+
+
+================================================
+File: app/Console/Commands/UpdateTokenHolders.php
+================================================
+<?php
+
+namespace App\Console\Commands;
+
+use Illuminate\Console\Command;
+use App\Services\TokenHolderService;
+
+class UpdateTokenHolders extends Command
+{
+    /**
+     * The name and signature of the console command.
+     *
+     * @var string
+     */
+    protected $signature = 'launchpad:update-holders';
+
+    /**
+     * The console command description.
+     *
+     * @var string
+     */
+    protected $description = 'Update token holders for launchpads';
+
+    /**
+     * Execute the console command.
+     */
+    public function handle(TokenHolderService $service)
+    {
+        $service->updateAllHolders();
+        $this->info('Updated holders for all active launchpads');
+    }
+}
+
+
+================================================
+File: app/Console/Commands/UpdateTradeCandles.php
+================================================
+<?php
+
+namespace App\Console\Commands;
+
+use App\Models\Launchpad;
+use App\Services\CandleService;
+use Carbon\Carbon;
+use Illuminate\Console\Command;
+
+class UpdateTradeCandles extends Command
+{
+    /**
+     * The name and signature of the console command.
+     *
+     * @var string
+     */
+    protected $signature = 'trades:update-candles {--days=1}';
+
+    /**
+     * The console command description.
+     *
+     * @var string
+     */
+    protected $description = 'Update historical trade candles';

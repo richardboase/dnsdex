@@ -1,0 +1,523 @@
+const props = defineProps({
+  asChild: { type: Boolean, required: false },
+  as: { type: null, required: false },
+  class: { type: null, required: false },
+});
+
+const delegatedProps = computed(() => {
+  const { class: _, ...delegated } = props;
+
+  return delegated;
+});
+</script>
+
+<template>
+  <ToastClose
+    v-bind="delegatedProps"
+    :class="
+      cn(
+        'absolute right-2 top-2 rounded-md p-1 text-gray-950/50 opacity-0 transition-opacity hover:text-gray-950 focus:opacity-100 focus:outline-none focus:ring-2 group-hover:opacity-100 group-[.destructive]:text-red-300 group-[.destructive]:hover:text-red-50 group-[.destructive]:focus:ring-red-400 group-[.destructive]:focus:ring-offset-red-600 dark:text-gray-50/50 dark:hover:text-gray-50',
+        props.class,
+      )
+    "
+  >
+    <X class="h-4 w-4" />
+  </ToastClose>
+</template>
+
+
+================================================
+File: resources/js/Components/ui/toast/ToastDescription.vue
+================================================
+<script setup>
+import { cn } from '@/lib/utils';
+import { ToastDescription } from 'radix-vue';
+import { computed } from 'vue';
+
+const props = defineProps({
+  asChild: { type: Boolean, required: false },
+  as: { type: null, required: false },
+  class: { type: null, required: false },
+});
+
+const delegatedProps = computed(() => {
+  const { class: _, ...delegated } = props;
+
+  return delegated;
+});
+</script>
+
+<template>
+  <ToastDescription
+    :class="cn('text-sm opacity-90', props.class)"
+    v-bind="delegatedProps"
+  >
+    <slot />
+  </ToastDescription>
+</template>
+
+
+================================================
+File: resources/js/Components/ui/toast/ToastProvider.vue
+================================================
+<script setup>
+import { ToastProvider } from 'radix-vue';
+
+const props = defineProps({
+  label: { type: String, required: false },
+  duration: { type: Number, required: false },
+  swipeDirection: { type: String, required: false },
+  swipeThreshold: { type: Number, required: false },
+});
+</script>
+
+<template>
+  <ToastProvider v-bind="props">
+    <slot />
+  </ToastProvider>
+</template>
+
+
+================================================
+File: resources/js/Components/ui/toast/ToastTitle.vue
+================================================
+<script setup>
+import { cn } from '@/lib/utils';
+import { ToastTitle } from 'radix-vue';
+import { computed } from 'vue';
+
+const props = defineProps({
+  asChild: { type: Boolean, required: false },
+  as: { type: null, required: false },
+  class: { type: null, required: false },
+});
+
+const delegatedProps = computed(() => {
+  const { class: _, ...delegated } = props;
+
+  return delegated;
+});
+</script>
+
+<template>
+  <ToastTitle
+    v-bind="delegatedProps"
+    :class="cn('text-sm font-semibold', props.class)"
+  >
+    <slot />
+  </ToastTitle>
+</template>
+
+
+================================================
+File: resources/js/Components/ui/toast/ToastViewport.vue
+================================================
+<script setup>
+import { cn } from '@/lib/utils';
+import { ToastViewport } from 'radix-vue';
+import { computed } from 'vue';
+
+const props = defineProps({
+  hotkey: { type: Array, required: false },
+  label: { type: [String, Function], required: false },
+  asChild: { type: Boolean, required: false },
+  as: { type: null, required: false },
+  class: { type: null, required: false },
+});
+
+const delegatedProps = computed(() => {
+  const { class: _, ...delegated } = props;
+
+  return delegated;
+});
+</script>
+
+<template>
+  <ToastViewport
+    v-bind="delegatedProps"
+    :class="
+      cn(
+        'fixed top-0 z-[100] flex max-h-screen w-full flex-col-reverse p-4 sm:bottom-0 sm:right-0 sm:top-auto sm:flex-col md:max-w-[420px]',
+        props.class,
+      )
+    "
+  />
+</template>
+
+
+================================================
+File: resources/js/Components/ui/toast/Toaster.vue
+================================================
+<script setup>
+import { isVNode } from 'vue';
+import {
+  Toast,
+  ToastClose,
+  ToastDescription,
+  ToastProvider,
+  ToastTitle,
+  ToastViewport,
+} from '.';
+import { useToast } from './use-toast';
+
+const { toasts } = useToast();
+</script>
+
+<template>
+  <ToastProvider>
+    <Toast v-for="toast in toasts" :key="toast.id" v-bind="toast">
+      <div class="grid gap-1">
+        <ToastTitle v-if="toast.title">
+          {{ toast.title }}
+        </ToastTitle>
+        <template v-if="toast.description">
+          <ToastDescription v-if="isVNode(toast.description)">
+            <component :is="toast.description" />
+          </ToastDescription>
+          <ToastDescription v-else>
+            {{ toast.description }}
+          </ToastDescription>
+        </template>
+        <ToastClose />
+      </div>
+      <component :is="toast.action" />
+    </Toast>
+    <ToastViewport />
+  </ToastProvider>
+</template>
+
+
+================================================
+File: resources/js/Components/ui/toast/index.js
+================================================
+export { default as Toast } from './Toast.vue';
+export { default as ToastAction } from './ToastAction.vue';
+export { default as ToastClose } from './ToastClose.vue';
+export { default as ToastDescription } from './ToastDescription.vue';
+export { default as Toaster } from './Toaster.vue';
+export { default as ToastProvider } from './ToastProvider.vue';
+export { default as ToastTitle } from './ToastTitle.vue';
+export { default as ToastViewport } from './ToastViewport.vue';
+export { toast, useToast } from './use-toast';
+
+import { cva } from 'class-variance-authority';
+
+export const toastVariants = cva(
+  'group pointer-events-auto relative flex w-full items-center justify-between space-x-4 overflow-hidden rounded-md border border-gray-200 p-6 pr-8 shadow-lg transition-all data-[swipe=cancel]:translate-x-0 data-[swipe=end]:translate-x-[--radix-toast-swipe-end-x] data-[swipe=move]:translate-x-[--radix-toast-swipe-move-x] data-[swipe=move]:transition-none data-[state=open]:animate-in data-[state=closed]:animate-out data-[swipe=end]:animate-out data-[state=closed]:fade-out-80 data-[state=closed]:slide-out-to-right-full data-[state=open]:slide-in-from-top-full data-[state=open]:sm:slide-in-from-bottom-full dark:border-gray-800',
+  {
+    variants: {
+      variant: {
+        default: 'border bg-white text-gray-950 dark:bg-gray-950 dark:text-gray-50',
+        destructive:
+          'destructive group border-red-500 bg-red-500 text-gray-50 dark:border-red-900 dark:bg-red-900 dark:text-gray-50',
+      },
+    },
+    defaultVariants: {
+      variant: 'default',
+    },
+  },
+);
+
+
+================================================
+File: resources/js/Components/ui/toast/use-toast.js
+================================================
+import { computed, ref } from 'vue';
+
+const TOAST_LIMIT = 1;
+const TOAST_REMOVE_DELAY = 1000000;
+
+const actionTypes = {
+  ADD_TOAST: 'ADD_TOAST',
+  UPDATE_TOAST: 'UPDATE_TOAST',
+  DISMISS_TOAST: 'DISMISS_TOAST',
+  REMOVE_TOAST: 'REMOVE_TOAST',
+};
+
+let count = 0;
+
+function genId() {
+  count = (count + 1) % Number.MAX_VALUE;
+  return count.toString();
+}
+
+const toastTimeouts = new Map();
+
+function addToRemoveQueue(toastId) {
+  if (toastTimeouts.has(toastId)) return;
+
+  const timeout = setTimeout(() => {
+    toastTimeouts.delete(toastId);
+    dispatch({
+      type: actionTypes.REMOVE_TOAST,
+      toastId,
+    });
+  }, TOAST_REMOVE_DELAY);
+
+  toastTimeouts.set(toastId, timeout);
+}
+
+const state = ref({
+  toasts: [],
+});
+
+function dispatch(action) {
+  switch (action.type) {
+    case actionTypes.ADD_TOAST:
+      state.value.toasts = [action.toast, ...state.value.toasts].slice(
+        0,
+        TOAST_LIMIT,
+      );
+      break;
+
+    case actionTypes.UPDATE_TOAST:
+      state.value.toasts = state.value.toasts.map((t) =>
+        t.id === action.toast.id ? { ...t, ...action.toast } : t,
+      );
+      break;
+
+    case actionTypes.DISMISS_TOAST: {
+      const { toastId } = action;
+
+      if (toastId) {
+        addToRemoveQueue(toastId);
+      } else {
+        state.value.toasts.forEach((toast) => {
+          addToRemoveQueue(toast.id);
+        });
+      }
+
+      state.value.toasts = state.value.toasts.map((t) =>
+        t.id === toastId || toastId === undefined
+          ? {
+              ...t,
+              open: false,
+            }
+          : t,
+      );
+      break;
+    }
+
+    case actionTypes.REMOVE_TOAST:
+      if (action.toastId === undefined) state.value.toasts = [];
+      else
+        state.value.toasts = state.value.toasts.filter(
+          (t) => t.id !== action.toastId,
+        );
+
+      break;
+  }
+}
+
+function useToast() {
+  return {
+    toasts: computed(() => state.value.toasts),
+    toast,
+    dismiss: (toastId) =>
+      dispatch({ type: actionTypes.DISMISS_TOAST, toastId }),
+  };
+}
+
+function toast(props) {
+  const id = genId();
+
+  const update = (props) =>
+    dispatch({
+      type: actionTypes.UPDATE_TOAST,
+      toast: { ...props, id },
+    });
+
+  const dismiss = () =>
+    dispatch({ type: actionTypes.DISMISS_TOAST, toastId: id });
+
+  dispatch({
+    type: actionTypes.ADD_TOAST,
+    toast: {
+      ...props,
+      id,
+      open: true,
+      onOpenChange: (open) => {
+        if (!open) dismiss();
+      },
+    },
+  });
+
+  return {
+    id,
+    dismiss,
+    update,
+  };
+}
+
+export { toast, useToast };
+
+
+================================================
+File: resources/js/Components/ui/toggle/Toggle.vue
+================================================
+<script setup>
+import { cn } from '@/lib/utils';
+import { Toggle, useForwardPropsEmits } from 'radix-vue';
+import { computed } from 'vue';
+import { toggleVariants } from '.';
+
+const props = defineProps({
+  defaultValue: { type: Boolean, required: false },
+  pressed: { type: Boolean, required: false },
+  disabled: { type: Boolean, required: false, default: false },
+  asChild: { type: Boolean, required: false },
+  as: { type: null, required: false },
+  class: { type: null, required: false },
+  variant: { type: null, required: false, default: 'default' },
+  size: { type: null, required: false, default: 'default' },
+});
+
+const emits = defineEmits(['update:pressed']);
+
+const delegatedProps = computed(() => {
+  const { class: _, size, variant, ...delegated } = props;
+
+  return delegated;
+});
+
+const forwarded = useForwardPropsEmits(delegatedProps, emits);
+</script>
+
+<template>
+  <Toggle
+    v-bind="forwarded"
+    :class="cn(toggleVariants({ variant, size }), props.class)"
+  >
+    <slot />
+  </Toggle>
+</template>
+
+
+================================================
+File: resources/js/Components/ui/toggle/index.js
+================================================
+import { cva } from 'class-variance-authority';
+
+export { default as Toggle } from './Toggle.vue';
+
+export const toggleVariants = cva(
+  'inline-flex items-center justify-center rounded-md text-sm font-medium ring-offset-white transition-colors hover:bg-gray-100 hover:text-gray-500 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-gray-950 focus-visible:ring-offset-2 disabled:pointer-events-none disabled:opacity-50 data-[state=on]:bg-gray-100 data-[state=on]:text-gray-900 dark:ring-offset-gray-950 dark:hover:bg-gray-800 dark:hover:text-gray-400 dark:focus-visible:ring-gray-300 dark:data-[state=on]:bg-gray-800 dark:data-[state=on]:text-gray-50',
+  {
+    variants: {
+      variant: {
+        default: 'bg-transparent',
+        outline:
+          'border border-gray-200 bg-transparent hover:bg-gray-100 hover:text-gray-900 dark:border-gray-800 dark:hover:bg-gray-800 dark:hover:text-gray-50',
+      },
+      size: {
+        default: 'h-10 px-3',
+        sm: 'h-9 px-2.5',
+        lg: 'h-11 px-5',
+      },
+    },
+    defaultVariants: {
+      variant: 'default',
+      size: 'default',
+    },
+  },
+);
+
+
+================================================
+File: resources/js/Components/ui/tooltip/Tooltip.vue
+================================================
+<script setup>
+import { TooltipRoot, useForwardPropsEmits } from 'radix-vue';
+
+const props = defineProps({
+  defaultOpen: { type: Boolean, required: false },
+  open: { type: Boolean, required: false },
+  delayDuration: { type: Number, required: false },
+  disableHoverableContent: { type: Boolean, required: false },
+  disableClosingTrigger: { type: Boolean, required: false },
+  disabled: { type: Boolean, required: false },
+  ignoreNonKeyboardFocus: { type: Boolean, required: false },
+});
+const emits = defineEmits(['update:open']);
+
+const forwarded = useForwardPropsEmits(props, emits);
+</script>
+
+<template>
+  <TooltipRoot v-bind="forwarded">
+    <slot />
+  </TooltipRoot>
+</template>
+
+
+================================================
+File: resources/js/Components/ui/tooltip/TooltipContent.vue
+================================================
+<script setup>
+import { cn } from '@/lib/utils';
+import { TooltipContent, TooltipPortal, useForwardPropsEmits } from 'radix-vue';
+import { computed } from 'vue';
+
+defineOptions({
+  inheritAttrs: false,
+});
+
+const props = defineProps({
+  forceMount: { type: Boolean, required: false },
+  ariaLabel: { type: String, required: false },
+  asChild: { type: Boolean, required: false },
+  as: { type: null, required: false },
+  side: { type: null, required: false },
+  sideOffset: { type: Number, required: false, default: 4 },
+  align: { type: null, required: false },
+  alignOffset: { type: Number, required: false },
+  avoidCollisions: { type: Boolean, required: false },
+  collisionBoundary: { type: null, required: false },
+  collisionPadding: { type: [Number, Object], required: false },
+  arrowPadding: { type: Number, required: false },
+  sticky: { type: String, required: false },
+  hideWhenDetached: { type: Boolean, required: false },
+  class: { type: null, required: false },
+});
+
+const emits = defineEmits(['escapeKeyDown', 'pointerDownOutside']);
+
+const delegatedProps = computed(() => {
+  const { class: _, ...delegated } = props;
+
+  return delegated;
+});
+
+const forwarded = useForwardPropsEmits(delegatedProps, emits);
+</script>
+
+<template>
+  <TooltipPortal>
+    <TooltipContent
+      v-bind="{ ...forwarded, ...$attrs }"
+      :class="
+        cn(
+          'z-50 overflow-hidden rounded-md border border-gray-200 bg-white px-3 py-1.5 text-sm text-gray-950 shadow-md animate-in fade-in-0 zoom-in-95 data-[state=closed]:animate-out data-[state=closed]:fade-out-0 data-[state=closed]:zoom-out-95 data-[side=bottom]:slide-in-from-top-2 data-[side=left]:slide-in-from-right-2 data-[side=right]:slide-in-from-left-2 data-[side=top]:slide-in-from-bottom-2 dark:border-gray-800 dark:bg-gray-950 dark:text-gray-50',
+          props.class,
+        )
+      "
+    >
+      <slot />
+    </TooltipContent>
+  </TooltipPortal>
+</template>
+
+
+================================================
+File: resources/js/Components/ui/tooltip/TooltipProvider.vue
+================================================
+<script setup>
+import { TooltipProvider } from 'radix-vue';
+
+const props = defineProps({
+  delayDuration: { type: Number, required: false },
+  skipDelayDuration: { type: Number, required: false },
+  disableHoverableContent: { type: Boolean, required: false },
+  disableClosingTrigger: { type: Boolean, required: false },
+  disabled: { type: Boolean, required: false },
+  ignoreNonKeyboardFocus: { type: Boolean, required: false },

@@ -1,0 +1,429 @@
+    }
+
+    public function test_users_can_not_authenticate_with_invalid_password(): void
+    {
+        $user = User::factory()->create();
+
+        $this->post('/login', [
+            'email' => $user->email,
+            'password' => 'wrong-password',
+        ]);
+
+        $this->assertGuest();
+    }
+
+    public function test_users_can_logout(): void
+    {
+        $user = User::factory()->create();
+
+        $response = $this->actingAs($user)->post('/logout');
+
+        $this->assertGuest();
+        $response->assertRedirect('/');
+    }
+}
+
+
+================================================
+File: tests/Feature/Auth/EmailVerificationTest.php
+================================================
+<?php
+
+namespace Tests\Feature\Auth;
+
+use App\Models\User;
+use Illuminate\Auth\Events\Verified;
+use Illuminate\Foundation\Testing\RefreshDatabase;
+use Illuminate\Support\Facades\Event;
+use Illuminate\Support\Facades\URL;
+use Tests\TestCase;
+
+class EmailVerificationTest extends TestCase
+{
+    use RefreshDatabase;
+
+    public function test_email_verification_screen_can_be_rendered(): void
+    {
+        $user = User::factory()->unverified()->create();
+
+        $response = $this->actingAs($user)->get('/verify-email');
+
+        $response->assertStatus(200);
+    }
+
+    public function test_email_can_be_verified(): void
+    {
+        $user = User::factory()->unverified()->create();
+
+        Event::fake();
+
+        $verificationUrl = URL::temporarySignedRoute(
+            'verification.verify',
+            now()->addMinutes(60),
+            ['id' => $user->id, 'hash' => sha1($user->email)]
+        );
+
+        $response = $this->actingAs($user)->get($verificationUrl);
+
+        Event::assertDispatched(Verified::class);
+        $this->assertTrue($user->fresh()->hasVerifiedEmail());
+        $response->assertRedirect(route('dashboard', absolute: false).'?verified=1');
+    }
+
+    public function test_email_is_not_verified_with_invalid_hash(): void
+    {
+        $user = User::factory()->unverified()->create();
+
+        $verificationUrl = URL::temporarySignedRoute(
+            'verification.verify',
+            now()->addMinutes(60),
+            ['id' => $user->id, 'hash' => sha1('wrong-email')]
+        );
+
+        $this->actingAs($user)->get($verificationUrl);
+
+        $this->assertFalse($user->fresh()->hasVerifiedEmail());
+    }
+}
+
+
+================================================
+File: tests/Feature/Auth/PasswordConfirmationTest.php
+================================================
+<?php
+
+namespace Tests\Feature\Auth;
+
+use App\Models\User;
+use Illuminate\Foundation\Testing\RefreshDatabase;
+use Tests\TestCase;
+
+class PasswordConfirmationTest extends TestCase
+{
+    use RefreshDatabase;
+
+    public function test_confirm_password_screen_can_be_rendered(): void
+    {
+        $user = User::factory()->create();
+
+        $response = $this->actingAs($user)->get('/confirm-password');
+
+        $response->assertStatus(200);
+    }
+
+    public function test_password_can_be_confirmed(): void
+    {
+        $user = User::factory()->create();
+
+        $response = $this->actingAs($user)->post('/confirm-password', [
+            'password' => 'password',
+        ]);
+
+        $response->assertRedirect();
+        $response->assertSessionHasNoErrors();
+    }
+
+    public function test_password_is_not_confirmed_with_invalid_password(): void
+    {
+        $user = User::factory()->create();
+
+        $response = $this->actingAs($user)->post('/confirm-password', [
+            'password' => 'wrong-password',
+        ]);
+
+        $response->assertSessionHasErrors();
+    }
+}
+
+
+================================================
+File: tests/Feature/Auth/PasswordResetTest.php
+================================================
+<?php
+
+namespace Tests\Feature\Auth;
+
+use App\Models\User;
+use Illuminate\Auth\Notifications\ResetPassword;
+use Illuminate\Foundation\Testing\RefreshDatabase;
+use Illuminate\Support\Facades\Notification;
+use Tests\TestCase;
+
+class PasswordResetTest extends TestCase
+{
+    use RefreshDatabase;
+
+    public function test_reset_password_link_screen_can_be_rendered(): void
+    {
+        $response = $this->get('/forgot-password');
+
+        $response->assertStatus(200);
+    }
+
+    public function test_reset_password_link_can_be_requested(): void
+    {
+        Notification::fake();
+
+        $user = User::factory()->create();
+
+        $this->post('/forgot-password', ['email' => $user->email]);
+
+        Notification::assertSentTo($user, ResetPassword::class);
+    }
+
+    public function test_reset_password_screen_can_be_rendered(): void
+    {
+        Notification::fake();
+
+        $user = User::factory()->create();
+
+        $this->post('/forgot-password', ['email' => $user->email]);
+
+        Notification::assertSentTo($user, ResetPassword::class, function ($notification) {
+            $response = $this->get('/reset-password/'.$notification->token);
+
+            $response->assertStatus(200);
+
+            return true;
+        });
+    }
+
+    public function test_password_can_be_reset_with_valid_token(): void
+    {
+        Notification::fake();
+
+        $user = User::factory()->create();
+
+        $this->post('/forgot-password', ['email' => $user->email]);
+
+        Notification::assertSentTo($user, ResetPassword::class, function ($notification) use ($user) {
+            $response = $this->post('/reset-password', [
+                'token' => $notification->token,
+                'email' => $user->email,
+                'password' => 'password',
+                'password_confirmation' => 'password',
+            ]);
+
+            $response
+                ->assertSessionHasNoErrors()
+                ->assertRedirect(route('login'));
+
+            return true;
+        });
+    }
+}
+
+
+================================================
+File: tests/Feature/Auth/PasswordUpdateTest.php
+================================================
+<?php
+
+namespace Tests\Feature\Auth;
+
+use App\Models\User;
+use Illuminate\Foundation\Testing\RefreshDatabase;
+use Illuminate\Support\Facades\Hash;
+use Tests\TestCase;
+
+class PasswordUpdateTest extends TestCase
+{
+    use RefreshDatabase;
+
+    public function test_password_can_be_updated(): void
+    {
+        $user = User::factory()->create();
+
+        $response = $this
+            ->actingAs($user)
+            ->from('/profile')
+            ->put('/password', [
+                'current_password' => 'password',
+                'password' => 'new-password',
+                'password_confirmation' => 'new-password',
+            ]);
+
+        $response
+            ->assertSessionHasNoErrors()
+            ->assertRedirect('/profile');
+
+        $this->assertTrue(Hash::check('new-password', $user->refresh()->password));
+    }
+
+    public function test_correct_password_must_be_provided_to_update_password(): void
+    {
+        $user = User::factory()->create();
+
+        $response = $this
+            ->actingAs($user)
+            ->from('/profile')
+            ->put('/password', [
+                'current_password' => 'wrong-password',
+                'password' => 'new-password',
+                'password_confirmation' => 'new-password',
+            ]);
+
+        $response
+            ->assertSessionHasErrors('current_password')
+            ->assertRedirect('/profile');
+    }
+}
+
+
+================================================
+File: tests/Feature/Auth/RegistrationTest.php
+================================================
+<?php
+
+namespace Tests\Feature\Auth;
+
+use Illuminate\Foundation\Testing\RefreshDatabase;
+use Tests\TestCase;
+
+class RegistrationTest extends TestCase
+{
+    use RefreshDatabase;
+
+    public function test_registration_screen_can_be_rendered(): void
+    {
+        $response = $this->get('/register');
+
+        $response->assertStatus(200);
+    }
+
+    public function test_new_users_can_register(): void
+    {
+        $response = $this->post('/register', [
+            'name' => 'Test User',
+            'email' => 'test@example.com',
+            'password' => 'password',
+            'password_confirmation' => 'password',
+        ]);
+
+        $this->assertAuthenticated();
+        $response->assertRedirect(route('dashboard', absolute: false));
+    }
+}
+
+
+================================================
+File: tests/Unit/ExampleTest.php
+================================================
+<?php
+
+namespace Tests\Unit;
+
+use PHPUnit\Framework\TestCase;
+
+class ExampleTest extends TestCase
+{
+    /**
+     * A basic test example.
+     */
+    public function test_that_true_is_true(): void
+    {
+        $this->assertTrue(true);
+    }
+}
+
+
+================================================
+File: .github/workflows/deploy.yml
+================================================
+name: Deploy
+
+on:
+    push:
+        branches:
+            - main
+
+# Define environment variables for easier configuration
+env:
+    SITE_DIR: ${{ vars.SITE_DIR || 'memex.scriptoshi.com' }}
+    REPO_NAME: ${{ vars.REPO_NAME || 'memex' }}
+    GIT_REMOTE: ${{ vars.GIT_REMOTE || 'github-memex:scriptoshi/memex.git' }}
+    ENV_SOURCE: ${{ vars.ENV_SOURCE || '/var/www/envs/.memex' }}
+
+jobs:
+    deploy:
+        runs-on: ubuntu-latest
+        steps:
+            - uses: actions/checkout@v3
+            - name: Deploy to server
+              uses: appleboy/ssh-action@master
+              with:
+                  host: ${{ secrets.HOST }}
+                  username: ${{ secrets.USERNAME }}
+                  port: ${{ secrets.PORT }}
+                  key: ${{ secrets.SSHKEY }}
+                  envs: SITE_DIR,REPO_NAME,GIT_REMOTE,ENV_SOURCE
+                  script: |
+                      echo "Deployment started ..."
+                      rm -rf /var/www/${{ env.REPO_NAME }}
+                      cd /var/www && git clone ${{ env.GIT_REMOTE }} ${{ env.REPO_NAME }}
+                      cp ${{ env.ENV_SOURCE }} /var/www/${{ env.REPO_NAME }}/.env
+                      cd /var/www/${{ env.REPO_NAME }} && chmod u+r+x ./.scripts/deploy.sh
+                      echo "Running Deployment"
+                      SITE_DIR="${{ env.SITE_DIR }}" \
+                      REPO_NAME="${{ env.REPO_NAME }}" \
+                      ./.scripts/deploy.sh
+
+
+================================================
+File: .scripts/deploy.sh
+================================================
+#!/bin/bash
+set -e
+
+# Default values for environment variables
+SITE_DIR=${SITE_DIR:-"betriver.scriptoshi.com"}
+REPO_NAME=${REPO_NAME:-"betriver"}
+WWW_DIR="/var/www"
+
+echo "Deployment started ..."
+echo "Deploying to site directory: $SITE_DIR"
+
+echo "# Checkout main version of the app"
+cd $WWW_DIR/$REPO_NAME && git checkout main
+
+echo "# Install composer dependencies"
+composer install --no-dev --no-interaction --prefer-dist --optimize-autoloader
+
+echo "# Install & Compile npm assets"
+npm i && npm run build
+echo "Build complete!"
+
+echo "# Run fresh database migrations"
+php artisan migrate --force
+echo "# seeding the database"
+php artisan db:seed
+
+echo "Swapping Folders"
+rm -rf ${WWW_DIR}/${REPO_NAME}_back
+mv ${WWW_DIR}/${SITE_DIR} ${WWW_DIR}/${REPO_NAME}_back
+mv ${WWW_DIR}/${REPO_NAME} ${WWW_DIR}/${SITE_DIR}
+
+echo "# Handling storage directory"
+[ -d "${WWW_DIR}/${REPO_NAME}_back/storage" ] && \
+rm -r ${WWW_DIR}/${SITE_DIR}/storage
+[ -d "${WWW_DIR}/${REPO_NAME}_back/storage" ] && \
+    mv ${WWW_DIR}/${REPO_NAME}_back/storage ${WWW_DIR}/${SITE_DIR}/storage
+
+# Create upload directory
+mkdir -p ${WWW_DIR}/${SITE_DIR}/storage/app/public/uploads/
+rm -rf ${WWW_DIR}/${SITE_DIR}/storage/app/filepond || :
+
+echo "# Run post installation setup"
+cd ${WWW_DIR}/${SITE_DIR} && {
+    php artisan clear-compiled
+    php artisan optimize
+    php artisan storage:link
+       # Create installation marker
+    mkdir -p storage/app/public
+    echo "{\"installed_at\": \"$(date -u +"%Y-%m-%dT%H:%M:%SZ")\", \"version\": \"$(php artisan --version | grep -oP 'Laravel Framework \K[\d.]+')\", \"app_version\": \"$(grep -oP "(?<='version' => ').*(?=')" config/app.php || echo '1.0.0')\"}" > storage/app/public/installed
+    sudo chgrp -R www-data storage bootstrap/cache
+    sudo chmod -R ug+rwx storage bootstrap/cache
+}
+
+echo "$SITE_DIR Deployment Finished"
+

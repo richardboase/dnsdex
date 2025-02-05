@@ -1,0 +1,523 @@
+
+================================================
+File: app/Models/TradeCandle.php
+================================================
+<?php
+
+namespace App\Models;
+
+use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\SoftDeletes;
+use Illuminate\Database\Eloquent\Relations\BelongsTo;
+
+class TradeCandle extends Model
+{
+
+
+    /**
+     * The attributes that are mass assignable.
+     *
+     * @var array<string>
+     */
+    protected $fillable = [
+        'launchpad_id',
+        'timestamp',
+        'timeframe',
+        'open',
+        'high',
+        'low',
+        'close',
+        'volume',
+        'trades_count',
+    ];
+
+    /**
+     * The attributes that should be cast.
+     *
+     * @var array<string, string>
+     */
+    protected $casts = [
+        'timestamp' => 'datetime',
+        'open' => 'decimal:18',
+        'high' => 'decimal:18',
+        'low' => 'decimal:18',
+        'close' => 'decimal:18',
+        'volume' => 'decimal:18',
+        'trades_count' => 'integer',
+    ];
+
+    /**
+     * Get the launchpad that owns the candle.
+     */
+    public function launchpad(): BelongsTo
+    {
+        return $this->belongsTo(Launchpad::class);
+    }
+
+    /**
+     * The available timeframes for candles.
+     *
+     * @var array<string, int>
+     */
+    public static $timeframes = [
+        '1m' => 60,
+        '5m' => 300,
+        '15m' => 900,
+        '1h' => 3600,
+        '4h' => 14400,
+        '1d' => 86400,
+    ];
+
+    /**
+     * Scope a query to only include candles of a specific timeframe.
+     *
+     * @param  \Illuminate\Database\Eloquent\Builder  $query
+     * @param  string  $timeframe
+     * @return \Illuminate\Database\Eloquent\Builder
+     */
+    public function scopeTimeframe($query, string $timeframe)
+    {
+        return $query->where('timeframe', $timeframe);
+    }
+
+    /**
+     * Scope a query to only include candles within a time range.
+     *
+     * @param  \Illuminate\Database\Eloquent\Builder  $query
+     * @param  string|DateTime  $from
+     * @param  string|DateTime  $to
+     * @return \Illuminate\Database\Eloquent\Builder
+     */
+    public function scopeTimeBetween($query, $from, $to)
+    {
+        return $query->whereBetween('timestamp', [$from, $to]);
+    }
+
+    /**
+     * Get the price change percentage from open to close.
+     *
+     * @return float
+     */
+    public function getPriceChangePercentAttribute(): float
+    {
+        if ($this->open == 0) return 0;
+        return (($this->close - $this->open) / $this->open) * 100;
+    }
+
+    /**
+     * Get whether the candle is bullish (close > open).
+     *
+     * @return bool
+     */
+    public function getIsBullishAttribute(): bool
+    {
+        return $this->close > $this->open;
+    }
+
+    /**
+     * Get whether the candle is bearish (close < open).
+     *
+     * @return bool
+     */
+    public function getIsBearishAttribute(): bool
+    {
+        return $this->close < $this->open;
+    }
+
+    /**
+     * Get the candle body size (absolute difference between open and close).
+     *
+     * @return float
+     */
+    public function getBodySizeAttribute(): float
+    {
+        return abs($this->close - $this->open);
+    }
+
+    /**
+     * Get the candle upper shadow size (difference between high and max of open/close).
+     *
+     * @return float
+     */
+    public function getUpperShadowAttribute(): float
+    {
+        return $this->high - max($this->open, $this->close);
+    }
+
+    /**
+     * Get the candle lower shadow size (difference between min of open/close and low).
+     *
+     * @return float
+     */
+    public function getLowerShadowAttribute(): float
+    {
+        return min($this->open, $this->close) - $this->low;
+    }
+}
+
+
+================================================
+File: app/Models/Upload.php
+================================================
+<?php
+
+namespace App\Models;
+
+use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\Relations\MorphTo;
+use Illuminate\Database\Eloquent\SoftDeletes;
+use Storage;
+
+class Upload extends Model
+{
+    use SoftDeletes;
+
+    /**
+     * The database table used by the model.
+     *
+     * @var string
+     */
+    protected $table = 'uploads';
+
+    /**
+     * The database primary key value.
+     *
+     * @var string
+     */
+    protected $primaryKey = 'id';
+
+    /**
+     * Attributes that should be cast to native types.
+     *
+     * @var string
+     */
+
+
+    /**
+     * Attributes that should be mass-assignable.
+     *
+     * @var array
+     */
+    protected $fillable = [
+        'uploadable',
+        'key',
+        'url',
+        'path',
+        'drive'
+    ];
+
+
+    /**
+     * Get the uploadable the upload Belongs To.
+     *
+     */
+    public function uploadable(): MorphTo
+    {
+        return $this->morphTo();
+    }
+
+    public function removeFile()
+    {
+        Storage::disk($this->disk)->delete($this->path);
+    }
+}
+
+
+================================================
+File: app/Models/User.php
+================================================
+<?php
+
+namespace App\Models;
+
+// use Illuminate\Contracts\Auth\MustVerifyEmail;
+
+use App\Traits\HasProfilePhoto;
+use Carbon\Carbon;
+use Illuminate\Database\Eloquent\Factories\HasFactory;
+use Illuminate\Database\Eloquent\Relations\HasMany;
+use Illuminate\Database\Eloquent\Relations\HasManyThrough;
+use Illuminate\Foundation\Auth\User as Authenticatable;
+use Illuminate\Notifications\Notifiable;
+
+class User extends Authenticatable
+{
+    /** @use HasFactory<\Database\Factories\UserFactory> */
+    use HasFactory, Notifiable, HasProfilePhoto;
+
+    /**
+     * The attributes that are mass assignable.
+     *
+     * @var array<int, string>
+     */
+    protected $fillable = [
+        'name',
+        'email',
+        'address',
+        'otp',
+        'email_verified_at',
+        'otp_expires_at',
+        'profile_photo_path',
+        'active',
+        'banned'
+    ];
+
+    /**
+     * The attributes that should be hidden for serialization.
+     *
+     * @var array<int, string>
+     */
+    protected $hidden = [
+        'remember_token',
+    ];
+
+    /**
+     * The accessors to append to the model's array form.
+     *
+     * @var array
+     */
+    protected $appends = [
+        'profile_photo_url',
+    ];
+
+    /**
+     * Get the attributes that should be cast.
+     *
+     * @return array<string, string>
+     */
+    protected function casts(): array
+    {
+        return [
+            'email_verified_at' => 'datetime',
+            'active' => 'boolean',
+            'banned' => 'boolean',
+        ];
+    }
+
+    public function isAdmin()
+    {
+        return str(config('app.admin', ''))->lower()->contains(strtolower($this->address));
+    }
+
+    /**
+     * Generate a new OTP for the user.
+     *
+     * @return string
+     */
+    public function generateOTP()
+    {
+        $otp = mt_rand(100000, 999999);
+        $this->otp = $otp;
+        $this->otp_expires_at = Carbon::now()->addMinutes(10);
+        $this->save();
+
+        return $otp;
+    }
+
+    /**
+     * Verify the given OTP.
+     *
+     * @param string $otp
+     * @return bool
+     */
+    public function verifyOTP($otp)
+    {
+        if ($this->otp === $otp && $this->otp_expires_at > Carbon::now()) {
+            $this->otp = null;
+            $this->otp_expires_at = null;
+            $this->save();
+            return true;
+        }
+
+        return false;
+    }
+
+    /**
+     * Check if the user has a valid OTP.
+     *
+     * @return bool
+     */
+    public function hasValidOTP()
+    {
+        return $this->otp !== null && $this->otp_expires_at > Carbon::now();
+    }
+
+    /**
+
+     * Get the launchpad this model Belongs To.
+     *
+     */
+    public function launchpads(): HasMany
+    {
+        return $this->hasMany(Launchpad::class, 'user_id', 'id');
+    }
+
+    /**
+
+     * Get the launchpad this model Belongs To.
+     *
+     */
+    public function trades(): HasManyThrough
+    {
+        return $this->hasManyThrough(Trade::class, Launchpad::class);
+    }
+
+    /**
+
+     * Get the launchpad this model Belongs To.
+     *
+     */
+    public function msgs(): HasMany
+    {
+        return $this->hasMany(Msg::class, 'user_id', 'id');
+    }
+
+    /**
+
+     * Get the launchpad this model Belongs To.
+     *
+     */
+    public function holders(): HasMany
+    {
+        return $this->hasMany(Holder::class, 'user_id', 'id');
+    }
+}
+
+
+================================================
+File: app/Notifications/OTPActivation.php
+================================================
+<?php
+
+namespace App\Notifications;
+
+use Illuminate\Bus\Queueable;
+use Illuminate\Contracts\Queue\ShouldQueue;
+use Illuminate\Notifications\Messages\MailMessage;
+use Illuminate\Notifications\Notification;
+
+class OTPActivation extends Notification implements ShouldQueue
+{
+    use Queueable;
+
+    protected $otp;
+    protected $actionText;
+    protected $actionUrl;
+
+    /**
+     * Create a new notification instance.
+     */
+    public function __construct($otp, $actionText = 'Verify OTP', $actionUrl = null)
+    {
+        $this->otp = $otp;
+        $this->actionText = $actionText;
+        $this->actionUrl = $actionUrl;
+    }
+
+    /**
+     * Get the notification's delivery channels.
+     *
+     * @return array<int, string>
+     */
+    public function via(object $notifiable): array
+    {
+        return ['mail'];
+    }
+
+    /**
+     * Get the mail representation of the notification.
+     */
+    public function toMail(object $notifiable): MailMessage
+    {
+        $mailMessage = (new MailMessage)
+            ->subject('Activate your updated Email Address')
+            ->line('Your email address has changed, Use the link below to activate your new email address')
+            ->line('This link will expire in 10 minutes.');
+
+        if ($this->actionUrl) {
+            $mailMessage->action($this->actionText, $this->actionUrl);
+        }
+
+        return $mailMessage->line('If you did not request this OTP, no further action is required.');
+    }
+
+    /**
+     * Get the array representation of the notification.
+     *
+     * @return array<string, mixed>
+     */
+    public function toArray(object $notifiable): array
+    {
+        return [
+            'otp' => $this->otp,
+        ];
+    }
+}
+
+
+================================================
+File: app/Notifications/OTPNotification.php
+================================================
+<?php
+
+namespace App\Notifications;
+
+use Illuminate\Bus\Queueable;
+use Illuminate\Contracts\Queue\ShouldQueue;
+use Illuminate\Notifications\Messages\MailMessage;
+use Illuminate\Notifications\Notification;
+
+class OTPNotification extends Notification implements ShouldQueue
+{
+    use Queueable;
+
+    protected $otp;
+    protected $actionText;
+    protected $actionUrl;
+
+    /**
+     * Create a new notification instance.
+     */
+    public function __construct($otp, $actionText = 'Verify OTP', $actionUrl = null)
+    {
+        $this->otp = $otp;
+        $this->actionText = $actionText;
+        $this->actionUrl = $actionUrl;
+    }
+
+    /**
+     * Get the notification's delivery channels.
+     *
+     * @return array<int, string>
+     */
+    public function via(object $notifiable): array
+    {
+        return ['mail'];
+    }
+
+    /**
+     * Get the mail representation of the notification.
+     */
+    public function toMail(object $notifiable): MailMessage
+    {
+        $mailMessage = (new MailMessage)
+            ->subject('Your One-Time Password (OTP)')
+            ->line('Your OTP is: ' . $this->otp)
+            ->line('This OTP will expire in 10 minutes.');
+
+        if ($this->actionUrl) {
+            $mailMessage->action($this->actionText, $this->actionUrl);
+        }
+
+        return $mailMessage->line('If you did not request this OTP, no further action is required.');
+    }
+
+    /**
+     * Get the array representation of the notification.
+     *
+     * @return array<string, mixed>
+     */
+    public function toArray(object $notifiable): array
+    {
+        return [
+            'otp' => $this->otp,

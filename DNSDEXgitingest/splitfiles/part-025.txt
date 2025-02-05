@@ -1,0 +1,523 @@
+     * @return void
+     */
+    public function down()
+    {
+        Schema::drop('settings');
+    }
+};
+
+
+================================================
+File: database/migrations/2024_12_01_083211_create_trade_candles_table.php
+================================================
+<?php
+
+use Illuminate\Database\Migrations\Migration;
+use Illuminate\Database\Schema\Blueprint;
+use Illuminate\Support\Facades\Schema;
+
+return new class extends Migration
+{
+    public function up(): void
+    {
+        Schema::create('trade_candles', function (Blueprint $table) {
+            $table->id();
+            $table->foreignId('launchpad_id')->constrained()->onDelete('cascade');
+            $table->timestamp('timestamp');
+            $table->string('timeframe'); // '1', '5', '15', '30', '60', '240', 'D', 'W'
+            $table->decimal('open', 36, 18);
+            $table->decimal('high', 36, 18);
+            $table->decimal('low', 36, 18);
+            $table->decimal('close', 36, 18);
+            $table->decimal('volume', 36, 18);
+            $table->integer('trades_count');
+            $table->timestamps();
+
+            // Composite index for efficient queries
+            $table->unique(['launchpad_id', 'timeframe', 'timestamp']);
+            $table->index(['launchpad_id', 'timeframe', 'timestamp']);
+        });
+    }
+
+    public function down(): void
+    {
+        Schema::dropIfExists('trade_candles');
+    }
+};
+
+
+================================================
+File: database/migrations/2024_12_04_215702_create_rates_table.php
+================================================
+<?php
+use Illuminate\Database\Migrations\Migration;
+use Illuminate\Database\Schema\Blueprint;
+
+return new class extends Migration
+{
+    /**
+     * Run the migrations.
+     *
+     * @return void
+     */
+    public function up()
+    {
+        Schema::create('rates', function (Blueprint $table) { 
+			$table->bigIncrements('id');
+			$table->string('symbol')->nullable();
+			$table->integer('chainId')->unique();
+			$table->string('usd_rate')->nullable();
+			$table->timestamps();
+			$table->softDeletes();
+		});
+    }
+
+    /**
+     * Reverse the migrations.
+     *
+     * @return void
+     */
+    public function down()
+    {
+        Schema::drop('rates');
+    }
+};
+
+
+================================================
+File: database/migrations/2024_12_05_173559_create_poolstats_table.php
+================================================
+<?php
+
+use Illuminate\Database\Migrations\Migration;
+use Illuminate\Database\Schema\Blueprint;
+
+return new class extends Migration
+{
+    /**
+     * Run the migrations.
+     *
+     * @return void
+     */
+    public function up()
+    {
+        Schema::create('poolstats', function (Blueprint $table) {
+            $table->bigIncrements('id');
+            $table->foreignId('launchpad_id')->constrained()->onUpdate('cascade')->onDelete('cascade');
+            $table->decimal('token0_price', 36, 18);
+            $table->decimal('token1_price', 36, 18);
+            $table->decimal('tvl_usd', 36, 18);
+            $table->decimal('volume_24h', 36, 18);
+            $table->decimal('fee_tier', 5, 2);
+            $table->integer('transactions_24h')->default(0);
+            $table->integer('total_transactions')->default(0);
+            $table->decimal('liquidity', 36, 18);
+            $table->decimal('price_change_1h', 8, 4);
+            $table->decimal('price_change_24h', 8, 4);
+            $table->decimal('price_change_7d', 8, 4);
+            $table->decimal('min_price_24h', 36, 18);
+            $table->decimal('max_price_24h', 36, 18);
+            $table->timestamp('timestamp');
+            $table->timestamps();
+            $table->softDeletes();
+            // Indexes
+            $table->unique(['launchpad_id', 'timestamp']);
+            $table->index('timestamp');
+        });
+    }
+
+    /**
+     * Reverse the migrations.
+     *
+     * @return void
+     */
+    public function down()
+    {
+        Schema::drop('poolstats');
+    }
+};
+
+
+================================================
+File: database/migrations/2024_12_07_111004_create_promos_table.php
+================================================
+<?php
+
+use Illuminate\Database\Migrations\Migration;
+use Illuminate\Database\Schema\Blueprint;
+
+return new class extends Migration
+{
+    /**
+     * Run the migrations.
+     *
+     * @return void
+     */
+    public function up()
+    {
+        Schema::create('promos', function (Blueprint $table) {
+            $table->bigIncrements('id');
+            $table->string('name', 300);
+            $table->string('image')->nullable();
+            $table->string('url', 300);
+            $table->timestamp('starts_at');
+            $table->timestamp('ends_at');
+            $table->boolean('active')->default(false);
+            $table->timestamps();
+            $table->softDeletes();
+        });
+    }
+
+    /**
+     * Reverse the migrations.
+     *
+     * @return void
+     */
+    public function down()
+    {
+        Schema::drop('promos');
+    }
+};
+
+
+================================================
+File: database/migrations/2024_12_11_212713_add_unique_keys_to_holders_table.php
+================================================
+<?php
+
+use Illuminate\Database\Migrations\Migration;
+use Illuminate\Database\Schema\Blueprint;
+use Illuminate\Support\Facades\Schema;
+use Illuminate\Support\Facades\DB;
+
+return new class extends Migration
+{
+    /**
+     * Run the migrations.
+     */
+    public function up(): void
+    {
+        // Truncate the table first
+        DB::table('holders')->truncate();
+
+        Schema::table('holders', function (Blueprint $table) {
+            $table->unique(['launchpad_id', 'address']);
+        });
+    }
+
+    /**
+     * Reverse the migrations.
+     */
+    public function down(): void
+    {
+        Schema::table('holders', function (Blueprint $table) {
+            $table->dropUnique(['launchpad_id', 'address']);
+        });
+    }
+};
+
+
+================================================
+File: database/migrations/2025_01_04_041834_add_livestream_id_to_launchpads_table.php
+================================================
+<?php
+
+use Illuminate\Database\Migrations\Migration;
+use Illuminate\Database\Schema\Blueprint;
+use Illuminate\Support\Facades\Schema;
+
+return new class extends Migration
+{
+    /**
+     * Run the migrations.
+     */
+    public function up(): void
+    {
+        Schema::table('launchpads', function (Blueprint $table) {
+            //
+            $table->string('livestreamId', 60)->nullable()->after('website');
+        });
+    }
+
+    /**
+     * Reverse the migrations.
+     */
+    public function down(): void
+    {
+        Schema::table('launchpads', function (Blueprint $table) {
+            //
+            $table->dropColumn(['livestreamId']);
+        });
+    }
+};
+
+
+================================================
+File: database/seeders/DatabaseSeeder.php
+================================================
+<?php
+
+namespace Database\Seeders;
+
+use App\Models\Setting;
+use App\Models\User;
+// use Illuminate\Database\Console\Seeds\WithoutModelEvents;
+use Illuminate\Database\Seeder;
+
+class DatabaseSeeder extends Seeder
+{
+    /**
+     * Seed the application's database.
+     */
+    public function run(): void
+    {
+        // User::factory(10)->create();
+        Setting::query()->firstOrCreate([
+            'id' => 1
+        ], [
+            'name' => 'Memex',
+            'twitter' => "https://x.com/memex",
+            'youtube' => "https://youtube.com/@memex",
+            'telegram_group' => "https://t.me/memex",
+            'telegram_channel' => "https://t.me/memex",
+            'discord' => "https://discord.gg/memex",
+            'documentation' => "https://docs.memex.io",
+        ]);
+        $this->call(RatesTableSeeder::class);
+    }
+}
+
+
+================================================
+File: database/seeders/RatesTableSeeder.php
+================================================
+<?php
+
+namespace Database\Seeders;
+
+use App\Models\Rate;
+use App\Services\Rate as ServicesRate;
+use Illuminate\Database\Console\Seeds\WithoutModelEvents;
+use Illuminate\Database\Seeder;
+
+class RatesTableSeeder extends Seeder
+{
+    /**
+     * Run the database seeds.
+     */
+    public function run(): void
+    {
+        //
+        collect(config('evm'))->reject(function ($evm) {
+            return !is_array($evm) || !isset($evm['chainId']) || !isset($evm['symbol']);
+        })->map(function (array $evm) {
+            Rate::query()->updateOrCreate(['chainId' => $evm['chainId']], [
+                'chainId' => $evm['chainId'],
+                'symbol' => $evm['symbol']
+            ]);
+        });
+        ServicesRate::update();
+    }
+}
+
+
+================================================
+File: database/seeders/TestLaunchpadSeeder.php
+================================================
+<?php
+
+namespace Database\Seeders;
+
+use Illuminate\Database\Seeder;
+use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Str;
+
+class TestLaunchpadSeeder extends Seeder
+{
+    private function generateRandomAddress(): string
+    {
+        // Ethereum addresses are 20 bytes (40 hex characters) long, prefixed with '0x'
+        $characters = '0123456789abcdef';
+        $randomHex = '';
+
+        for ($i = 0; $i < 40; $i++) {
+            $randomHex .= $characters[random_int(0, 15)];
+        }
+
+        return '0x' . $randomHex;
+    }
+
+    private function generateRandomTxHash(): string
+    {
+        // Ethereum transaction hashes are 32 bytes (64 hex characters) long, prefixed with '0x'
+        $characters = '0123456789abcdef';
+        $randomHex = '';
+
+        for ($i = 0; $i < 64; $i++) {
+            $randomHex .= $characters[random_int(0, 15)];
+        }
+
+        return '0x' . $randomHex;
+    }
+
+    public function run(): void
+    {
+        // Create sample launchpad
+        $launchpadId = DB::table('launchpads')->insertGetId([
+            'user_id' => 1,
+            'factory_id' => 1,
+            'contract' => $this->generateRandomAddress(),
+            'token' => $this->generateRandomAddress(),
+            'name' => 'Sample Token',
+            'symbol' => 'SMPL',
+            'description' => 'This is a sample token for testing purposes with innovative tokenomics and strong community focus.',
+            'chainId' => '11155111',
+            'twitter' => 'https://twitter.com/sampletoken',
+            'discord' => 'https://discord.gg/sampletoken',
+            'telegram' => 'https://t.me/sampletoken',
+            'website' => 'https://sampletoken.io',
+            'status' => 'bonding',
+            'logo' => 'sample-logo.png',
+            'featured' => true,
+            'kingofthehill' => false,
+            'active' => true,
+            'created_at' => now(),
+            'updated_at' => now(),
+        ]);
+
+        // Create sample messages
+        $messages = [
+            'Excited about this project! The tokenomics look promising.',
+            'When is the next community AMA?',
+            'The development roadmap is impressive.',
+            'Looking forward to the upcoming features!',
+            'Great community engagement so far.'
+        ];
+
+        foreach ($messages as $message) {
+            DB::table('msgs')->insert([
+                'user_id' => 1,
+                'launchpad_id' => $launchpadId,
+                'uuid' => Str::uuid(),
+                'message' => $message,
+                'status' => 'active',
+                'created_at' => now(),
+                'updated_at' => now(),
+            ]);
+        }
+
+        // Create sample trades
+        $trades = [
+            [
+                'type' => 'prebond',
+                'qty' => '1000',  // 1000 tokens with 18 decimals
+                'amount' => '1',   // 1 ETH
+            ],
+            [
+                'type' => 'buy',
+                'qty' => '500',   // 500 tokens
+                'amount' => '0.5',    // 0.5 ETH
+            ],
+            [
+                'type' => 'sell',
+                'qty' => '200',   // 200 tokens
+                'amount' => '0.22',    // 0.22 ETH
+            ],
+        ];
+
+        foreach ($trades as $trade) {
+            DB::table('trades')->insert([
+                'launchpad_id' => $launchpadId,
+                'txid' => $this->generateRandomTxHash(),
+                'address' => $this->generateRandomAddress(),
+                'qty' => $trade['qty'],
+                'amount' => $trade['amount'],
+                'type' => $trade['type'],
+                'created_at' => now(),
+                'updated_at' => now(),
+            ]);
+        }
+
+        // Create sample holders
+        $holders = [
+            [
+                'address' => $this->generateRandomAddress(),
+                'qty' => '800',    // 800 tokens
+                'prebond' => true,
+                'user_id' => 1,
+            ],
+            [
+                'address' => $this->generateRandomAddress(),
+                'qty' => '500',    // 500 tokens
+                'prebond' => false,
+                'user_id' => null,
+            ],
+            [
+                'address' => $this->generateRandomAddress(),
+                'qty' => '300',    // 300 tokens
+                'prebond' => false,
+                'user_id' => null,
+            ],
+        ];
+
+        foreach ($holders as $holder) {
+            DB::table('holders')->insert([
+                'launchpad_id' => $launchpadId,
+                'user_id' => $holder['user_id'],
+                'address' => $holder['address'],
+                'qty' => $holder['qty'],
+                'prebond' => $holder['prebond'],
+                'created_at' => now(),
+                'updated_at' => now(),
+            ]);
+        }
+    }
+}
+
+
+================================================
+File: database/seeders/TestTradeCandlesSeeder.php
+================================================
+<?php
+
+namespace Database\Seeders;
+
+use Carbon\Carbon;
+use Illuminate\Database\Seeder;
+use Illuminate\Support\Facades\DB;
+
+class TestTradeCandlesSeeder extends Seeder
+{
+    public function run(): void
+    {
+        $launchpadId = 2;
+        $startDate = Carbon::now()->subDays(30);
+        $timeframes = ['1', '5', '15', '30', '60', '240', 'D'];
+
+        // Base price and parameters for random walk
+        $basePrice = 0.001; // Starting price in ETH
+        $volatility = 0.02; // 2% average price movement
+        $trendStrength = 0.6; // 60% chance to follow trend
+        $trend = 1; // Start with upward trend
+
+        foreach ($timeframes as $timeframe) {
+            $interval = $this->getIntervalInSeconds($timeframe);
+            $records = [];
+            $currentPrice = $basePrice;
+            $timestamp = $startDate->copy();
+
+            // Calculate number of candles based on timeframe
+            $totalCandles = ceil($startDate->diffInSeconds(Carbon::now()) / $interval);
+
+            for ($i = 0; $i < $totalCandles; $i++) {
+                // Randomly switch trend with 20% probability
+                if (rand(1, 100) <= 20) {
+                    $trend *= -1;
+                }
+
+                // Calculate price movement
+                $movement = $currentPrice * $volatility * (rand(1, 100) <= ($trendStrength * 100) ? $trend : -$trend);
+                $movement *= (rand(0, 100) / 100); // Randomize movement magnitude
+
+                // Calculate OHLCV data
+                $open = $currentPrice;

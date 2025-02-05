@@ -1,0 +1,523 @@
+
+
+================================================
+File: resources/js/Components/ui/avatar/AvatarImage.vue
+================================================
+<script setup>
+import { AvatarImage } from 'radix-vue';
+
+const props = defineProps({
+  src: { type: String, required: true },
+  asChild: { type: Boolean, required: false },
+  as: { type: null, required: false },
+});
+</script>
+
+<template>
+  <AvatarImage v-bind="props" class="h-full w-full object-cover" />
+</template>
+
+
+================================================
+File: resources/js/Components/ui/avatar/index.js
+================================================
+import { cva } from 'class-variance-authority';
+
+export { default as Avatar } from './Avatar.vue';
+export { default as AvatarFallback } from './AvatarFallback.vue';
+export { default as AvatarImage } from './AvatarImage.vue';
+
+export const avatarVariant = cva(
+  'inline-flex items-center justify-center font-normal text-gray-950 select-none shrink-0 bg-gray-100 overflow-hidden dark:text-gray-50 dark:bg-gray-800',
+  {
+    variants: {
+      size: {
+        sm: 'h-10 w-10 text-xs',
+        base: 'h-16 w-16 text-2xl',
+        lg: 'h-32 w-32 text-5xl',
+      },
+      shape: {
+        circle: 'rounded-full',
+        square: 'rounded-md',
+      },
+    },
+  },
+);
+
+
+================================================
+File: resources/js/Components/ui/badge/Badge.vue
+================================================
+<script setup>
+import { cn } from '@/lib/utils';
+import { badgeVariants } from '.';
+
+const props = defineProps({
+  variant: { type: null, required: false },
+  class: { type: null, required: false },
+});
+</script>
+
+<template>
+  <div :class="cn(badgeVariants({ variant }), props.class)">
+    <slot />
+  </div>
+</template>
+
+
+================================================
+File: resources/js/Components/ui/badge/index.js
+================================================
+import { cva } from 'class-variance-authority';
+
+export { default as Badge } from './Badge.vue';
+
+export const badgeVariants = cva(
+  'inline-flex items-center rounded-full border border-gray-200 px-2.5 py-0.5 text-xs font-semibold transition-colors focus:outline-none focus:ring-2 focus:ring-gray-950 focus:ring-offset-2 dark:border-gray-800 dark:focus:ring-gray-300',
+  {
+    variants: {
+      variant: {
+        default:
+          'border-transparent bg-gray-900 text-gray-50 hover:bg-gray-900/80 dark:bg-gray-50 dark:text-gray-900 dark:hover:bg-gray-50/80',
+        secondary:
+          'border-transparent bg-gray-100 text-gray-900 hover:bg-gray-100/80 dark:bg-gray-800 dark:text-gray-50 dark:hover:bg-gray-800/80',
+        destructive:
+          'border-transparent bg-red-500 text-gray-50 hover:bg-red-500/80 dark:bg-red-900 dark:text-gray-50 dark:hover:bg-red-900/80',
+        outline: 'text-gray-950 dark:text-gray-50',
+      },
+    },
+    defaultVariants: {
+      variant: 'default',
+    },
+  },
+);
+
+
+================================================
+File: resources/js/Components/ui/button/Button.vue
+================================================
+<script setup>
+import { cn } from '@/lib/utils';
+import { Primitive } from 'radix-vue';
+import { buttonVariants } from '.';
+
+const props = defineProps({
+  variant: { type: null, required: false },
+  size: { type: null, required: false },
+  class: { type: null, required: false },
+  asChild: { type: Boolean, required: false },
+  as: { type: null, required: false, default: 'button' },
+});
+</script>
+
+<template>
+  <Primitive
+    :as="as"
+    :as-child="asChild"
+    :class="cn(buttonVariants({ variant, size }), props.class)"
+  >
+    <slot />
+  </Primitive>
+</template>
+
+
+================================================
+File: resources/js/Components/ui/button/index.js
+================================================
+import { cva } from 'class-variance-authority';
+
+export { default as Button } from './Button.vue';
+
+export const buttonVariants = cva(
+  'inline-flex items-center justify-center gap-2 whitespace-nowrap rounded-md text-sm font-medium ring-offset-white transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-gray-950 focus-visible:ring-offset-2 disabled:pointer-events-none disabled:opacity-50 [&_svg]:pointer-events-none [&_svg]:size-4 [&_svg]:shrink-0 dark:ring-offset-gray-950 dark:focus-visible:ring-gray-300',
+  {
+    variants: {
+      variant: {
+        default:
+          'bg-gray-900 text-gray-50 shadow hover:bg-gray-900/90 dark:bg-gray-50 dark:text-gray-900 dark:hover:bg-gray-50/90',
+        destructive:
+          'bg-red-500 text-gray-50 shadow-sm hover:bg-red-500/90 dark:bg-red-900 dark:text-gray-50 dark:hover:bg-red-900/90',
+        outline:
+          'border border-gray-200 bg-white shadow-sm hover:bg-gray-100 hover:text-gray-900 dark:border-gray-800 dark:bg-gray-950 dark:hover:bg-gray-800 dark:hover:text-gray-50',
+        secondary:
+          'bg-gray-100 text-gray-900 shadow-sm hover:bg-gray-100/80 dark:bg-gray-800 dark:text-gray-50 dark:hover:bg-gray-800/80',
+        ghost: 'hover:bg-gray-100 hover:text-gray-900 dark:hover:bg-gray-800 dark:hover:text-gray-50',
+        link: 'text-gray-900 underline-offset-4 hover:underline dark:text-gray-50',
+      },
+      size: {
+        default: 'h-9 px-4 py-2',
+        sm: 'h-8 rounded-md px-3 text-xs',
+        lg: 'h-10 rounded-md px-8',
+        icon: 'h-9 w-9',
+      },
+    },
+    defaultVariants: {
+      variant: 'default',
+      size: 'default',
+    },
+  },
+);
+
+
+================================================
+File: resources/js/Components/ui/calendar/Calendar.vue
+================================================
+<script setup>
+import { cn } from '@/lib/utils';
+import { CalendarRoot, useForwardPropsEmits } from 'radix-vue';
+import { computed } from 'vue';
+import {
+  CalendarCell,
+  CalendarCellTrigger,
+  CalendarGrid,
+  CalendarGridBody,
+  CalendarGridHead,
+  CalendarGridRow,
+  CalendarHeadCell,
+  CalendarHeader,
+  CalendarHeading,
+  CalendarNextButton,
+  CalendarPrevButton,
+} from '.';
+
+const props = defineProps({
+  modelValue: { type: null, required: false },
+  multiple: { type: Boolean, required: false },
+  defaultValue: { type: null, required: false },
+  defaultPlaceholder: { type: null, required: false },
+  placeholder: { type: null, required: false },
+  pagedNavigation: { type: Boolean, required: false },
+  preventDeselect: { type: Boolean, required: false },
+  weekStartsOn: { type: Number, required: false },
+  weekdayFormat: { type: String, required: false },
+  calendarLabel: { type: String, required: false },
+  fixedWeeks: { type: Boolean, required: false },
+  maxValue: { type: null, required: false },
+  minValue: { type: null, required: false },
+  locale: { type: String, required: false },
+  numberOfMonths: { type: Number, required: false },
+  disabled: { type: Boolean, required: false },
+  readonly: { type: Boolean, required: false },
+  initialFocus: { type: Boolean, required: false },
+  isDateDisabled: { type: Function, required: false },
+  isDateUnavailable: { type: Function, required: false },
+  dir: { type: String, required: false },
+  nextPage: { type: Function, required: false },
+  prevPage: { type: Function, required: false },
+  asChild: { type: Boolean, required: false },
+  as: { type: null, required: false },
+  class: { type: null, required: false },
+});
+
+const emits = defineEmits(['update:modelValue', 'update:placeholder']);
+
+const delegatedProps = computed(() => {
+  const { class: _, ...delegated } = props;
+
+  return delegated;
+});
+
+const forwarded = useForwardPropsEmits(delegatedProps, emits);
+</script>
+
+<template>
+  <CalendarRoot
+    v-slot="{ grid, weekDays }"
+    :class="cn('p-3', props.class)"
+    v-bind="forwarded"
+  >
+    <CalendarHeader>
+      <CalendarPrevButton />
+      <CalendarHeading />
+      <CalendarNextButton />
+    </CalendarHeader>
+
+    <div class="flex flex-col gap-y-4 mt-4 sm:flex-row sm:gap-x-4 sm:gap-y-0">
+      <CalendarGrid v-for="month in grid" :key="month.value.toString()">
+        <CalendarGridHead>
+          <CalendarGridRow>
+            <CalendarHeadCell v-for="day in weekDays" :key="day">
+              {{ day }}
+            </CalendarHeadCell>
+          </CalendarGridRow>
+        </CalendarGridHead>
+        <CalendarGridBody>
+          <CalendarGridRow
+            v-for="(weekDates, index) in month.rows"
+            :key="`weekDate-${index}`"
+            class="mt-2 w-full"
+          >
+            <CalendarCell
+              v-for="weekDate in weekDates"
+              :key="weekDate.toString()"
+              :date="weekDate"
+            >
+              <CalendarCellTrigger :day="weekDate" :month="month.value" />
+            </CalendarCell>
+          </CalendarGridRow>
+        </CalendarGridBody>
+      </CalendarGrid>
+    </div>
+  </CalendarRoot>
+</template>
+
+
+================================================
+File: resources/js/Components/ui/calendar/CalendarCell.vue
+================================================
+<script setup>
+import { cn } from '@/lib/utils';
+import { CalendarCell, useForwardProps } from 'radix-vue';
+import { computed } from 'vue';
+
+const props = defineProps({
+  date: { type: null, required: true },
+  asChild: { type: Boolean, required: false },
+  as: { type: null, required: false },
+  class: { type: null, required: false },
+});
+
+const delegatedProps = computed(() => {
+  const { class: _, ...delegated } = props;
+
+  return delegated;
+});
+
+const forwardedProps = useForwardProps(delegatedProps);
+</script>
+
+<template>
+  <CalendarCell
+    :class="
+      cn(
+        'relative h-9 w-9 p-0 text-center text-sm focus-within:relative focus-within:z-20 [&:has([data-selected])]:rounded-md [&:has([data-selected])]:bg-gray-100 [&:has([data-selected][data-outside-view])]:bg-gray-100/50 dark:[&:has([data-selected])]:bg-gray-800 dark:[&:has([data-selected][data-outside-view])]:bg-gray-800/50',
+        props.class,
+      )
+    "
+    v-bind="forwardedProps"
+  >
+    <slot />
+  </CalendarCell>
+</template>
+
+
+================================================
+File: resources/js/Components/ui/calendar/CalendarCellTrigger.vue
+================================================
+<script setup>
+import { buttonVariants } from '@/Components/ui/button';
+import { cn } from '@/lib/utils';
+import { CalendarCellTrigger, useForwardProps } from 'radix-vue';
+import { computed } from 'vue';
+
+const props = defineProps({
+  day: { type: null, required: true },
+  month: { type: null, required: true },
+  asChild: { type: Boolean, required: false },
+  as: { type: null, required: false },
+  class: { type: null, required: false },
+});
+
+const delegatedProps = computed(() => {
+  const { class: _, ...delegated } = props;
+
+  return delegated;
+});
+
+const forwardedProps = useForwardProps(delegatedProps);
+</script>
+
+<template>
+  <CalendarCellTrigger
+    :class="
+      cn(
+        buttonVariants({ variant: 'ghost' }),
+        'h-9 w-9 p-0 font-normal',
+        '[&[data-today]:not([data-selected])]:bg-gray-100 [&[data-today]:not([data-selected])]:text-gray-900 dark:[&[data-today]:not([data-selected])]:bg-gray-800 dark:[&[data-today]:not([data-selected])]:text-gray-50',
+        // Selected
+        'data-[selected]:bg-gray-900 data-[selected]:text-gray-50 data-[selected]:opacity-100 data-[selected]:hover:bg-gray-900 data-[selected]:hover:text-gray-50 data-[selected]:focus:bg-gray-900 data-[selected]:focus:text-gray-50 dark:data-[selected]:bg-gray-50 dark:data-[selected]:text-gray-900 dark:data-[selected]:hover:bg-gray-50 dark:data-[selected]:hover:text-gray-900 dark:data-[selected]:focus:bg-gray-50 dark:data-[selected]:focus:text-gray-900',
+        // Disabled
+        'data-[disabled]:text-gray-500 data-[disabled]:opacity-50 dark:data-[disabled]:text-gray-400',
+        // Unavailable
+        'data-[unavailable]:text-gray-50 data-[unavailable]:line-through dark:data-[unavailable]:text-gray-50',
+        // Outside months
+        'data-[outside-view]:text-gray-500 data-[outside-view]:opacity-50 [&[data-outside-view][data-selected]]:bg-gray-100/50 [&[data-outside-view][data-selected]]:text-gray-500 [&[data-outside-view][data-selected]]:opacity-30 dark:data-[outside-view]:text-gray-400 dark:[&[data-outside-view][data-selected]]:bg-gray-800/50 dark:[&[data-outside-view][data-selected]]:text-gray-400',
+        props.class,
+      )
+    "
+    v-bind="forwardedProps"
+  >
+    <slot />
+  </CalendarCellTrigger>
+</template>
+
+
+================================================
+File: resources/js/Components/ui/calendar/CalendarGrid.vue
+================================================
+<script setup>
+import { cn } from '@/lib/utils';
+import { CalendarGrid, useForwardProps } from 'radix-vue';
+import { computed } from 'vue';
+
+const props = defineProps({
+  asChild: { type: Boolean, required: false },
+  as: { type: null, required: false },
+  class: { type: null, required: false },
+});
+
+const delegatedProps = computed(() => {
+  const { class: _, ...delegated } = props;
+
+  return delegated;
+});
+
+const forwardedProps = useForwardProps(delegatedProps);
+</script>
+
+<template>
+  <CalendarGrid
+    :class="cn('w-full border-collapse space-y-1', props.class)"
+    v-bind="forwardedProps"
+  >
+    <slot />
+  </CalendarGrid>
+</template>
+
+
+================================================
+File: resources/js/Components/ui/calendar/CalendarGridBody.vue
+================================================
+<script setup>
+import { CalendarGridBody } from 'radix-vue';
+
+const props = defineProps({
+  asChild: { type: Boolean, required: false },
+  as: { type: null, required: false },
+});
+</script>
+
+<template>
+  <CalendarGridBody v-bind="props">
+    <slot />
+  </CalendarGridBody>
+</template>
+
+
+================================================
+File: resources/js/Components/ui/calendar/CalendarGridHead.vue
+================================================
+<script setup>
+import { CalendarGridHead } from 'radix-vue';
+
+const props = defineProps({
+  asChild: { type: Boolean, required: false },
+  as: { type: null, required: false },
+});
+</script>
+
+<template>
+  <CalendarGridHead v-bind="props">
+    <slot />
+  </CalendarGridHead>
+</template>
+
+
+================================================
+File: resources/js/Components/ui/calendar/CalendarGridRow.vue
+================================================
+<script setup>
+import { cn } from '@/lib/utils';
+import { CalendarGridRow, useForwardProps } from 'radix-vue';
+import { computed } from 'vue';
+
+const props = defineProps({
+  asChild: { type: Boolean, required: false },
+  as: { type: null, required: false },
+  class: { type: null, required: false },
+});
+
+const delegatedProps = computed(() => {
+  const { class: _, ...delegated } = props;
+
+  return delegated;
+});
+
+const forwardedProps = useForwardProps(delegatedProps);
+</script>
+
+<template>
+  <CalendarGridRow :class="cn('flex', props.class)" v-bind="forwardedProps">
+    <slot />
+  </CalendarGridRow>
+</template>
+
+
+================================================
+File: resources/js/Components/ui/calendar/CalendarHeadCell.vue
+================================================
+<script setup>
+import { cn } from '@/lib/utils';
+import { CalendarHeadCell, useForwardProps } from 'radix-vue';
+import { computed } from 'vue';
+
+const props = defineProps({
+  asChild: { type: Boolean, required: false },
+  as: { type: null, required: false },
+  class: { type: null, required: false },
+});
+
+const delegatedProps = computed(() => {
+  const { class: _, ...delegated } = props;
+
+  return delegated;
+});
+
+const forwardedProps = useForwardProps(delegatedProps);
+</script>
+
+<template>
+  <CalendarHeadCell
+    :class="
+      cn(
+        'w-9 rounded-md text-[0.8rem] font-normal text-gray-500 dark:text-gray-400',
+        props.class,
+      )
+    "
+    v-bind="forwardedProps"
+  >
+    <slot />
+  </CalendarHeadCell>
+</template>
+
+
+================================================
+File: resources/js/Components/ui/calendar/CalendarHeader.vue
+================================================
+<script setup>
+import { cn } from '@/lib/utils';
+import { CalendarHeader, useForwardProps } from 'radix-vue';
+import { computed } from 'vue';
+
+const props = defineProps({
+  asChild: { type: Boolean, required: false },
+  as: { type: null, required: false },
+  class: { type: null, required: false },
+});
+
+const delegatedProps = computed(() => {
+  const { class: _, ...delegated } = props;
+
+  return delegated;
+});
+
+const forwardedProps = useForwardProps(delegatedProps);
+</script>
+
+<template>
+  <CalendarHeader
+    :class="
+      cn('relative flex w-full items-center justify-between pt-1', props.class)
+    "
+    v-bind="forwardedProps"
+  >

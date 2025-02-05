@@ -1,0 +1,523 @@
+							<span class="ml-2">999.9M</span>
+						</div>
+					</td>
+					<td class="px-4 py-2">
+						${{ (holder.qty * formatted.priceInUsd).toFixed(6) }}
+					</td>
+					<td class="px-4 py-2">
+						<div class="flex justify-center">
+							<Filter class="w-5 h-5 text-gray-500" />
+						</div>
+					</td>
+				</tr>
+			</tbody>
+		</table>
+	</div>
+</template>
+
+
+================================================
+File: resources/js/Pages/Launchpads/TradingView/Info.vue
+================================================
+<script setup>
+import { computed } from "vue";
+
+import { Globe2 } from "lucide-vue-next";
+import { DiscordIcon, TelegramIcon, XIcon } from "vue3-simple-icons";
+
+import AddressLink from "@/Components/AddressLink.vue";
+import BaseButton from "@/Components/BaseButton.vue";
+import ChainSymbol from "@/Components/ChainSymbol.vue";
+import NetworkIcon from "@/Icons/NetworkIcon.vue";
+import { networks, shortenAddress } from "@/lib/wagmi";
+import Progress from "@/Pages/Launchpads/TradingView/Progress.vue";
+import TradingStats from "@/Pages/Launchpads/TradingView/TradingStats.vue";
+import UniswapGraph from "@/Pages/Launchpads/TradingView/UniswapGraph.vue";
+const props = defineProps({
+    launchpad: Object,
+    rank: Number,
+    rate: Object,
+    totalVolume: Number,
+    totalLaunchpads: Number,
+});
+const chain = computed(() =>
+    networks.find((c) => c.id === parseInt(props.launchpad.chainId)),
+);
+</script>
+<template>
+    <div class="text-white rounded-lg">
+        <!-- Header -->
+        <div class="flex items-center gap-2 mb-4">
+            <span class="font-semibold">{{ launchpad.symbol }}</span>
+            <span class="text-gray-400">/</span>
+            <span class="font-semibold">
+                <ChainSymbol :chainId="launchpad.chainId" />
+            </span>
+            <span class="bg-green-900 text-green-400 text-xs px-1 rounded">
+                1h
+            </span>
+            <span class="text-orange-500">#{{ rank }}</span>
+        </div>
+
+        <!-- Platform Info -->
+        <div class="flex items-center gap-2 mb-4">
+            <NetworkIcon
+                class="rounded-full w-6 h-6"
+                :chainId="launchpad.chainId"
+            />
+            <span>{{ chain.name }}</span>
+            <span class="text-gray-400">></span>
+            <span class="bg-primary rounded-full w-6 h-6"></span>
+            <span>{{ launchpad.name }}</span>
+        </div>
+
+        <!-- Telegram Button -->
+        <div class="flex items-center gap-3 p-2 my-4 bg-gray-850">
+            <BaseButton
+                url
+                :href="launchpad.twitter"
+                :disabled="!launchpad.twitter"
+                target="_blank"
+                secondary
+                outlined
+            >
+                <XIcon class="w-4 h-4" />
+            </BaseButton>
+            <BaseButton
+                url
+                :href="launchpad.telegram"
+                :disabled="!launchpad.telegram"
+                target="_blank"
+                secondary
+                outlined
+            >
+                <TelegramIcon class="w-4 h-4" />
+            </BaseButton>
+            <BaseButton
+                url
+                :href="launchpad.discord"
+                target="_blank"
+                :disabled="!launchpad.discord"
+                secondary
+                outlined
+            >
+                <DiscordIcon class="w-4 h-4" />
+            </BaseButton>
+            <BaseButton
+                url
+                target="_blank"
+                :href="launchpad.website"
+                :disabled="!launchpad.website"
+                secondary
+                outlined
+            >
+                <Globe2 class="w-4 h-4" />
+            </BaseButton>
+            <BaseButton
+                class="ml-auto"
+                secondary
+                outlined
+            >
+                {{ launchpad.holders_count }} Holders
+            </BaseButton>
+        </div>
+
+        <!-- Progress Bar -->
+        <Progress
+            :launchpad="launchpad"
+            :usdRate="rate.usd_rate"
+            v-slot="{ info }"
+        >
+            <UniswapGraph
+                v-if="info.isFinalized"
+                :price-changes="$page.props.poolstats?.priceChanges"
+                :stats="$page.props.poolstats?.stats"
+            />
+            <TradingStats
+                v-else
+                :stats="$page.props.report"
+            />
+        </Progress>
+
+        <!-- Time Stats -->
+
+        <!-- Alerts Button -->
+        <div class="grid gap-3 mt-5 rounded border border-gray-750 bg-gray-850 pt-4">
+            <div class="px-4">
+                <a
+                    :href="$page.props.links?.tgChannel ?? '#'"
+                    target="_blank"
+                    class="w-full bg-gray-750 px-4 py-2 rounded-lg mb-4 flex justify-center items-center gap-2"
+                >
+                    <span>🔔</span>
+                    <span>{{ $t("Telegram Alerts") }}</span>
+                </a>
+            </div>
+            <!-- Footer Info -->
+            <div class="divide-y divide-gray-750 text-sm">
+                <div class="flex justify-between pb-1 px-4 items-center">
+                    <span class="text-gray-400">{{ $t("Token created") }}</span>
+                    <span>{{ launchpad.createdAgo }}</span>
+                </div>
+                <div class="flex justify-between py-1 px-4 items-center">
+                    <span class="text-gray-400">{{ $t("Creator") }}</span>
+                    <div class="flex items-center gap-2">
+                        <span class="bg-gray-750 px-2 py-1 rounded">
+                            {{ shortenAddress(launchpad.user.address) }}
+                        </span>
+                        <button class="bg-gray-750 px-2 py-1 rounded">
+                            HLD
+                        </button>
+                        <AddressLink
+                            :chainId="launchpad.chainId"
+                            :address="launchpad.user.address"
+                            v-slot="{ etherScanLink }"
+                        >
+                            <a
+                                :href="etherScanLink"
+                                target="_blank"
+                                class="bg-gray-750 px-2 py-1 rounded"
+                            >
+                                EXP
+                            </a>
+                        </AddressLink>
+                    </div>
+                </div>
+                <div class="flex justify-between py-1 px-4 items-center">
+                    <span class="text-gray-400">{{ launchpad.symbol }}</span>
+                    <div class="flex items-center gap-2">
+                        <span class="bg-gray-750 px-2 py-1 rounded">
+                            {{ shortenAddress(launchpad.token) }}
+                        </span>
+                        <button class="bg-gray-750 px-2 py-1 rounded">
+                            HLD
+                        </button>
+                        <AddressLink
+                            :chainId="launchpad.chainId"
+                            :address="launchpad.token"
+                            v-slot="{ etherScanLink }"
+                        >
+                            <a
+                                :href="etherScanLink"
+                                target="_blank"
+                                class="bg-gray-750 px-2 py-1 rounded"
+                            >
+                                EXP
+                            </a>
+                        </AddressLink>
+                    </div>
+                </div>
+                <div
+                    v-if="launchpad.pool"
+                    class="flex justify-between items-center py-1 px-4"
+                >
+                    <span class="text-gray-400">{{ launchpad.symbol }}</span>
+                    <div class="flex items-center gap-2">
+                        <span class="bg-gray-750 px-2 py-1 rounded">
+                            {{ shortenAddress(launchpad.pool) }}
+                        </span>
+                        <button class="bg-gray-750 px-2 py-1 rounded">
+                            HLD
+                        </button>
+                        <AddressLink
+                            :chainId="launchpad.chainId"
+                            :address="launchpad.pool"
+                            v-slot="{ etherScanLink }"
+                        >
+                            <a
+                                :href="etherScanLink"
+                                target="_blank"
+                                class="bg-gray-750 px-2 py-1 rounded"
+                            >
+                                EXP
+                            </a>
+                        </AddressLink>
+                    </div>
+                </div>
+                <div class="flex justify-between items-center py-1 px-4">
+                    <span class="text-gray-400">{{ $t("Migration DEX") }}</span>
+                    <span>Uniswap V3</span>
+                </div>
+            </div>
+        </div>
+    </div>
+</template>
+
+
+================================================
+File: resources/js/Pages/Launchpads/TradingView/LockCard.vue
+================================================
+<script setup>
+	import { useAccount } from "@wagmi/vue";
+	import { Vault } from "lucide-vue-next";
+
+	import BaseButton from "@/Components/BaseButton.vue";
+	import ChainSymbol from "@/Components/ChainSymbol.vue";
+	import CountDownWhite from "@/Components/CountDownWhite.vue";
+	import TxStatus from "@/Components/TxStatus.vue";
+	import {
+		useLockInfo,
+		useReactiveContractCall,
+	} from "@/hooks/useContractCall";
+	const props = defineProps({
+		launchpad: Object,
+	});
+
+	const info = useLockInfo(props.launchpad);
+	const state = useReactiveContractCall(
+		props.launchpad.factory.lock_abi,
+		props.launchpad.factory.lock,
+	);
+	const { address } = useAccount();
+	const claimFees = async () => {
+		await state.call("claimFees", [info.lpTokenId], 0, null);
+		if (state.error) return;
+		info.updateInfo();
+	};
+
+	const unlockNft = async () => {
+		await state.call("unlockNFT", [info.lpTokenId, address.value], 0, null);
+		if (state.error) return;
+		info.updateInfo();
+	};
+</script>
+
+<template>
+	<div v-if="info.currentPhase === 2" class="w-full grid gap-4">
+		<div
+			class="bg-gray-800 p-4 text-center rounded-lg border border-none text-gray-400 grid gap-4">
+			<h3 class="text-lg font-medium flex justify-center items-center">
+				<Vault class="w-5 h-5 mr-2 inline-flex" />
+				{{ $t("Claim Uniswap fees") }}
+			</h3>
+			<h3 class="font-extralight !text-primary">
+				{{ parseFloat(info.tokenFees).toFixed(8) * 1 }}
+				{{ launchpad.symbol }}
+			</h3>
+			<hr class="my-2 border-gray-650" />
+			<h3 class="font-extralight !text-primary">
+				{{ parseFloat(info.wethFees).toFixed(8) * 1 }}
+				<ChainSymbol :chainId="launchpad.chainId" />
+			</h3>
+			<TxStatus v-if="state.called === 'claimFees'" :state="state" />
+			<BaseButton secondary outlined @click="claimFees">
+				{{ $t("Claim fees") }}
+			</BaseButton>
+		</div>
+		<div
+			v-if="info.isLocked"
+			class="p-4 text-center rounded-lg border border-gray-800 text-gray-400 grid gap-4">
+			<h3 class="font-extralight !text-primary">Unlock Timeleft</h3>
+			<CountDownWhite
+				simple
+				v-if="info.unlocksAt > 0"
+				:timestamp="info.unlocksAt" />
+			<TxStatus v-if="state.called === 'unlockNFT'" :state="state" />
+			<BaseButton primary outlined @click="unlockNft">
+				{{ $t("Unlock Liquidity") }}
+			</BaseButton>
+		</div>
+	</div>
+</template>
+
+
+================================================
+File: resources/js/Pages/Launchpads/TradingView/Progress.vue
+================================================
+<script setup>
+import { computed } from "vue";
+
+import { formatEther } from "viem";
+
+import ChainSymbol from "@/Components/ChainSymbol.vue";
+import usePriceInfo from "@/hooks/usePriceInfo";
+
+const props = defineProps({
+    launchpad: {
+        type: Object,
+        required: true,
+    },
+    usdRate: {
+        type: [String, Number],
+        required: true,
+    },
+});
+
+const { info: priceInfo, formatted } = usePriceInfo(
+    props.launchpad,
+    props.usdRate,
+);
+
+// Computed properties for progress display
+const progressLabel = computed(() => {
+    switch (priceInfo.currentPhase) {
+        case 0:
+            return "Pre-Bonding Progress";
+        case 1:
+            return "Bonding Progress";
+        case 2:
+            return "Sale Complete";
+        default:
+            return "Progress";
+    }
+});
+
+const currentProgress = computed(() => {
+    return priceInfo.currentPhase === 0
+        ? priceInfo.preBondingProgress
+        : priceInfo.bondingProgress;
+});
+
+const currentProgressFormatted = computed(() => {
+    return parseFloat(currentProgress.value).toFixed(2);
+});
+
+const currentAmountFormatted = computed(() => {
+    const amount =
+        priceInfo.currentPhase === 0
+            ? priceInfo.totalPreBondingContributions
+            : priceInfo.totalETHCollected;
+    return formatEther(amount || 0n).toString();
+});
+
+const targetAmountFormatted = computed(() => {
+    const target =
+        priceInfo.currentPhase === 0
+            ? priceInfo.preBondingTarget
+            : priceInfo.bondingTarget;
+    return formatEther(target || 0n).toString();
+});
+
+const showInitialPrice = computed(() => {
+    // Only show initial price during pre-bonding and bonding phases
+    return priceInfo.currentPhase < 2;
+});
+</script>
+<template>
+    <div>
+        <!-- Progress Section -->
+        <div class="mb-4">
+            <div class="flex justify-between mb-2">
+                <span class="text-gray-400">{{ progressLabel }}:</span>
+                <div class="flex items-center gap-2">
+                    <span class="text-green-400">
+                        {{ currentProgressFormatted }}%
+                    </span>
+                    <span class="text-gray-500 text-sm">
+                        ({{ currentAmountFormatted }} /
+                        {{ targetAmountFormatted }}
+                        <ChainSymbol :chain-id="launchpad.chainId" /> )
+                    </span>
+                </div>
+            </div>
+            <div class="bg-gray-800 rounded-full h-2">
+                <div
+                    class="bg-green-400 h-full rounded-full transition-all duration-300"
+                    :style="{
+                        width: `${Math.min(100, currentProgress)}%`,
+                    }"
+                ></div>
+            </div>
+        </div>
+
+        <!-- Price and Market Cap -->
+        <div class="grid grid-cols-2 gap-4 mb-4">
+            <!-- Price Card -->
+            <div class="bg-gray-800 p-4 rounded-lg">
+                <div class="text-gray-400 text-sm mb-1">
+                    {{ $t("PRICE") }}
+                    <span
+                        v-if="priceInfo.isFinalized"
+                        class="text-xs ml-1 text-blue-400"
+                    >
+                        (Uniswap V3)
+                    </span>
+                </div>
+                <div class="text-xl font-semibold">
+                    ${{ formatted.priceInUsd }}
+                </div>
+                <div
+                    v-if="showInitialPrice"
+                    class="text-sm text-gray-500 mt-1"
+                >
+                    {{ $t("Initial") }}: ${{ formatted.initialPriceUsd }}
+                </div>
+            </div>
+
+            <!-- Market Cap Card -->
+            <div class="bg-gray-800 p-4 rounded-lg">
+                <div class="text-gray-400 text-sm mb-1">
+                    {{ $t("MARKET CAP") }}
+                </div>
+                <div class="text-xl font-semibold">
+                    {{ formatted.currentMarketCap }}
+                </div>
+                <div class="text-sm text-gray-500 mt-1">
+                    {{ $t("FDV") }}:
+                    {{ formatted.fullyDilutedMarketCap }}
+                </div>
+            </div>
+        </div>
+        <slot :info="priceInfo"></slot>
+    </div>
+</template>
+
+
+================================================
+File: resources/js/Pages/Launchpads/TradingView/Trades.vue
+================================================
+<script setup>
+	import { onMounted, onUnmounted, ref } from "vue";
+
+	import { usePage } from "@inertiajs/vue3";
+
+	import ChainSymbol from "@/Components/ChainSymbol.vue";
+	import LargeDecimal from "@/Components/LargeDecimal.vue";
+	import Pagination from "@/Components/Pagination.vue";
+	const props = defineProps({
+		trades: Object,
+		chainId: Number,
+	});
+	const page = usePage();
+	const launchpad = page.props.launchpad;
+	const recentTrades = ref([...props.trades.data]);
+
+	const formatNumber = (number) => {
+		return new Intl.NumberFormat("en-US", {
+			minimumFractionDigits: 2,
+			maximumFractionDigits: 8,
+		}).format(number);
+	};
+
+	// WebSocket handling
+	const handleNewTrade = (trade) => {
+		recentTrades.value.unshift(trade);
+		if (recentTrades.value.length > 12) {
+			recentTrades.value.pop();
+		}
+	};
+
+	// Lifecycle
+	onMounted(() => {
+		window.Echo.channel(`launchpad.${launchpad.id}`).listen(
+			"NewTradeEvent",
+			handleNewTrade,
+		);
+	});
+
+	onUnmounted(() => {
+		window.Echo.leave(`launchpad.${launchpad.id}`);
+	});
+</script>
+
+<template>
+	<div class="border rounded border-gray-200 dark:border-gray-700">
+		<div class="">
+			<table
+				class="min-w-full divide-y divide-gray-200 dark:divide-gray-700">
+				<thead>
+					<tr>
+						<th
+							class="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">
+							Time
+						</th>

@@ -1,0 +1,523 @@
+import Loading from "@/Components/Loading.vue";
+import PrimaryButton from "@/Components/PrimaryButton.vue";
+import AdminLayout from "@/Layouts/AdminLayout.vue";
+import { Link, useForm } from "@inertiajs/vue3";
+import VueIcon from "@/Components/VueIcon.vue";
+%%InputImports%%
+defineProps({
+    title:{required:false,type:String},
+});
+const form = useForm({
+%%emptyVueForm%%
+});
+const save = () => form.post(window.route("admin.%%crudName%%.store"));
+</script>
+<template>
+	<Head :title="title ?? `New %%modelName%%`" />
+	<AdminLayout>
+        <main class="h-full container sm:p-8">
+			<div class="relative h-full flex flex-auto flex-col px-4 sm:px-6 py-12 sm:py-6 md:px-8">
+				<div class="flex flex-col gap-4 h-full">
+					<div class="lg:flex items-center justify-between mb-4 gap-3">
+						<div class="mb-4 lg:mb-0">
+							<h3 class="h3">Add New %%modelName%%</h3>
+						</div>
+						<div class="flex flex-col lg:flex-row lg:items-center gap-3">
+							<PrimaryButton
+                                secondary
+                                link
+								:href="route('admin.%%crudName%%.index')"
+							>
+								
+                                <VueIcon :icon="HiArrowLeft" class="w-4 h-4 -ml-1 mr-2 inline-block" />
+								{{ $t("Back to %%crudName%% list") }}</PrimaryButton
+							>
+						</div>
+					</div>
+					<div class="card sm:p-12 h-full border-0 card-border">
+						<div class="card-body card-gutterless h-full">
+							<form
+        						class="grid sm:grid-cols-2 lg:grid-cols-4 gap-4"
+        						@submit.prevent="save()">
+        						%%formFieldsHtml%%
+        						<div class="pt-5 sm:col-span-2 lg:col-span-4">
+        							<div class="flex items-center gap-3 justify-end">
+        								<PrimaryButton
+                                            secondary
+        									as="button"
+        									:href="route('admin.%%crudName%%.index')"
+        									type="button"
+                                            link
+                                        >
+        									{{ $t("Cancel") }}
+        								</PrimaryButton>
+        								<PrimaryButton
+        									type="submit"
+        									:disabled="form.processing"
+        									>
+        									<Loading
+        										class="mr-2 -ml-1 inline-block w-5 h-5"
+        										v-if="form.processing" />
+        									{{ $t("Save %%modelName%%") }}
+        								</PrimaryButton>
+        							</div>
+        						</div>
+        					</form>
+						</div>
+					</div>
+				</div>
+			</div>
+		</main>
+	</AdminLayout>
+</template>
+
+
+================================================
+File: resources/crud-strap/views/edit.vue.stub
+================================================
+<script setup>
+import {useI18n} from "vue-i18n";
+import { HiArrowLeft } from "oh-vue-icons/icons";
+import Loading from "@/Components/Loading.vue";
+import PrimaryButton from "@/Components/PrimaryButton.vue";
+import { useForm, Link } from "@inertiajs/vue3";
+import AdminLayout from "@/Layouts/AdminLayout.vue";
+import VueIcon from "@/Components/VueIcon.vue";
+%%InputImports%%
+const props = defineProps({
+    title:{required:false,type:String},
+    %%crudNameSingular%%:{type:Object,required:true},
+});
+const form = useForm({
+%%filledVueForm%%
+});
+const save = () => form.put(window.route("admin.%%crudName%%.update",props.%%crudNameSingular%%.%%primaryKey%%));
+</script>
+<template>
+    <AdminLayout>
+        <Head :title="title ?? `Edit %%modelName%%` " />
+        <main class="h-full">
+            <div class="relative h-full flex flex-auto flex-col px-4 sm:px-6 py-12 sm:py-6 md:px-8">
+                <div class="flex flex-col gap-4 h-full">
+                    <div class="lg:flex items-center justify-between mb-4 gap-3">
+                        <div class="mb-4 lg:mb-0">
+                            <h3 class="h3">Edit %%modelName%%</h3>
+                        </div>
+                        <div class="flex flex-col lg:flex-row lg:items-center gap-3">
+                            <PrimaryButton
+                                secondary
+                                link
+								:href="route('admin.%%crudName%%.index')"
+							>
+								 <VueIcon :icon="HiArrowLeft" class="w-4 h-4 -ml-1 mr-2 inline-block" />
+								{{ $t("Back to %%crudName%% list") }}</PrimaryButton
+							>
+                        </div>
+                    </div>
+                    <div class="card h-full border-0 card-border">
+                        <div class="card-body card-gutterless h-full">
+                            <form @submit.prevent="save" class="container lg:w-4/5">
+                                %%formFieldsHtml%%
+                                <div class="pt-12">
+                                    <div class="flex justify-end">
+                                        <PrimaryButton as="button" :href="route('admin.%%crudName%%.index')"
+                                            type="button" link secondary>
+                                            {{ $t('Cancel') }}
+                                        </PrimaryButton>
+                                        <PrimaryButton type="submit" :disabled="form.processing" class="mt-4" primary>
+                                            <Loading class="mr-2 -ml-1 inline-block w-5 h-5" v-if="form.processing" />
+                                            <span class="text-sm text-white">
+                                                {{ $t("Update %%modelName%%") }}
+                                            </span>
+                                        </PrimaryButton>
+                                    </div>
+                                </div>
+                            </form>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </main>
+    </AdminLayout>
+</template>
+
+
+================================================
+File: resources/crud-strap/views/index.vue.stub
+================================================
+<script setup>
+import ConfirmationModal from "@/Components/ConfirmationModal.vue";
+import Loading from "@/Components/Loading.vue";
+import Pagination from "@/Components/Pagination.vue";
+import PrimaryButton from "@/Components/PrimaryButton.vue";
+import SearchInput from "@/Components/SearchInput.vue";
+import VueIcon from "@/Components/VueIcon.vue";
+import AdminLayout from "@/Layouts/AdminLayout.vue";
+import { Head, Link, router, useForm } from "@inertiajs/vue3";
+import { debouncedWatch, useUrlSearchParams } from "@vueuse/core";
+import { HiPencil, HiTrash } from "oh-vue-icons/icons";
+import { ref } from "vue";
+	defineProps({
+		%%crudName%%: Object,
+		title: { required: false, type: String },
+	});
+
+	const params = useUrlSearchParams("history");
+	const search = ref(params.search ?? "");
+	const delete%%modelName%%Form = useForm({});
+	const %%crudNameSingular%%BeingDeleted = ref(null);
+
+	const delete%%modelName%% = () => {
+		delete%%modelName%%Form.delete(
+			window.route("admin.%%crudName%%.destroy", %%crudNameSingular%%BeingDeleted.value?.id),
+			{
+				preserveScroll: true,
+				preserveState: true,
+				onSuccess: () => (%%crudNameSingular%%BeingDeleted.value = null),
+			},
+		);
+	};
+	debouncedWatch(
+		[search],
+		([search]) => {
+			router.get(
+				window.route("admin.%%crudName%%.index"),
+				{ search },
+				{
+					preserveState: true,
+					preserveScroll: true,
+				},
+			);
+		},
+		{
+			maxWait: 700,
+		},
+	);
+
+	const toggle = (%%crudNameSingular%%) => {
+		%%crudNameSingular%%.busy = true;
+		router.put(
+			window.route("admin.%%crudName%%.toggle", %%crudNameSingular%%.id),
+			{},
+			{
+				preserveScroll: true,
+				preserveState: true,
+				onFinish: () => {
+					%%crudNameSingular%%.busy = false;
+					%%crudNameSingular%%BeingDeleted.value = null;
+				},
+			},
+		);
+	};
+</script>
+<template>
+	<Head :title="title ?? '%%modelName%%s'" />
+	<AdminLayout>
+		<main class="h-full">
+			<div
+				class="relative h-full flex flex-auto flex-col px-4 sm:px-6 py-12 sm:py-6 md:px-8">
+				<div class="flex flex-col gap-4 h-full">
+					<div
+						class="lg:flex items-center justify-between mb-4 gap-3">
+						<div class="mb-4 lg:mb-0">
+							<h3 class="h3">
+								{{ $t("Manage %%modelName%%s") }}
+							</h3>
+							<p>{{ $t("Available %%modelName%%s") }}</p>
+						</div>
+						<div
+							class="flex flex-col lg:flex-row lg:items-center gap-3">
+							<PrimaryButton
+                                secondary
+                                link
+								:href="route('admin.%%crudName%%.create')"
+							>
+								{{ $t("Create New %%modelName%%s") }}
+							</PrimaryButton>
+						</div>
+					</div>
+					<div class="card border-0 card-border">
+						<div class="card-body card-gutterless h-full">
+							<div
+								class="lg:flex items-center justify-end mb-4 px-6">
+								<div class="flex gap-x-3 sm:w-1/2 lg:w-1/4">
+									<SearchInput
+										class="max-w-md"
+										v-model="search" />
+								</div>
+							</div>
+							<div>
+								<div class="overflow-x-auto">
+									<table
+										class="table-default table-hover"
+										role="table">
+										<thead>
+											<tr role="row">
+												%%tableHeaderHtml%%
+												<td role="columnheader"></td>
+											</tr>
+										</thead>
+										<tbody role="rowgroup">
+											<tr
+												v-for="%%crudNameSingular%% in %%crudName%%.data"
+												:key="%%crudNameSingular%%.id"
+												role="row">
+												%%tableBodyHtml%%
+												<td role="cell">
+													<div
+														class="flex justify-end text-lg">
+														<Link
+															:href="
+																route(
+																	'admin.%%crudName%%.edit',
+																	%%crudNameSingular%%.id,
+																)
+															"
+															class="cursor-pointer p-2 hover:text-blue-600">
+															<VueIcon
+																:icon="HiPencil"
+																class="w-4 h-4" />
+														</Link>
+														<a
+															href="#"
+															@click.prevent="
+																%%crudNameSingular%%BeingDeleted =
+																	%%crudNameSingular%%
+															"
+															class="cursor-pointer p-2 hover:text-red-500">
+															<VueIcon
+																:icon="HiTrash"
+																class="w-4 h-4" />
+														</a>
+													</div>
+												</td>
+											</tr>
+										</tbody>
+									</table>
+								</div>
+								<Pagination :meta="%%crudName%%.meta" />
+							</div>
+						</div>
+					</div>
+				</div>
+			</div>
+		</main>
+		<ConfirmationModal
+			:show="%%crudNameSingular%%BeingDeleted"
+			@close="%%crudNameSingular%%BeingDeleted = null">
+			<template #title>
+				{{
+					$t("Are you sure about deleting {%%crudNameSingular%%} ?", {
+						%%crudNameSingular%%: %%crudNameSingular%%BeingDeleted.name,
+					})
+				}}
+			</template>
+
+			<template #content>
+				<p>
+					{{
+						$t(
+							"This Action will remove the %%crudNameSingular%% from the database and cannot be undone",
+						)
+					}}
+				</p>
+				<p>
+					{{
+						$t(
+							"Its Recommended to Disable the %%crudNameSingular%% Instead",
+						)
+					}}
+				</p>
+			</template>
+
+			<template #footer>
+				<PrimaryButton
+					primary
+					class="uppercase text-xs font-semibold"
+					@click="%%crudNameSingular%%BeingDeleted = null">
+					{{ $t("Cancel") }}
+				</PrimaryButton>
+
+				<PrimaryButton
+					secondary
+					class="ml-2 uppercase text-xs font-semibold"
+					v-if="%%crudNameSingular%%BeingDeleted.active"
+					@click="toggle(%%crudNameSingular%%BeingDeleted)">
+					<Loading v-if="%%crudNameSingular%%BeingDeleted.busy" />
+					{{ $t("Disable") }}
+				</PrimaryButton>
+
+				<PrimaryButton
+					error
+					class="ml-2 uppercase text-xs font-semibold"
+					@click="delete%%modelName%%"
+					:class="{ 'opacity-25': delete%%modelName%%Form.processing }"
+					:disabled="delete%%modelName%%Form.processing">
+					{{ $t("Delete") }}
+				</PrimaryButton>
+			</template>
+		</ConfirmationModal>
+	</AdminLayout>
+</template>
+
+
+================================================
+File: resources/css/app.css
+================================================
+@import url("https://fonts.googleapis.com/css2?family=Inter:wght@100..900&display=swap");
+@import url("https://fonts.googleapis.com/css2?family=Rubik:ital,wght@0,300..900;1,300..900&display=swap");
+@import "./multiselect.css";
+@import "./filepond.css";
+
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@font-face {
+	font-family: "Rubik";
+	src: url("https://fonts.googleapis.com/css2?family=Rubik:ital,wght@0,300..900;1,300..900&display=swap");
+}
+
+@layer utilities {
+	/* Hide scrollbar for Chrome, Safari and Opera */
+	.no-scrollbar::-webkit-scrollbar {
+		display: none;
+	}
+	/* Hide scrollbar for IE, Edge and Firefox */
+	.no-scrollbar {
+		-ms-overflow-style: none; /* IE and Edge */
+		scrollbar-width: none; /* Firefox */
+	}
+}
+@layer components {
+	.container,
+	.container-fluid,
+	.container-lg,
+	.container-md,
+	.container-sm,
+	.container-xl,
+	.container-xxl {
+		--bs-gutter-x: 1.5rem;
+		--bs-gutter-y: 0;
+		width: 100%;
+		padding-right: calc(var(--bs-gutter-x) * 0.5);
+		padding-left: calc(var(--bs-gutter-x) * 0.5);
+		margin-right: auto;
+		margin-left: auto;
+	}
+
+	@media (min-width: 576px) {
+		.container,
+		.container-sm {
+			max-width: 540px;
+		}
+	}
+
+	@media (min-width: 768px) {
+		.container,
+		.container-md,
+		.container-sm {
+			max-width: 720px;
+		}
+	}
+
+	@media (min-width: 992px) {
+		.container,
+		.container-lg,
+		.container-md,
+		.container-sm {
+			max-width: 960px;
+		}
+	}
+
+	@media (min-width: 1200px) {
+		.container,
+		.container-lg,
+		.container-md,
+		.container-sm,
+		.container-xl {
+			max-width: 1140px;
+		}
+	}
+
+	@media (min-width: 1400px) {
+		.container,
+		.container-lg,
+		.container-md,
+		.container-sm,
+		.container-xl,
+		.container-xxl {
+			max-width: 1320px;
+		}
+	}
+	p {
+		@apply text-gray-600 dark:text-gray-400;
+	}
+
+	h3 {
+		@apply text-gray-700 dark:text-gray-300 font-semibold text-2xl;
+	}
+
+	h4 {
+		@apply text-gray-700 dark:text-gray-400 font-semibold text-xl;
+	}
+
+	.card {
+		@apply relative w-full rounded-sm min-w-[1px] flex-col break-words bg-white text-gray-500 shadow-sm dark:bg-gray-800 dark:text-gray-200 dark:shadow-none print:border;
+	}
+
+	.card-body {
+		@apply flex-auto p-4;
+	}
+
+	.card-header {
+		@apply flex-auto p-4;
+	}
+
+	.card-header {
+		@apply border-b border-dashed border-gray-300 dark:border-gray-700 dark:bg-gray-700 p-4;
+	}
+
+	.card-title {
+		@apply font-medium;
+	}
+
+	.icontainer {
+		@apply w-full;
+	}
+
+	.main-content {
+		@apply mt-[60px] grid grid-cols-1 place-content-start transition-[width,
+        margin-left,
+        margin-right,
+        padding-left,
+        padding-right] duration-[.10s] ease-in print: m-0 md:ml-[var(--main-sidebar-width)];
+	}
+
+	.table-default {
+		@apply max-w-full table-auto w-full;
+	}
+
+	.table-default {
+		@apply dark:divide-gray-600;
+	}
+
+	.table-default thead {
+		@apply bg-gray-50 dark:bg-gray-700;
+	}
+
+	.table-default thead > tr > th {
+		@apply text-gray-800 dark:text-gray-200 text-xs font-semibold tracking-wider py-3 px-6 text-left uppercase;
+	}
+
+	.table-default tbody {
+		@apply divide-y divide-gray-100 dark:divide-gray-600;
+	}
+
+	.table-default tbody > tr > td {
+		padding: 1rem 1.5rem;
+	}
+
+	.table-default tfoot > tr > td {
+		--tw-border-opacity: 1;
+		border-color: rgba(229, 231, 235, var(--tw-border-opacity));

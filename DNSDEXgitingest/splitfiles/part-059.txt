@@ -1,0 +1,523 @@
+import {
+  MenubarCheckboxItem,
+  MenubarItemIndicator,
+  useForwardPropsEmits,
+} from 'radix-vue';
+import { computed } from 'vue';
+
+const props = defineProps({
+  checked: { type: [Boolean, String], required: false },
+  disabled: { type: Boolean, required: false },
+  textValue: { type: String, required: false },
+  asChild: { type: Boolean, required: false },
+  as: { type: null, required: false },
+  class: { type: null, required: false },
+});
+const emits = defineEmits(['select', 'update:checked']);
+
+const delegatedProps = computed(() => {
+  const { class: _, ...delegated } = props;
+
+  return delegated;
+});
+
+const forwarded = useForwardPropsEmits(delegatedProps, emits);
+</script>
+
+<template>
+  <MenubarCheckboxItem
+    v-bind="forwarded"
+    :class="
+      cn(
+        'relative flex cursor-default select-none items-center rounded-sm py-1.5 pl-8 pr-2 text-sm outline-none focus:bg-gray-100 focus:text-gray-900 data-[disabled]:pointer-events-none data-[disabled]:opacity-50 dark:focus:bg-gray-800 dark:focus:text-gray-50',
+        props.class,
+      )
+    "
+  >
+    <span class="absolute left-2 flex h-3.5 w-3.5 items-center justify-center">
+      <MenubarItemIndicator>
+        <Check class="w-4 h-4" />
+      </MenubarItemIndicator>
+    </span>
+    <slot />
+  </MenubarCheckboxItem>
+</template>
+
+
+================================================
+File: resources/js/Components/ui/menubar/MenubarContent.vue
+================================================
+<script setup>
+import { cn } from '@/lib/utils';
+import { MenubarContent, MenubarPortal, useForwardProps } from 'radix-vue';
+import { computed } from 'vue';
+
+const props = defineProps({
+  forceMount: { type: Boolean, required: false },
+  loop: { type: Boolean, required: false },
+  side: { type: null, required: false },
+  sideOffset: { type: Number, required: false, default: 8 },
+  align: { type: null, required: false, default: 'start' },
+  alignOffset: { type: Number, required: false, default: -4 },
+  avoidCollisions: { type: Boolean, required: false },
+  collisionBoundary: { type: null, required: false },
+  collisionPadding: { type: [Number, Object], required: false },
+  arrowPadding: { type: Number, required: false },
+  sticky: { type: String, required: false },
+  hideWhenDetached: { type: Boolean, required: false },
+  updatePositionStrategy: { type: String, required: false },
+  prioritizePosition: { type: Boolean, required: false },
+  asChild: { type: Boolean, required: false },
+  as: { type: null, required: false },
+  class: { type: null, required: false },
+});
+
+const delegatedProps = computed(() => {
+  const { class: _, ...delegated } = props;
+
+  return delegated;
+});
+
+const forwardedProps = useForwardProps(delegatedProps);
+</script>
+
+<template>
+  <MenubarPortal>
+    <MenubarContent
+      v-bind="forwardedProps"
+      :class="
+        cn(
+          'z-50 min-w-48 overflow-hidden rounded-md border border-gray-200 bg-white p-1 text-gray-950 shadow-md data-[state=open]:animate-in data-[state=closed]:fade-out-0 data-[state=open]:fade-in-0 data-[state=closed]:zoom-out-95 data-[state=open]:zoom-in-95 data-[side=bottom]:slide-in-from-top-2 data-[side=left]:slide-in-from-right-2 data-[side=right]:slide-in-from-left-2 data-[side=top]:slide-in-from-bottom-2 dark:border-gray-800 dark:bg-gray-950 dark:text-gray-50',
+          props.class,
+        )
+      "
+    >
+      <slot />
+    </MenubarContent>
+  </MenubarPortal>
+</template>
+
+
+================================================
+File: resources/js/Components/ui/menubar/MenubarGroup.vue
+================================================
+<script setup>
+import { MenubarGroup } from 'radix-vue';
+
+const props = defineProps({
+  asChild: { type: Boolean, required: false },
+  as: { type: null, required: false },
+});
+</script>
+
+<template>
+  <MenubarGroup v-bind="props">
+    <slot />
+  </MenubarGroup>
+</template>
+
+
+================================================
+File: resources/js/Components/ui/menubar/MenubarItem.vue
+================================================
+<script setup>
+import { cn } from '@/lib/utils';
+import { MenubarItem, useForwardPropsEmits } from 'radix-vue';
+import { computed } from 'vue';
+
+const props = defineProps({
+  disabled: { type: Boolean, required: false },
+  textValue: { type: String, required: false },
+  asChild: { type: Boolean, required: false },
+  as: { type: null, required: false },
+  class: { type: null, required: false },
+  inset: { type: Boolean, required: false },
+});
+
+const emits = defineEmits(['select']);
+
+const delegatedProps = computed(() => {
+  const { class: _, ...delegated } = props;
+
+  return delegated;
+});
+
+const forwarded = useForwardPropsEmits(delegatedProps, emits);
+</script>
+
+<template>
+  <MenubarItem
+    v-bind="forwarded"
+    :class="
+      cn(
+        'relative flex cursor-default select-none items-center rounded-sm px-2 py-1.5 text-sm outline-none focus:bg-gray-100 focus:text-gray-900 data-[disabled]:pointer-events-none data-[disabled]:opacity-50 dark:focus:bg-gray-800 dark:focus:text-gray-50',
+        inset && 'pl-8',
+        props.class,
+      )
+    "
+  >
+    <slot />
+  </MenubarItem>
+</template>
+
+
+================================================
+File: resources/js/Components/ui/menubar/MenubarLabel.vue
+================================================
+<script setup>
+import { cn } from '@/lib/utils';
+import { MenubarLabel } from 'radix-vue';
+
+const props = defineProps({
+  asChild: { type: Boolean, required: false },
+  as: { type: null, required: false },
+  class: { type: null, required: false },
+  inset: { type: Boolean, required: false },
+});
+</script>
+
+<template>
+  <MenubarLabel
+    :class="
+      cn('px-2 py-1.5 text-sm font-semibold', inset && 'pl-8', props.class)
+    "
+  >
+    <slot />
+  </MenubarLabel>
+</template>
+
+
+================================================
+File: resources/js/Components/ui/menubar/MenubarMenu.vue
+================================================
+<script setup>
+import { MenubarMenu } from 'radix-vue';
+
+const props = defineProps({
+  value: { type: String, required: false },
+});
+</script>
+
+<template>
+  <MenubarMenu v-bind="props">
+    <slot />
+  </MenubarMenu>
+</template>
+
+
+================================================
+File: resources/js/Components/ui/menubar/MenubarRadioGroup.vue
+================================================
+<script setup>
+import { MenubarRadioGroup, useForwardPropsEmits } from 'radix-vue';
+
+const props = defineProps({
+  modelValue: { type: String, required: false },
+  asChild: { type: Boolean, required: false },
+  as: { type: null, required: false },
+});
+
+const emits = defineEmits(['update:modelValue']);
+
+const forwarded = useForwardPropsEmits(props, emits);
+</script>
+
+<template>
+  <MenubarRadioGroup v-bind="forwarded">
+    <slot />
+  </MenubarRadioGroup>
+</template>
+
+
+================================================
+File: resources/js/Components/ui/menubar/MenubarRadioItem.vue
+================================================
+<script setup>
+import { cn } from '@/lib/utils';
+import { Circle } from 'lucide-vue-next';
+import {
+  MenubarItemIndicator,
+  MenubarRadioItem,
+  useForwardPropsEmits,
+} from 'radix-vue';
+import { computed } from 'vue';
+
+const props = defineProps({
+  value: { type: String, required: true },
+  disabled: { type: Boolean, required: false },
+  textValue: { type: String, required: false },
+  asChild: { type: Boolean, required: false },
+  as: { type: null, required: false },
+  class: { type: null, required: false },
+});
+const emits = defineEmits(['select']);
+
+const delegatedProps = computed(() => {
+  const { class: _, ...delegated } = props;
+
+  return delegated;
+});
+
+const forwarded = useForwardPropsEmits(delegatedProps, emits);
+</script>
+
+<template>
+  <MenubarRadioItem
+    v-bind="forwarded"
+    :class="
+      cn(
+        'relative flex cursor-default select-none items-center rounded-sm py-1.5 pl-8 pr-2 text-sm outline-none focus:bg-gray-100 focus:text-gray-900 data-[disabled]:pointer-events-none data-[disabled]:opacity-50 dark:focus:bg-gray-800 dark:focus:text-gray-50',
+        props.class,
+      )
+    "
+  >
+    <span class="absolute left-2 flex h-3.5 w-3.5 items-center justify-center">
+      <MenubarItemIndicator>
+        <Circle class="h-2 w-2 fill-current" />
+      </MenubarItemIndicator>
+    </span>
+    <slot />
+  </MenubarRadioItem>
+</template>
+
+
+================================================
+File: resources/js/Components/ui/menubar/MenubarSeparator.vue
+================================================
+<script setup>
+import { cn } from '@/lib/utils';
+import { MenubarSeparator, useForwardProps } from 'radix-vue';
+import { computed } from 'vue';
+
+const props = defineProps({
+  asChild: { type: Boolean, required: false },
+  as: { type: null, required: false },
+  class: { type: null, required: false },
+});
+
+const delegatedProps = computed(() => {
+  const { class: _, ...delegated } = props;
+
+  return delegated;
+});
+
+const forwardedProps = useForwardProps(delegatedProps);
+</script>
+
+<template>
+  <MenubarSeparator
+    :class="cn('-mx-1 my-1 h-px bg-gray-100 dark:bg-gray-800', props.class)"
+    v-bind="forwardedProps"
+  />
+</template>
+
+
+================================================
+File: resources/js/Components/ui/menubar/MenubarShortcut.vue
+================================================
+<script setup>
+import { cn } from '@/lib/utils';
+
+const props = defineProps({
+  class: { type: null, required: false },
+});
+</script>
+
+<template>
+  <span
+    :class="
+      cn('ml-auto text-xs tracking-widest text-gray-500 dark:text-gray-400', props.class)
+    "
+  >
+    <slot />
+  </span>
+</template>
+
+
+================================================
+File: resources/js/Components/ui/menubar/MenubarSub.vue
+================================================
+<script setup>
+import { MenubarSub, useForwardPropsEmits } from 'radix-vue';
+
+const props = defineProps({
+  defaultOpen: { type: Boolean, required: false },
+  open: { type: Boolean, required: false },
+});
+const emits = defineEmits(['update:open']);
+
+const forwarded = useForwardPropsEmits(props, emits);
+</script>
+
+<template>
+  <MenubarSub v-bind="forwarded">
+    <slot />
+  </MenubarSub>
+</template>
+
+
+================================================
+File: resources/js/Components/ui/menubar/MenubarSubContent.vue
+================================================
+<script setup>
+import { cn } from '@/lib/utils';
+import {
+  MenubarPortal,
+  MenubarSubContent,
+  useForwardPropsEmits,
+} from 'radix-vue';
+import { computed } from 'vue';
+
+const props = defineProps({
+  forceMount: { type: Boolean, required: false },
+  loop: { type: Boolean, required: false },
+  sideOffset: { type: Number, required: false },
+  alignOffset: { type: Number, required: false },
+  avoidCollisions: { type: Boolean, required: false },
+  collisionBoundary: { type: null, required: false },
+  collisionPadding: { type: [Number, Object], required: false },
+  arrowPadding: { type: Number, required: false },
+  sticky: { type: String, required: false },
+  hideWhenDetached: { type: Boolean, required: false },
+  updatePositionStrategy: { type: String, required: false },
+  prioritizePosition: { type: Boolean, required: false },
+  asChild: { type: Boolean, required: false },
+  as: { type: null, required: false },
+  class: { type: null, required: false },
+});
+
+const emits = defineEmits([
+  'escapeKeyDown',
+  'pointerDownOutside',
+  'focusOutside',
+  'interactOutside',
+  'entryFocus',
+  'openAutoFocus',
+  'closeAutoFocus',
+]);
+
+const delegatedProps = computed(() => {
+  const { class: _, ...delegated } = props;
+
+  return delegated;
+});
+
+const forwarded = useForwardPropsEmits(delegatedProps, emits);
+</script>
+
+<template>
+  <MenubarPortal>
+    <MenubarSubContent
+      v-bind="forwarded"
+      :class="
+        cn(
+          'z-50 min-w-32 overflow-hidden rounded-md border border-gray-200 bg-white p-1 text-gray-950 data-[state=open]:animate-in data-[state=closed]:animate-out data-[state=closed]:fade-out-0 data-[state=open]:fade-in-0 data-[state=closed]:zoom-out-95 data-[state=open]:zoom-in-95 data-[side=bottom]:slide-in-from-top-2 data-[side=left]:slide-in-from-right-2 data-[side=right]:slide-in-from-left-2 data-[side=top]:slide-in-from-bottom-2 dark:border-gray-800 dark:bg-gray-950 dark:text-gray-50',
+          props.class,
+        )
+      "
+    >
+      <slot />
+    </MenubarSubContent>
+  </MenubarPortal>
+</template>
+
+
+================================================
+File: resources/js/Components/ui/menubar/MenubarSubTrigger.vue
+================================================
+<script setup>
+import { cn } from '@/lib/utils';
+import { ChevronRight } from 'lucide-vue-next';
+import { MenubarSubTrigger, useForwardProps } from 'radix-vue';
+import { computed } from 'vue';
+
+const props = defineProps({
+  disabled: { type: Boolean, required: false },
+  textValue: { type: String, required: false },
+  asChild: { type: Boolean, required: false },
+  as: { type: null, required: false },
+  class: { type: null, required: false },
+  inset: { type: Boolean, required: false },
+});
+
+const delegatedProps = computed(() => {
+  const { class: _, ...delegated } = props;
+
+  return delegated;
+});
+
+const forwardedProps = useForwardProps(delegatedProps);
+</script>
+
+<template>
+  <MenubarSubTrigger
+    v-bind="forwardedProps"
+    :class="
+      cn(
+        'flex cursor-default select-none items-center rounded-sm px-2 py-1.5 text-sm outline-none focus:bg-gray-100 focus:text-gray-900 data-[state=open]:bg-gray-100 data-[state=open]:text-gray-900 dark:focus:bg-gray-800 dark:focus:text-gray-50 dark:data-[state=open]:bg-gray-800 dark:data-[state=open]:text-gray-50',
+        inset && 'pl-8',
+        props.class,
+      )
+    "
+  >
+    <slot />
+    <ChevronRight class="ml-auto h-4 w-4" />
+  </MenubarSubTrigger>
+</template>
+
+
+================================================
+File: resources/js/Components/ui/menubar/MenubarTrigger.vue
+================================================
+<script setup>
+import { cn } from '@/lib/utils';
+import { MenubarTrigger, useForwardProps } from 'radix-vue';
+import { computed } from 'vue';
+
+const props = defineProps({
+  disabled: { type: Boolean, required: false },
+  asChild: { type: Boolean, required: false },
+  as: { type: null, required: false },
+  class: { type: null, required: false },
+});
+
+const delegatedProps = computed(() => {
+  const { class: _, ...delegated } = props;
+
+  return delegated;
+});
+
+const forwardedProps = useForwardProps(delegatedProps);
+</script>
+
+<template>
+  <MenubarTrigger
+    v-bind="forwardedProps"
+    :class="
+      cn(
+        'flex cursor-default select-none items-center rounded-sm px-3 py-1.5 text-sm font-medium outline-none focus:bg-gray-100 focus:text-gray-900 data-[state=open]:bg-gray-100 data-[state=open]:text-gray-900 dark:focus:bg-gray-800 dark:focus:text-gray-50 dark:data-[state=open]:bg-gray-800 dark:data-[state=open]:text-gray-50',
+        props.class,
+      )
+    "
+  >
+    <slot />
+  </MenubarTrigger>
+</template>
+
+
+================================================
+File: resources/js/Components/ui/menubar/index.js
+================================================
+export { default as Menubar } from './Menubar.vue';
+export { default as MenubarCheckboxItem } from './MenubarCheckboxItem.vue';
+export { default as MenubarContent } from './MenubarContent.vue';
+export { default as MenubarGroup } from './MenubarGroup.vue';
+export { default as MenubarItem } from './MenubarItem.vue';
+export { default as MenubarLabel } from './MenubarLabel.vue';
+export { default as MenubarMenu } from './MenubarMenu.vue';
+export { default as MenubarRadioGroup } from './MenubarRadioGroup.vue';
+export { default as MenubarRadioItem } from './MenubarRadioItem.vue';
+export { default as MenubarSeparator } from './MenubarSeparator.vue';
+export { default as MenubarShortcut } from './MenubarShortcut.vue';
+export { default as MenubarSub } from './MenubarSub.vue';
+export { default as MenubarSubContent } from './MenubarSubContent.vue';

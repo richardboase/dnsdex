@@ -1,0 +1,523 @@
+						intraday_multipliers: [
+							"1",
+							"5",
+							"15",
+							"30",
+							"60",
+							"240",
+						],
+						supported_resolutions: [
+							"1",
+							"5",
+							"15",
+							"30",
+							"60",
+							"240",
+							"D",
+							"W",
+						],
+						volume_precision: 8,
+						data_status: "streaming",
+					});
+				},
+
+				getBars: async (
+					symbolInfo,
+					resolution,
+					periodParams,
+					onHistoryCallback,
+					onErrorCallback,
+				) => {
+					try {
+						const response = await fetch(
+							`/api/launchpad/${props.launchpad.contract}/candles?timeframe=${resolution}&from=${periodParams.from}&to=${periodParams.to}`,
+						);
+
+						if (!response.ok) {
+							throw new Error("Network response was not ok");
+						}
+
+						const data = await response.json();
+
+						if (data.length === 0) {
+							onHistoryCallback([], { noData: true });
+							return;
+						}
+
+						const bars = data.map((bar) => ({
+							time: bar.timestamp * 1000,
+							open: parseFloat(bar.open),
+							high: parseFloat(bar.high),
+							low: parseFloat(bar.low),
+							close: parseFloat(bar.close),
+							volume: parseFloat(bar.volume),
+						}));
+
+						onHistoryCallback(bars, { noData: false });
+					} catch (err) {
+						console.error("Error fetching candles:", err);
+						onErrorCallback(err);
+					}
+				},
+
+				subscribeBars: (
+					symbolInfo,
+					resolution,
+					onRealtimeCallback,
+					subscribeUID,
+					onResetCacheNeededCallback,
+				) => {
+					window.Echo.channel(
+						`launchpad.${props.launchpad.id}`,
+					).listen("NewTradeEvent", (trade) => {
+						// Convert trade to OHLC format
+						const bar = {
+							time: new Date(trade.created_at).getTime(),
+							open: parseFloat(trade.amount),
+							high: parseFloat(trade.amount),
+							low: parseFloat(trade.amount),
+							close: parseFloat(trade.amount),
+							volume: parseFloat(trade.qty),
+						};
+						onRealtimeCallback(bar);
+					});
+				},
+
+				unsubscribeBars: (subscriberUID) => {
+					window.Echo.leave(`launchpad.${props.launchpad.id}`);
+				},
+			},
+		});
+	};
+
+	onMounted(async () => {
+		const scriptPath = "/charting_library/charting_library.js";
+
+		// Load TradingView library if not already loaded
+		if (!document.querySelector(`script[src="${scriptPath}"]`)) {
+			const script = document.createElement("script");
+			script.src = scriptPath;
+			script.type = "text/javascript";
+			document.head.appendChild(script);
+
+			script.onload = () => {
+				widget = configureWidget();
+			};
+		} else {
+			widget = configureWidget();
+		}
+	});
+
+	onUnmounted(() => {
+		if (widget) {
+			widget.remove();
+			widget = null;
+		}
+		window.Echo.leave(`launchpad.${props.launchpad.id}`);
+	});
+</script>
+<template>
+	<div class="relative">
+		<div id="tv_chart_container" class="w-full h-[400px]"></div>
+	</div>
+</template>
+
+
+================================================
+File: resources/js/Pages/Launchpads/TradingView/UniswapGraph.vue
+================================================
+<script setup>
+	import { Card } from "@/Components/ui/card";
+
+	defineProps({
+		priceChanges: {
+			type: Object,
+			default: () => ({
+				"1H": 0,
+				"24H": 0,
+				"7D": 0,
+			}),
+		},
+		stats: {
+			type: Object,
+			default: () => ({
+				volume24h: 0,
+				tvl: 0,
+				feeTier: 0.3,
+				transactions24h: 0,
+				totalTransactions: 0,
+				liquidity: 0,
+				currentPrice: 0,
+				minPrice: 0,
+				maxPrice: 0,
+			}),
+		},
+	});
+
+	const formatCurrency = (value) => {
+		return new Intl.NumberFormat("en-US", {
+			style: "currency",
+			currency: "USD",
+			notation: "compact",
+			maximumFractionDigits: 2,
+		}).format(value);
+	};
+
+	const formatPrice = (value) => {
+		return new Intl.NumberFormat("en-US", {
+			minimumFractionDigits: 2,
+			maximumFractionDigits: 6,
+		}).format(value);
+	};
+
+	const formatPercent = (value) => {
+		const num = parseFloat(value);
+		return `${num >= 0 ? "+" : ""}${num.toFixed(2)}%`;
+	};
+
+	const getPriceChangeClass = (value) => {
+		const num = parseFloat(value);
+		return num >= 0 ? "text-green-500" : "text-red-500";
+	};
+</script>
+<template>
+	<Card class="bg-gray-900 text-white p-6 rounded-xl">
+		<!-- Price Changes -->
+		<div class="grid grid-cols-3 gap-4 mb-6">
+			<div
+				v-for="(value, period) in priceChanges"
+				:key="period"
+				class="text-center">
+				<div class="text-gray-400 text-sm mb-1">{{ period }}</div>
+				<div :class="getPriceChangeClass(value)">
+					{{ formatPercent(value) }}
+				</div>
+			</div>
+		</div>
+
+		<!-- Pool Stats -->
+		<div class="bg-gray-800 rounded-lg p-4 space-y-6">
+			<!-- Volume & Liquidity -->
+			<div class="grid grid-cols-3 gap-4">
+				<div>
+					<div class="text-gray-400 text-sm mb-1">24H VOLUME</div>
+					<div class="text-lg font-semibold">
+						{{ formatCurrency(stats.volume24h) }}
+					</div>
+				</div>
+				<div>
+					<div class="text-gray-400 text-sm mb-1">TVL</div>
+					<div class="text-lg font-semibold">
+						{{ formatCurrency(stats.tvl) }}
+					</div>
+				</div>
+				<div>
+					<div class="text-gray-400 text-sm mb-1">FEE TIER</div>
+					<div class="text-lg font-semibold">
+						{{ stats.feeTier }}%
+					</div>
+				</div>
+			</div>
+
+			<!-- Transactions -->
+			<div class="grid grid-cols-3 gap-4">
+				<div>
+					<div class="text-gray-400 text-sm mb-1">24H TXNS</div>
+					<div class="text-lg font-semibold">
+						{{ stats.transactions24h }}
+					</div>
+				</div>
+				<div>
+					<div class="text-gray-400 text-sm mb-1">TOTAL TXNS</div>
+					<div class="text-lg font-semibold">
+						{{ stats.totalTransactions }}
+					</div>
+				</div>
+				<div>
+					<div class="text-gray-400 text-sm mb-1">LIQUIDITY</div>
+					<div class="text-lg font-semibold">
+						{{ formatCurrency(stats.liquidity) }}
+					</div>
+				</div>
+			</div>
+
+			<!-- Price Info -->
+			<div class="grid grid-cols-2 gap-4">
+				<div>
+					<div class="text-gray-400 text-sm mb-1">CURRENT PRICE</div>
+					<div class="text-lg font-semibold">
+						{{ formatPrice(stats.currentPrice) }}
+					</div>
+				</div>
+				<div>
+					<div class="text-gray-400 text-sm mb-1">PRICE RANGE</div>
+					<div class="text-lg font-semibold">
+						{{ formatPrice(stats.minPrice) }} -
+						{{ formatPrice(stats.maxPrice) }}
+					</div>
+				</div>
+			</div>
+		</div>
+	</Card>
+</template>
+
+
+================================================
+File: resources/js/Pages/Launchpads/TradingView/charting_library/charting_library.cjs.js
+================================================
+"use strict";function t(e,n){const i={...e};for(const o in n)"object"!=typeof e[o]||null===e[o]||Array.isArray(e[o])?void 0!==n[o]&&(i[o]=n[o]):i[o]=t(e[o],n[o]);return i}Object.defineProperty(exports,"__esModule",{value:!0});const e={width:800,height:500,interval:"1D",timezone:"Etc/UTC",container:"",library_path:"",locale:"en",widgetbar:{details:!1,watchlist:!1,news:!1,datawindow:!1,watchlist_settings:{default_symbols:[]}},overrides:{"mainSeriesProperties.showCountdown":!1},studies_overrides:{},trading_customization:{position:{},order:{}},brokerConfig:{configFlags:{}},fullscreen:!1,autosize:!1,disabled_features:[],enabled_features:[],debug:!1,logo:{},time_frames:[{text:"5y",resolution:"1W"},{text:"1y",resolution:"1W"},{text:"6m",resolution:"120"},{text:"3m",resolution:"60"},{text:"1m",resolution:"30"},{text:"5d",resolution:"5"},{text:"1d",resolution:"1"}],client_id:"0",user_id:"0",charts_storage_api_version:"1.0",favorites:{intervals:[],chartTypes:[],indicators:[],drawingTools:[]}},n=JSON.parse('[{"iso":"ar","dir":"rtl","language":"ar"},{"iso":"pt","dir":"ltr","language":"pt"},{"iso":"ca","dir":"ltr","language":"ca_ES"},{"iso":"cs","dir":"ltr","language":"cs"},{"iso":"de","dir":"ltr","language":"de"},{"iso":"en","dir":"ltr","language":"en"},{"iso":"es","dir":"ltr","language":"es"},{"iso":"fa","dir":"rtl","language":"fa"},{"iso":"fr","dir":"ltr","language":"fr"},{"iso":"he","dir":"rtl","language":"he_IL"},{"iso":"hu","dir":"ltr","language":"hu_HU"},{"iso":"id","dir":"ltr","language":"id_ID"},{"iso":"en","dir":"ltr","language":"en"},{"iso":"it","dir":"ltr","language":"it"},{"iso":"ja","dir":"ltr","language":"ja"},{"iso":"ko","dir":"ltr","language":"ko"},{"iso":"ms","dir":"ltr","language":"ms_MY"},{"iso":"pl","dir":"ltr","language":"pl"},{"iso":"ru","dir":"ltr","language":"ru"},{"iso":"sv","dir":"ltr","language":"sv"},{"iso":"th","dir":"ltr","language":"th"},{"iso":"tr","dir":"ltr","language":"tr"},{"iso":"vi","dir":"ltr","language":"vi"},{"iso":"zh-Hans","dir":"ltr","language":"zh"},{"iso":"zh-Hant","dir":"ltr","language":"zh_TW"},{"iso":"el","dir":"ltr","language":"el"},{"iso":"nl","dir":"ltr","language":"nl_NL"},{"iso":"ro","dir":"ltr","language":"ro"}]');let i=!1;function o(){return"CL v25.002 (internal id ea00b60e @ 2023-07-12T14:51:16.080Z)"}const s=class{constructor(n){var o,s;if(this._id=`tradingview_${(1048576*(1+Math.random())|0).toString(16).substring(1)}`,this._ready=!1,this._readyHandlers=[],this._onWindowResize=this._autoResizeChart.bind(this),!n.datafeed)throw new Error("Datafeed is not defined");(null===(o=n.overrides)||void 0===o?void 0:o["mainSeriesProperties.priceAxisProperties.lockScale"])&&(console.warn("mainSeriesProperties.priceAxisProperties.lockScale can not be set to true within the widget constructor"),delete n.overrides["mainSeriesProperties.priceAxisProperties.lockScale"]),this._options=t(e,n);"dark"===(null!==(s=this._options.theme)&&void 0!==s?s:"light").toLowerCase()&&void 0===this._options.loading_screen&&(this._options.loading_screen={backgroundColor:"#131722"}),this._options.debug&&(i||(i=!0,console.log("Using CL v25.002 (internal id ea00b60e @ 2023-07-12T14:51:16.080Z)"))),this._create()}setDebugMode(t){this._innerAPI().setDebugMode(t)}onChartReady(t){this._ready?t.call(this):this._readyHandlers.push(t)}headerReady(){return this._innerWindowLoaded.then((()=>this._innerWindow().headerReady()))}onGrayedObjectClicked(t){this._doWhenInnerApiLoaded((e=>{e.onGrayedObjectClicked(t)}))}onShortcut(t,e){this._doWhenInnerWindowLoaded((n=>{n.createShortcutAction(t,e)}))}subscribe(t,e){this._doWhenInnerApiLoaded((n=>{n.subscribe(t,e)}))}unsubscribe(t,e){this._doWhenInnerApiLoaded((n=>{n.unsubscribe(t,e)}))}chart(t){return this._innerAPI().chart(t)}getLanguage(){return this._options.locale}setSymbol(t,e,n){this._innerAPI().changeSymbol(t,e,n)}remove(){window.removeEventListener("resize",this._onWindowResize),this._readyHandlers.splice(0,this._readyHandlers.length),delete window[this._id],this._iFrame.parentNode&&this._iFrame.parentNode.removeChild(this._iFrame)}closePopupsAndDialogs(){this._doWhenInnerApiLoaded((t=>{t.closePopupsAndDialogs()}))}selectLineTool(t,e){this._innerAPI().selectLineTool(t,e)}selectedLineTool(){return this._innerAPI().selectedLineTool()}save(t){this._innerAPI().saveChart(t)}load(t,e){this._innerAPI().loadChart({json:t,extendedData:e})}getSavedCharts(t){this._innerAPI().getSavedCharts(t)}loadChartFromServer(t){this._innerAPI().loadChartFromServer(t)}saveChartToServer(t,e,n){this._innerAPI().saveChartToServer(t,e,n)}removeChartFromServer(t,e){this._innerAPI().removeChartFromServer(t,e)}onContextMenu(t){this._doWhenInnerApiLoaded((e=>{e.onContextMenu(t)}))}createButton(t){return this._innerWindow().createButton(t)}createDropdown(t){return this._innerWindow().createDropdown(t)}showNoticeDialog(t){this._doWhenInnerApiLoaded((e=>{e.showNoticeDialog(t)}))}showConfirmDialog(t){this._doWhenInnerApiLoaded((e=>{e.showConfirmDialog(t)}))}showLoadChartDialog(){this._innerAPI().showLoadChartDialog()}showSaveAsChartDialog(){this._innerAPI().showSaveAsChartDialog()}symbolInterval(){return this._innerAPI().getSymbolInterval()}mainSeriesPriceFormatter(){return this._innerAPI().mainSeriesPriceFormatter()}getIntervals(){return this._innerAPI().getIntervals()}getStudiesList(){return this._innerAPI().getStudiesList()}getStudyInputs(t){return this._innerAPI().getStudyInputs(t)}getStudyStyles(t){return this._innerAPI().getStudyStyles(t)}addCustomCSSFile(t){this._innerWindow().addCustomCSSFile(t)}applyOverrides(e){this._options=t(this._options,{overrides:e}),this._doWhenInnerWindowLoaded((t=>{t.applyOverrides(e)}))}applyStudiesOverrides(t){this._doWhenInnerWindowLoaded((e=>{e.applyStudiesOverrides(t)}))}watchList(){return this._innerAPI().watchlist()}news(){return this._innerAPI().news()}widgetbar(){return this._innerAPI().widgetbar()}activeChart(){return this._innerAPI().activeChart()}activeChartIndex(){return this._innerAPI().activeChartIndex()}setActiveChart(t){return this._innerAPI().setActiveChart(t)}chartsCount(){return this._innerAPI().chartsCount()}layout(){return this._innerAPI().layout()}setLayout(t){this._innerAPI().setLayout(t)}layoutName(){return this._innerAPI().layoutName()}changeTheme(t,e){return this._innerWindow().changeTheme(t,e)}getTheme(){return this._innerWindow().getTheme()}takeScreenshot(){this._doWhenInnerApiLoaded((t=>{t.takeScreenshot()}))}lockAllDrawingTools(){return this._innerAPI().lockAllDrawingTools()}hideAllDrawingTools(){return this._innerAPI().hideAllDrawingTools()}drawOnAllCharts(t){this._innerAPI().drawOnAllCharts(t)}magnetEnabled(){return this._innerAPI().magnetEnabled()}magnetMode(){return this._innerAPI().magnetMode()}undoRedoState(){return this._innerAPI().undoRedoState()}setIntervalLinkingEnabled(t){this._innerAPI().setIntervalLinkingEnabled(t)}setTimeFrame(t){this._innerAPI().setTimeFrame(t)}symbolSync(){return this._innerAPI().symbolSync()}intervalSync(){return this._innerAPI().intervalSync()}crosshairSync(){return this._innerAPI().crosshairSync()}timeSync(){return this._innerAPI().timeSync()}dateRangeSync(){return this._innerAPI().dateRangeSync()}setFeatureEnabled(t,e){this._innerAPI().setFeatureEnabled(t,e)}getAllFeatures(){return this._innerWindow().getAllFeatures()}clearUndoHistory(){return this._innerAPI().clearUndoHistory()}undo(){return this._innerAPI().undo()}redo(){return this._innerAPI().redo()}startFullscreen(){this._innerAPI().startFullscreen()}exitFullscreen(){this._innerAPI().exitFullscreen()}takeClientScreenshot(t){return this._innerAPI().takeClientScreenshot(t)}navigationButtonsVisibility(){return this._innerWindow().getNavigationButtonsVisibility()}paneButtonsVisibility(){return this._innerWindow().getPaneButtonsVisibility()}dateFormat(){return this._innerWindow().getDateFormat()}timeHoursFormat(){return this._innerWindow().getTimeHoursFormat()}currencyAndUnitVisibility(){return this._innerWindow().getCurrencyAndUnitVisibility()}supportedChartTypes(){return this._innerAPI().supportedChartTypes()}watermark(){return this._innerAPI().watermark()}customSymbolStatus(){return this._innerWindow().customSymbolStatus()}linking(){return this._innerAPI().linking}_innerAPI(){return this._innerWindow().tradingViewApi}_innerWindow(){return this._iFrame.contentWindow}_doWhenInnerWindowLoaded(t){this._ready?t(this._innerWindow()):this._innerWindowLoaded.then((()=>{t(this._innerWindow())}))}_doWhenInnerApiLoaded(t){this._doWhenInnerWindowLoaded((e=>{e.doWhenApiIsReady((()=>t(this._innerAPI())))}))}_autoResizeChart(){this._options.fullscreen&&(this._iFrame.style.height=window.innerHeight+"px",r&&setTimeout((()=>{this._iFrame.style.height=window.innerHeight+"px"}),30))}_create(){var t,e;const n=null!==(e=null===(t=this._options.enabled_features)||void 0===t?void 0:t.includes("iframe_loading_compatibility_mode"))&&void 0!==e&&e,[i,o]=this._render(!n);this._options.container_id&&console.warn("`container_id` is now deprecated. Please use `container` instead to either still pass a string or an `HTMLElement`.");const s=this._options.container_id||this._options.container,r="string"==typeof s?document.getElementById(s):s;if(null===r)throw new Error(`There is no such element - #${this._options.container}`);r.innerHTML=i,this._iFrame=r.querySelector(`#${this._id}`);const a=this._iFrame;n&&(a.contentWindow?(a.contentWindow.document.open(),a.contentWindow.document.write(o),a.contentWindow.document.close()):console.warn("Unable to locate contentWindow for the created iframe. Please try disabling the `iframe_loading_compatibility_mode` featureset.")),(this._options.autosize||this._options.fullscreen)&&(a.style.width="100%",this._options.fullscreen||(a.style.height="100%")),window.addEventListener("resize",this._onWindowResize),this._onWindowResize(),this._innerWindowLoaded=new Promise((t=>{const e=()=>{a.removeEventListener("load",e,!1),t()};a.addEventListener("load",e,!1)})),this._innerWindowLoaded.then((()=>{try{this._innerWindow().widgetReady((()=>{this._ready=!0;for(const t of this._readyHandlers)try{t.call(this)}catch(t){console.error(t)}this._innerWindow().initializationFinished()}))}catch(t){if(t instanceof Error&&/widgetReady is not a function/.test(t.message))throw new Error(`There was an error when loading the library. Usually this error means the library failed to load its static files. Check that the library files are available at ${window.location.host}/${this._options.library_path||""} or correct the library_path option.`)}}))}_render(t){const e=window;if(e[this._id]={datafeed:this._options.datafeed,customFormatters:this._options.custom_formatters||this._options.customFormatters,brokerFactory:this._options.broker_factory||this._options.brokerFactory,overrides:this._options.overrides,studiesOverrides:this._options.studies_overrides,tradingCustomization:this._options.trading_customization,disabledFeatures:this._options.disabled_features,enabledFeatures:this._options.enabled_features,brokerConfig:this._options.broker_config||this._options.brokerConfig,restConfig:this._options.restConfig,favorites:this._options.favorites,logo:this._options.logo,numeric_formatting:this._options.numeric_formatting,rss_news_feed:this._options.rss_news_feed,newsProvider:this._options.news_provider,loadLastChart:this._options.load_last_chart,saveLoadAdapter:this._options.save_load_adapter,loading_screen:this._options.loading_screen,settingsAdapter:this._options.settings_adapter,getCustomIndicators:this._options.custom_indicators_getter,additionalSymbolInfoFields:this._options.additional_symbol_info_fields,headerWidgetButtonsMode:this._options.header_widget_buttons_mode,customTranslateFunction:this._options.custom_translate_function,symbolSearchComplete:this._options.symbol_search_complete,contextMenu:this._options.context_menu,settingsOverrides:this._options.settings_overrides,timeframe:this._options.timeframe,customTimezones:this._options.custom_timezones},this._options.saved_data)e[this._id].chartContent={json:this._options.saved_data},this._options.saved_data_meta_info&&(e[this._id].chartContentExtendedData=this._options.saved_data_meta_info);else if(!this._options.load_last_chart&&!this._options.symbol)throw new Error("Symbol is not defined: either 'symbol' or 'load_last_chart' option must be set");if(this._options.library_path&&!this._options.library_path.endsWith("/")&&console.warn("library_path option should contain a trailing forward slash"),this._options.locale){const t=encodeURIComponent(this._options.locale);n.findIndex((e=>e.language===t))>=0||(console.warn("locale isn't supported. Using default of `en`."),this._options.locale="en")}const i=function(t,e){var i;const o=new URL(`${t||""}`,location.href).href,s=JSON.parse('["bundles/runtime.2d7205dfd0e311e18ff9.js","bundles/__LANG__.505.978e053ffa4899c28da8.js","bundles/6783.6a1bfc6cd105f6a266ca.css","bundles/6783.6a1bfc6cd105f6a266ca.rtl.css","bundles/6151.b1a247016649e9fadde0.js","bundles/library.f735e5630512a49de4f4.js"]'),r=encodeURIComponent(e),a=null!==(i=n.find((t=>t.language===r)))&&void 0!==i?i:{iso:"en",dir:"ltr"},d=`lang="${a.iso}" dir="${a.dir}"`,l=`\n${function(t,e,n){if(void 0===t)return"";const i=[],o=[];for(const s of t)s.endsWith(".js")?i.push(`<script defer crossorigin="anonymous" src="${s.replace("__LANG__",n)}"><\/script>`):s.endsWith(".css")&&o.push(`<link type="text/css" href="${e?s.replace(/\.css$/i,".rtl.css"):s}" rel="stylesheet"/>`);return[...i,...o].join("\n")}(s,"rtl"===a.dir,r)}\n`;return`<!DOCTYPE html><html ${(h={bundles:l,localeLanguage:r,htmlAttrs:d,libraryPath:o}).htmlAttrs}><head><base href="${h.libraryPath}"><meta charset="utf-8"><script>window===window.parent&&(location.href="about:blank")<\/script> ${h.bundles} </head><body class="chart-page unselectable on-widget"><div class="loading-indicator" id="loading-indicator"></div><script>var JSServer={},__initialEnabledFeaturesets=["charting_library"]<\/script><script>(function() {\n\t\twindow.urlParams = (function () {\n\t\t\tvar match,\n\t\t\t\tpl\t = /\\+/g,  // Regex for replacing addition symbol with a space\n\t\t\t\tsearch = /([^&=]+)=?([^&]*)/g,\n\t\t\t\tdecode = function (s) { return decodeURIComponent(s.replace(pl, ' ')).replace(/<\\/?[^>]+(>|$)/g, ''); },\n\t\t\t\tquery = function() {\n\t\t\t\t\t// We don't use hash on the url because: safari 13 throws an error if you attempt this\n\t\t\t\t\t// on a blob, and safari 14 will strip hash from blob urls.\n\t\t\t\t\tif (frameElement && frameElement.dataset.widgetOptions) {\n\t\t\t\t\t\treturn frameElement.dataset.widgetOptions;\n\t\t\t\t\t} else {\n\t\t\t\t\t\tthrow "Unexpected use of this page";\n\t\t\t\t\t}\n\t\t\t\t}(),\n\t\t\t\tresult = {};\n\n\t\t\twhile (match = search.exec(query)) {\n\t\t\t\tresult[decode(match[1])] = decode(match[2]);\n\t\t\t}\n\n\t\t\tvar additionalSettingsObject = window.parent[result.uid];\n\n\t\t\tvar customObjectNames = ['datafeed', 'customFormatters', 'brokerFactory', 'save_load_adapter', 'customTranslateFunction', 'contextMenu'];\n\n\t\t\tfor (var p in additionalSettingsObject) {\n\t\t\t\tif (customObjectNames.indexOf(p) === -1) {\n\t\t\t\t\tresult[p] = JSON.stringify(additionalSettingsObject[p]);\n\t\t\t\t}\n\t\t\t}\n\n\t\t\treturn result;\n\t\t})();\n\n\t\twindow.locale = urlParams.locale;\n\t\twindow.language = urlParams.locale; // a very big attention needed here\n\t\twindow.customTranslateFunction = window.parent[urlParams.uid].customTranslateFunction;\n\n\t\twindow.addCustomCSSFile = function(href) {\n\t\t\tvar link = document.createElement('link');\n\t\t\tlink.setAttribute('type', 'text/css');\n\t\t\tlink.setAttribute('rel', 'stylesheet');\n\t\t\tlink.setAttribute('href', href);\n\t\t\tlink.setAttribute('cross-origin', 'anonymous');\n\n\t\t\twindow.loadedCustomCss = new Promise((resolve) => {\n\t\t\t\tlink.onload = resolve;\n\t\t\t\tlink.onerror = resolve;\n\t\t\t});\n\t\t\tdocument.body.appendChild(link);\n\t\t};\n\n\t\twindow.loadedCustomCss = Promise.resolve();\n\t\tif (!!urlParams.customCSS) {\n\t\t\twindow.addCustomCSSFile(urlParams.customCSS);\n\t\t}\n\n\t\tvar loadingScreenParams = {};\n\n\t\tif (typeof urlParams.loading_screen === 'string') {\n\t\t\ttry {\n\t\t\t\tloadingScreenParams = JSON.parse(urlParams.loading_screen);\n\t\t\t} catch(e) {}\n\t\t}\n\n\t\tvar loadingIndicatorElement = document.getElementById('loading-indicator');\n\n\t\tif (loadingScreenParams.backgroundColor) {\n\t\t\tloadingIndicatorElement.style = 'background-color: ' + loadingScreenParams.backgroundColor;\n\t\t}\n\n\t\t!function(){"use strict";var t,e=new WeakMap;!function(t){t[t.Element=1]="Element",t[t.Document=9]="Document"}(t||(t={}));var n={mini:"xsmall",xsmall:"xsmall",small:"small",medium:"medium",large:"large"};var i,s,o,r,l,c=(void 0===l&&(l=""),i='<div class="tv-spinner '.concat(l,'" role="progressbar"></div>'),o=function(n,i){var s,o;return s=null==i?document.documentElement:i.nodeType===t.Document?i.documentElement:i,e&&(o=e.get(s)),o||((o=s.ownerDocument.createRange()).selectNodeContents(s),e&&e.set(s,o)),o.createContextualFragment(n)}(i,s),null!==(r=o.firstElementChild)&&o.removeChild(r),r),a=function(){function t(t){this._shown=!1,this._el=c.cloneNode(!0),this.setSize(n[t||"large"])}return t.prototype.spin=function(t){return this._el.classList.add("tv-spinner--shown"),void 0===this._container&&(this._container=t,void 0!==t&&t.appendChild(this._el)),this._shown=!0,this},t.prototype.stop=function(t){return t&&void 0!==this._container&&this._container.removeChild(this._el),this._el&&this._el.classList.remove("tv-spinner--shown"),this._shown=!1,this},t.prototype.setStyle=function(t){var e=this;return Object.keys(t).forEach((function(n){var i=t[n];void 0!==i&&e._el.style.setProperty(n,i)})),this},t.prototype.style=function(){return this._el.style},t.prototype.setSize=function(t){var e=void 0!==t?"tv-spinner--size_".concat(t):"";return this._el.className="tv-spinner ".concat(e," ").concat(this._shown?"tv-spinner--shown":""),this},t.prototype.getEl=function(){return this._el},t.prototype.destroy=function(){this.stop(),delete this._el,delete this._container},t}();window.Spinner=a}();\n\n\n\t\tvar spinnerColor = (loadingScreenParams.foregroundColor) ? loadingScreenParams.foregroundColor : undefined;\n\n\t\tvar loadingSpinner = new Spinner('large').setStyle({\n\t\t\t'--tv-spinner-color': spinnerColor,\n\t\t\tzIndex: String(2e9),\n\t\t});\n\t\tloadingSpinner.getEl().classList.add('spinner');\n\t\tloadingSpinner.spin(loadingIndicatorElement);\n\t})();<\/script></body></html>`;var h}(this._options.library_path||"",this._options.locale);let o=new URL("about:blank");if(t){const t=new Blob([i],{type:"text/html"}),e=URL.createObjectURL(t);o=new URL(e)}const s="symbol="+encodeURIComponent(this._options.symbol||"")+"&interval="+encodeURIComponent(this._options.interval)+(this._options.toolbar_bg?"&toolbarbg="+encodeURIComponent(this._options.toolbar_bg.replace("#","")):"")+(this._options.studies_access?"&studiesAccess="+encodeURIComponent(JSON.stringify(this._options.studies_access)):"")+"&widgetbar="+encodeURIComponent(JSON.stringify(this._options.widgetbar))+(this._options.drawings_access?"&drawingsAccess="+encodeURIComponent(JSON.stringify(this._options.drawings_access)):"")+"&timeFrames="+encodeURIComponent(JSON.stringify(this._options.time_frames))+"&locale="+encodeURIComponent(this._options.locale)+"&uid="+encodeURIComponent(this._id)+"&clientId="+encodeURIComponent(String(this._options.client_id))+"&userId="+encodeURIComponent(String(this._options.user_id))+(this._options.charts_storage_url?"&chartsStorageUrl="+encodeURIComponent(this._options.charts_storage_url):"")+(this._options.charts_storage_api_version?"&chartsStorageVer="+encodeURIComponent(this._options.charts_storage_api_version):"")+(this._options.custom_css_url?"&customCSS="+encodeURIComponent(this._options.custom_css_url):"")+(this._options.custom_font_family?"&customFontFamily="+encodeURIComponent(this._options.custom_font_family):"")+(this._options.auto_save_delay?"&autoSaveDelay="+encodeURIComponent(String(this._options.auto_save_delay)):"")+"&debug="+encodeURIComponent(String(this._options.debug))+(this._options.snapshot_url?"&snapshotUrl="+encodeURIComponent(this._options.snapshot_url):"")+(this._options.timezone?"&timezone="+encodeURIComponent(this._options.timezone):"")+(this._options.study_count_limit?"&studyCountLimit="+encodeURIComponent(String(this._options.study_count_limit)):"")+(this._options.symbol_search_request_delay?"&ssreqdelay="+encodeURIComponent(String(this._options.symbol_search_request_delay)):"")+(this._options.compare_symbols?"&compareSymbols="+encodeURIComponent(JSON.stringify(this._options.compare_symbols)):"")+(this._options.theme?"&theme="+encodeURIComponent(String(this._options.theme)):"")+(this._options.header_widget_buttons_mode?"&header_widget_buttons_mode="+encodeURIComponent(String(this._options.header_widget_buttons_mode)):"")+(this._options.time_scale?"&time_scale="+encodeURIComponent(JSON.stringify(this._options.time_scale)):"");return[`<iframe\n\t\tid="${this._id}" name="${this._id}" src="${o.href}" data-widget-options="${s}"\n\t\t${this._options.autosize||this._options.fullscreen?"":`width="${this._options.width}" height="${this._options.height}"`} title="Financial Chart" frameborder="0" allowTransparency="true" scrolling="no" allowfullscreen style="display:block;">\n\t</iframe>`,i]}};"undefined"!=typeof window&&(window.TradingView=window.TradingView||{},window.TradingView.version=o);const r=!("undefined"==typeof window||!window.navigator||!window.navigator.userAgent)&&window.navigator.userAgent.includes("CriOS");exports.version=o,exports.widget=s;
+
+
+================================================
+File: resources/js/Pages/Launchpads/TradingView/charting_library/charting_library.esm.js
+================================================
+function t(e,n){const i={...e};for(const o in n)"object"!=typeof e[o]||null===e[o]||Array.isArray(e[o])?void 0!==n[o]&&(i[o]=n[o]):i[o]=t(e[o],n[o]);return i}const e={width:800,height:500,interval:"1D",timezone:"Etc/UTC",container:"",library_path:"",locale:"en",widgetbar:{details:!1,watchlist:!1,news:!1,datawindow:!1,watchlist_settings:{default_symbols:[]}},overrides:{"mainSeriesProperties.showCountdown":!1},studies_overrides:{},trading_customization:{position:{},order:{}},brokerConfig:{configFlags:{}},fullscreen:!1,autosize:!1,disabled_features:[],enabled_features:[],debug:!1,logo:{},time_frames:[{text:"5y",resolution:"1W"},{text:"1y",resolution:"1W"},{text:"6m",resolution:"120"},{text:"3m",resolution:"60"},{text:"1m",resolution:"30"},{text:"5d",resolution:"5"},{text:"1d",resolution:"1"}],client_id:"0",user_id:"0",charts_storage_api_version:"1.0",favorites:{intervals:[],chartTypes:[],indicators:[],drawingTools:[]}},n=JSON.parse('[{"iso":"ar","dir":"rtl","language":"ar"},{"iso":"pt","dir":"ltr","language":"pt"},{"iso":"ca","dir":"ltr","language":"ca_ES"},{"iso":"cs","dir":"ltr","language":"cs"},{"iso":"de","dir":"ltr","language":"de"},{"iso":"en","dir":"ltr","language":"en"},{"iso":"es","dir":"ltr","language":"es"},{"iso":"fa","dir":"rtl","language":"fa"},{"iso":"fr","dir":"ltr","language":"fr"},{"iso":"he","dir":"rtl","language":"he_IL"},{"iso":"hu","dir":"ltr","language":"hu_HU"},{"iso":"id","dir":"ltr","language":"id_ID"},{"iso":"en","dir":"ltr","language":"en"},{"iso":"it","dir":"ltr","language":"it"},{"iso":"ja","dir":"ltr","language":"ja"},{"iso":"ko","dir":"ltr","language":"ko"},{"iso":"ms","dir":"ltr","language":"ms_MY"},{"iso":"pl","dir":"ltr","language":"pl"},{"iso":"ru","dir":"ltr","language":"ru"},{"iso":"sv","dir":"ltr","language":"sv"},{"iso":"th","dir":"ltr","language":"th"},{"iso":"tr","dir":"ltr","language":"tr"},{"iso":"vi","dir":"ltr","language":"vi"},{"iso":"zh-Hans","dir":"ltr","language":"zh"},{"iso":"zh-Hant","dir":"ltr","language":"zh_TW"},{"iso":"el","dir":"ltr","language":"el"},{"iso":"nl","dir":"ltr","language":"nl_NL"},{"iso":"ro","dir":"ltr","language":"ro"}]');let i=!1;function o(){return"CL v25.002 (internal id ea00b60e @ 2023-07-12T14:51:16.080Z)"}const s=class{constructor(n){var o,s;if(this._id=`tradingview_${(1048576*(1+Math.random())|0).toString(16).substring(1)}`,this._ready=!1,this._readyHandlers=[],this._onWindowResize=this._autoResizeChart.bind(this),!n.datafeed)throw new Error("Datafeed is not defined");(null===(o=n.overrides)||void 0===o?void 0:o["mainSeriesProperties.priceAxisProperties.lockScale"])&&(console.warn("mainSeriesProperties.priceAxisProperties.lockScale can not be set to true within the widget constructor"),delete n.overrides["mainSeriesProperties.priceAxisProperties.lockScale"]),this._options=t(e,n);"dark"===(null!==(s=this._options.theme)&&void 0!==s?s:"light").toLowerCase()&&void 0===this._options.loading_screen&&(this._options.loading_screen={backgroundColor:"#131722"}),this._options.debug&&(i||(i=!0,console.log("Using CL v25.002 (internal id ea00b60e @ 2023-07-12T14:51:16.080Z)"))),this._create()}setDebugMode(t){this._innerAPI().setDebugMode(t)}onChartReady(t){this._ready?t.call(this):this._readyHandlers.push(t)}headerReady(){return this._innerWindowLoaded.then((()=>this._innerWindow().headerReady()))}onGrayedObjectClicked(t){this._doWhenInnerApiLoaded((e=>{e.onGrayedObjectClicked(t)}))}onShortcut(t,e){this._doWhenInnerWindowLoaded((n=>{n.createShortcutAction(t,e)}))}subscribe(t,e){this._doWhenInnerApiLoaded((n=>{n.subscribe(t,e)}))}unsubscribe(t,e){this._doWhenInnerApiLoaded((n=>{n.unsubscribe(t,e)}))}chart(t){return this._innerAPI().chart(t)}getLanguage(){return this._options.locale}setSymbol(t,e,n){this._innerAPI().changeSymbol(t,e,n)}remove(){window.removeEventListener("resize",this._onWindowResize),this._readyHandlers.splice(0,this._readyHandlers.length),delete window[this._id],this._iFrame.parentNode&&this._iFrame.parentNode.removeChild(this._iFrame)}closePopupsAndDialogs(){this._doWhenInnerApiLoaded((t=>{t.closePopupsAndDialogs()}))}selectLineTool(t,e){this._innerAPI().selectLineTool(t,e)}selectedLineTool(){return this._innerAPI().selectedLineTool()}save(t){this._innerAPI().saveChart(t)}load(t,e){this._innerAPI().loadChart({json:t,extendedData:e})}getSavedCharts(t){this._innerAPI().getSavedCharts(t)}loadChartFromServer(t){this._innerAPI().loadChartFromServer(t)}saveChartToServer(t,e,n){this._innerAPI().saveChartToServer(t,e,n)}removeChartFromServer(t,e){this._innerAPI().removeChartFromServer(t,e)}onContextMenu(t){this._doWhenInnerApiLoaded((e=>{e.onContextMenu(t)}))}createButton(t){return this._innerWindow().createButton(t)}createDropdown(t){return this._innerWindow().createDropdown(t)}showNoticeDialog(t){this._doWhenInnerApiLoaded((e=>{e.showNoticeDialog(t)}))}showConfirmDialog(t){this._doWhenInnerApiLoaded((e=>{e.showConfirmDialog(t)}))}showLoadChartDialog(){this._innerAPI().showLoadChartDialog()}showSaveAsChartDialog(){this._innerAPI().showSaveAsChartDialog()}symbolInterval(){return this._innerAPI().getSymbolInterval()}mainSeriesPriceFormatter(){return this._innerAPI().mainSeriesPriceFormatter()}getIntervals(){return this._innerAPI().getIntervals()}getStudiesList(){return this._innerAPI().getStudiesList()}getStudyInputs(t){return this._innerAPI().getStudyInputs(t)}getStudyStyles(t){return this._innerAPI().getStudyStyles(t)}addCustomCSSFile(t){this._innerWindow().addCustomCSSFile(t)}applyOverrides(e){this._options=t(this._options,{overrides:e}),this._doWhenInnerWindowLoaded((t=>{t.applyOverrides(e)}))}applyStudiesOverrides(t){this._doWhenInnerWindowLoaded((e=>{e.applyStudiesOverrides(t)}))}watchList(){return this._innerAPI().watchlist()}news(){return this._innerAPI().news()}widgetbar(){return this._innerAPI().widgetbar()}activeChart(){return this._innerAPI().activeChart()}activeChartIndex(){return this._innerAPI().activeChartIndex()}setActiveChart(t){return this._innerAPI().setActiveChart(t)}chartsCount(){return this._innerAPI().chartsCount()}layout(){return this._innerAPI().layout()}setLayout(t){this._innerAPI().setLayout(t)}layoutName(){return this._innerAPI().layoutName()}changeTheme(t,e){return this._innerWindow().changeTheme(t,e)}getTheme(){return this._innerWindow().getTheme()}takeScreenshot(){this._doWhenInnerApiLoaded((t=>{t.takeScreenshot()}))}lockAllDrawingTools(){return this._innerAPI().lockAllDrawingTools()}hideAllDrawingTools(){return this._innerAPI().hideAllDrawingTools()}drawOnAllCharts(t){this._innerAPI().drawOnAllCharts(t)}magnetEnabled(){return this._innerAPI().magnetEnabled()}magnetMode(){return this._innerAPI().magnetMode()}undoRedoState(){return this._innerAPI().undoRedoState()}setIntervalLinkingEnabled(t){this._innerAPI().setIntervalLinkingEnabled(t)}setTimeFrame(t){this._innerAPI().setTimeFrame(t)}symbolSync(){return this._innerAPI().symbolSync()}intervalSync(){return this._innerAPI().intervalSync()}crosshairSync(){return this._innerAPI().crosshairSync()}timeSync(){return this._innerAPI().timeSync()}dateRangeSync(){return this._innerAPI().dateRangeSync()}setFeatureEnabled(t,e){this._innerAPI().setFeatureEnabled(t,e)}getAllFeatures(){return this._innerWindow().getAllFeatures()}clearUndoHistory(){return this._innerAPI().clearUndoHistory()}undo(){return this._innerAPI().undo()}redo(){return this._innerAPI().redo()}startFullscreen(){this._innerAPI().startFullscreen()}exitFullscreen(){this._innerAPI().exitFullscreen()}takeClientScreenshot(t){return this._innerAPI().takeClientScreenshot(t)}navigationButtonsVisibility(){return this._innerWindow().getNavigationButtonsVisibility()}paneButtonsVisibility(){return this._innerWindow().getPaneButtonsVisibility()}dateFormat(){return this._innerWindow().getDateFormat()}timeHoursFormat(){return this._innerWindow().getTimeHoursFormat()}currencyAndUnitVisibility(){return this._innerWindow().getCurrencyAndUnitVisibility()}supportedChartTypes(){return this._innerAPI().supportedChartTypes()}watermark(){return this._innerAPI().watermark()}customSymbolStatus(){return this._innerWindow().customSymbolStatus()}linking(){return this._innerAPI().linking}_innerAPI(){return this._innerWindow().tradingViewApi}_innerWindow(){return this._iFrame.contentWindow}_doWhenInnerWindowLoaded(t){this._ready?t(this._innerWindow()):this._innerWindowLoaded.then((()=>{t(this._innerWindow())}))}_doWhenInnerApiLoaded(t){this._doWhenInnerWindowLoaded((e=>{e.doWhenApiIsReady((()=>t(this._innerAPI())))}))}_autoResizeChart(){this._options.fullscreen&&(this._iFrame.style.height=window.innerHeight+"px",r&&setTimeout((()=>{this._iFrame.style.height=window.innerHeight+"px"}),30))}_create(){var t,e;const n=null!==(e=null===(t=this._options.enabled_features)||void 0===t?void 0:t.includes("iframe_loading_compatibility_mode"))&&void 0!==e&&e,[i,o]=this._render(!n);this._options.container_id&&console.warn("`container_id` is now deprecated. Please use `container` instead to either still pass a string or an `HTMLElement`.");const s=this._options.container_id||this._options.container,r="string"==typeof s?document.getElementById(s):s;if(null===r)throw new Error(`There is no such element - #${this._options.container}`);r.innerHTML=i,this._iFrame=r.querySelector(`#${this._id}`);const a=this._iFrame;n&&(a.contentWindow?(a.contentWindow.document.open(),a.contentWindow.document.write(o),a.contentWindow.document.close()):console.warn("Unable to locate contentWindow for the created iframe. Please try disabling the `iframe_loading_compatibility_mode` featureset.")),(this._options.autosize||this._options.fullscreen)&&(a.style.width="100%",this._options.fullscreen||(a.style.height="100%")),window.addEventListener("resize",this._onWindowResize),this._onWindowResize(),this._innerWindowLoaded=new Promise((t=>{const e=()=>{a.removeEventListener("load",e,!1),t()};a.addEventListener("load",e,!1)})),this._innerWindowLoaded.then((()=>{try{this._innerWindow().widgetReady((()=>{this._ready=!0;for(const t of this._readyHandlers)try{t.call(this)}catch(t){console.error(t)}this._innerWindow().initializationFinished()}))}catch(t){if(t instanceof Error&&/widgetReady is not a function/.test(t.message))throw new Error(`There was an error when loading the library. Usually this error means the library failed to load its static files. Check that the library files are available at ${window.location.host}/${this._options.library_path||""} or correct the library_path option.`)}}))}_render(t){const e=window;if(e[this._id]={datafeed:this._options.datafeed,customFormatters:this._options.custom_formatters||this._options.customFormatters,brokerFactory:this._options.broker_factory||this._options.brokerFactory,overrides:this._options.overrides,studiesOverrides:this._options.studies_overrides,tradingCustomization:this._options.trading_customization,disabledFeatures:this._options.disabled_features,enabledFeatures:this._options.enabled_features,brokerConfig:this._options.broker_config||this._options.brokerConfig,restConfig:this._options.restConfig,favorites:this._options.favorites,logo:this._options.logo,numeric_formatting:this._options.numeric_formatting,rss_news_feed:this._options.rss_news_feed,newsProvider:this._options.news_provider,loadLastChart:this._options.load_last_chart,saveLoadAdapter:this._options.save_load_adapter,loading_screen:this._options.loading_screen,settingsAdapter:this._options.settings_adapter,getCustomIndicators:this._options.custom_indicators_getter,additionalSymbolInfoFields:this._options.additional_symbol_info_fields,headerWidgetButtonsMode:this._options.header_widget_buttons_mode,customTranslateFunction:this._options.custom_translate_function,symbolSearchComplete:this._options.symbol_search_complete,contextMenu:this._options.context_menu,settingsOverrides:this._options.settings_overrides,timeframe:this._options.timeframe,customTimezones:this._options.custom_timezones},this._options.saved_data)e[this._id].chartContent={json:this._options.saved_data},this._options.saved_data_meta_info&&(e[this._id].chartContentExtendedData=this._options.saved_data_meta_info);else if(!this._options.load_last_chart&&!this._options.symbol)throw new Error("Symbol is not defined: either 'symbol' or 'load_last_chart' option must be set");if(this._options.library_path&&!this._options.library_path.endsWith("/")&&console.warn("library_path option should contain a trailing forward slash"),this._options.locale){const t=encodeURIComponent(this._options.locale);n.findIndex((e=>e.language===t))>=0||(console.warn("locale isn't supported. Using default of `en`."),this._options.locale="en")}const i=function(t,e){var i;const o=new URL(`${t||""}`,location.href).href,s=JSON.parse('["bundles/runtime.2d7205dfd0e311e18ff9.js","bundles/__LANG__.505.978e053ffa4899c28da8.js","bundles/6783.6a1bfc6cd105f6a266ca.css","bundles/6783.6a1bfc6cd105f6a266ca.rtl.css","bundles/6151.b1a247016649e9fadde0.js","bundles/library.f735e5630512a49de4f4.js"]'),r=encodeURIComponent(e),a=null!==(i=n.find((t=>t.language===r)))&&void 0!==i?i:{iso:"en",dir:"ltr"},d=`lang="${a.iso}" dir="${a.dir}"`,l=`\n${function(t,e,n){if(void 0===t)return"";const i=[],o=[];for(const s of t)s.endsWith(".js")?i.push(`<script defer crossorigin="anonymous" src="${s.replace("__LANG__",n)}"><\/script>`):s.endsWith(".css")&&o.push(`<link type="text/css" href="${e?s.replace(/\.css$/i,".rtl.css"):s}" rel="stylesheet"/>`);return[...i,...o].join("\n")}(s,"rtl"===a.dir,r)}\n`;return`<!DOCTYPE html><html ${(h={bundles:l,localeLanguage:r,htmlAttrs:d,libraryPath:o}).htmlAttrs}><head><base href="${h.libraryPath}"><meta charset="utf-8"><script>window===window.parent&&(location.href="about:blank")<\/script> ${h.bundles} </head><body class="chart-page unselectable on-widget"><div class="loading-indicator" id="loading-indicator"></div><script>var JSServer={},__initialEnabledFeaturesets=["charting_library"]<\/script><script>(function() {\n\t\twindow.urlParams = (function () {\n\t\t\tvar match,\n\t\t\t\tpl\t = /\\+/g,  // Regex for replacing addition symbol with a space\n\t\t\t\tsearch = /([^&=]+)=?([^&]*)/g,\n\t\t\t\tdecode = function (s) { return decodeURIComponent(s.replace(pl, ' ')).replace(/<\\/?[^>]+(>|$)/g, ''); },\n\t\t\t\tquery = function() {\n\t\t\t\t\t// We don't use hash on the url because: safari 13 throws an error if you attempt this\n\t\t\t\t\t// on a blob, and safari 14 will strip hash from blob urls.\n\t\t\t\t\tif (frameElement && frameElement.dataset.widgetOptions) {\n\t\t\t\t\t\treturn frameElement.dataset.widgetOptions;\n\t\t\t\t\t} else {\n\t\t\t\t\t\tthrow "Unexpected use of this page";\n\t\t\t\t\t}\n\t\t\t\t}(),\n\t\t\t\tresult = {};\n\n\t\t\twhile (match = search.exec(query)) {\n\t\t\t\tresult[decode(match[1])] = decode(match[2]);\n\t\t\t}\n\n\t\t\tvar additionalSettingsObject = window.parent[result.uid];\n\n\t\t\tvar customObjectNames = ['datafeed', 'customFormatters', 'brokerFactory', 'save_load_adapter', 'customTranslateFunction', 'contextMenu'];\n\n\t\t\tfor (var p in additionalSettingsObject) {\n\t\t\t\tif (customObjectNames.indexOf(p) === -1) {\n\t\t\t\t\tresult[p] = JSON.stringify(additionalSettingsObject[p]);\n\t\t\t\t}\n\t\t\t}\n\n\t\t\treturn result;\n\t\t})();\n\n\t\twindow.locale = urlParams.locale;\n\t\twindow.language = urlParams.locale; // a very big attention needed here\n\t\twindow.customTranslateFunction = window.parent[urlParams.uid].customTranslateFunction;\n\n\t\twindow.addCustomCSSFile = function(href) {\n\t\t\tvar link = document.createElement('link');\n\t\t\tlink.setAttribute('type', 'text/css');\n\t\t\tlink.setAttribute('rel', 'stylesheet');\n\t\t\tlink.setAttribute('href', href);\n\t\t\tlink.setAttribute('cross-origin', 'anonymous');\n\n\t\t\twindow.loadedCustomCss = new Promise((resolve) => {\n\t\t\t\tlink.onload = resolve;\n\t\t\t\tlink.onerror = resolve;\n\t\t\t});\n\t\t\tdocument.body.appendChild(link);\n\t\t};\n\n\t\twindow.loadedCustomCss = Promise.resolve();\n\t\tif (!!urlParams.customCSS) {\n\t\t\twindow.addCustomCSSFile(urlParams.customCSS);\n\t\t}\n\n\t\tvar loadingScreenParams = {};\n\n\t\tif (typeof urlParams.loading_screen === 'string') {\n\t\t\ttry {\n\t\t\t\tloadingScreenParams = JSON.parse(urlParams.loading_screen);\n\t\t\t} catch(e) {}\n\t\t}\n\n\t\tvar loadingIndicatorElement = document.getElementById('loading-indicator');\n\n\t\tif (loadingScreenParams.backgroundColor) {\n\t\t\tloadingIndicatorElement.style = 'background-color: ' + loadingScreenParams.backgroundColor;\n\t\t}\n\n\t\t!function(){"use strict";var t,e=new WeakMap;!function(t){t[t.Element=1]="Element",t[t.Document=9]="Document"}(t||(t={}));var n={mini:"xsmall",xsmall:"xsmall",small:"small",medium:"medium",large:"large"};var i,s,o,r,l,c=(void 0===l&&(l=""),i='<div class="tv-spinner '.concat(l,'" role="progressbar"></div>'),o=function(n,i){var s,o;return s=null==i?document.documentElement:i.nodeType===t.Document?i.documentElement:i,e&&(o=e.get(s)),o||((o=s.ownerDocument.createRange()).selectNodeContents(s),e&&e.set(s,o)),o.createContextualFragment(n)}(i,s),null!==(r=o.firstElementChild)&&o.removeChild(r),r),a=function(){function t(t){this._shown=!1,this._el=c.cloneNode(!0),this.setSize(n[t||"large"])}return t.prototype.spin=function(t){return this._el.classList.add("tv-spinner--shown"),void 0===this._container&&(this._container=t,void 0!==t&&t.appendChild(this._el)),this._shown=!0,this},t.prototype.stop=function(t){return t&&void 0!==this._container&&this._container.removeChild(this._el),this._el&&this._el.classList.remove("tv-spinner--shown"),this._shown=!1,this},t.prototype.setStyle=function(t){var e=this;return Object.keys(t).forEach((function(n){var i=t[n];void 0!==i&&e._el.style.setProperty(n,i)})),this},t.prototype.style=function(){return this._el.style},t.prototype.setSize=function(t){var e=void 0!==t?"tv-spinner--size_".concat(t):"";return this._el.className="tv-spinner ".concat(e," ").concat(this._shown?"tv-spinner--shown":""),this},t.prototype.getEl=function(){return this._el},t.prototype.destroy=function(){this.stop(),delete this._el,delete this._container},t}();window.Spinner=a}();\n\n\n\t\tvar spinnerColor = (loadingScreenParams.foregroundColor) ? loadingScreenParams.foregroundColor : undefined;\n\n\t\tvar loadingSpinner = new Spinner('large').setStyle({\n\t\t\t'--tv-spinner-color': spinnerColor,\n\t\t\tzIndex: String(2e9),\n\t\t});\n\t\tloadingSpinner.getEl().classList.add('spinner');\n\t\tloadingSpinner.spin(loadingIndicatorElement);\n\t})();<\/script></body></html>`;var h}(this._options.library_path||"",this._options.locale);let o=new URL("about:blank");if(t){const t=new Blob([i],{type:"text/html"}),e=URL.createObjectURL(t);o=new URL(e)}const s="symbol="+encodeURIComponent(this._options.symbol||"")+"&interval="+encodeURIComponent(this._options.interval)+(this._options.toolbar_bg?"&toolbarbg="+encodeURIComponent(this._options.toolbar_bg.replace("#","")):"")+(this._options.studies_access?"&studiesAccess="+encodeURIComponent(JSON.stringify(this._options.studies_access)):"")+"&widgetbar="+encodeURIComponent(JSON.stringify(this._options.widgetbar))+(this._options.drawings_access?"&drawingsAccess="+encodeURIComponent(JSON.stringify(this._options.drawings_access)):"")+"&timeFrames="+encodeURIComponent(JSON.stringify(this._options.time_frames))+"&locale="+encodeURIComponent(this._options.locale)+"&uid="+encodeURIComponent(this._id)+"&clientId="+encodeURIComponent(String(this._options.client_id))+"&userId="+encodeURIComponent(String(this._options.user_id))+(this._options.charts_storage_url?"&chartsStorageUrl="+encodeURIComponent(this._options.charts_storage_url):"")+(this._options.charts_storage_api_version?"&chartsStorageVer="+encodeURIComponent(this._options.charts_storage_api_version):"")+(this._options.custom_css_url?"&customCSS="+encodeURIComponent(this._options.custom_css_url):"")+(this._options.custom_font_family?"&customFontFamily="+encodeURIComponent(this._options.custom_font_family):"")+(this._options.auto_save_delay?"&autoSaveDelay="+encodeURIComponent(String(this._options.auto_save_delay)):"")+"&debug="+encodeURIComponent(String(this._options.debug))+(this._options.snapshot_url?"&snapshotUrl="+encodeURIComponent(this._options.snapshot_url):"")+(this._options.timezone?"&timezone="+encodeURIComponent(this._options.timezone):"")+(this._options.study_count_limit?"&studyCountLimit="+encodeURIComponent(String(this._options.study_count_limit)):"")+(this._options.symbol_search_request_delay?"&ssreqdelay="+encodeURIComponent(String(this._options.symbol_search_request_delay)):"")+(this._options.compare_symbols?"&compareSymbols="+encodeURIComponent(JSON.stringify(this._options.compare_symbols)):"")+(this._options.theme?"&theme="+encodeURIComponent(String(this._options.theme)):"")+(this._options.header_widget_buttons_mode?"&header_widget_buttons_mode="+encodeURIComponent(String(this._options.header_widget_buttons_mode)):"")+(this._options.time_scale?"&time_scale="+encodeURIComponent(JSON.stringify(this._options.time_scale)):"");return[`<iframe\n\t\tid="${this._id}" name="${this._id}" src="${o.href}" data-widget-options="${s}"\n\t\t${this._options.autosize||this._options.fullscreen?"":`width="${this._options.width}" height="${this._options.height}"`} title="Financial Chart" frameborder="0" allowTransparency="true" scrolling="no" allowfullscreen style="display:block;">\n\t</iframe>`,i]}};"undefined"!=typeof window&&(window.TradingView=window.TradingView||{},window.TradingView.version=o);const r=!("undefined"==typeof window||!window.navigator||!window.navigator.userAgent)&&window.navigator.userAgent.includes("CriOS");export{o as version,s as widget};
+
+
+================================================
+File: resources/js/Pages/Launchpads/TradingView/charting_library/charting_library.js
+================================================
+!function(t,e){"object"==typeof exports&&"undefined"!=typeof module?e(exports):"function"==typeof define&&define.amd?define(["exports"],e):e((t="undefined"!=typeof globalThis?globalThis:t||self).TradingView={})}(this,(function(t){"use strict";function e(t,n){const i={...t};for(const o in n)"object"!=typeof t[o]||null===t[o]||Array.isArray(t[o])?void 0!==n[o]&&(i[o]=n[o]):i[o]=e(t[o],n[o]);return i}const n={width:800,height:500,interval:"1D",timezone:"Etc/UTC",container:"",library_path:"",locale:"en",widgetbar:{details:!1,watchlist:!1,news:!1,datawindow:!1,watchlist_settings:{default_symbols:[]}},overrides:{"mainSeriesProperties.showCountdown":!1},studies_overrides:{},trading_customization:{position:{},order:{}},brokerConfig:{configFlags:{}},fullscreen:!1,autosize:!1,disabled_features:[],enabled_features:[],debug:!1,logo:{},time_frames:[{text:"5y",resolution:"1W"},{text:"1y",resolution:"1W"},{text:"6m",resolution:"120"},{text:"3m",resolution:"60"},{text:"1m",resolution:"30"},{text:"5d",resolution:"5"},{text:"1d",resolution:"1"}],client_id:"0",user_id:"0",charts_storage_api_version:"1.0",favorites:{intervals:[],chartTypes:[],indicators:[],drawingTools:[]}},i=JSON.parse('[{"iso":"ar","dir":"rtl","language":"ar"},{"iso":"pt","dir":"ltr","language":"pt"},{"iso":"ca","dir":"ltr","language":"ca_ES"},{"iso":"cs","dir":"ltr","language":"cs"},{"iso":"de","dir":"ltr","language":"de"},{"iso":"en","dir":"ltr","language":"en"},{"iso":"es","dir":"ltr","language":"es"},{"iso":"fa","dir":"rtl","language":"fa"},{"iso":"fr","dir":"ltr","language":"fr"},{"iso":"he","dir":"rtl","language":"he_IL"},{"iso":"hu","dir":"ltr","language":"hu_HU"},{"iso":"id","dir":"ltr","language":"id_ID"},{"iso":"en","dir":"ltr","language":"en"},{"iso":"it","dir":"ltr","language":"it"},{"iso":"ja","dir":"ltr","language":"ja"},{"iso":"ko","dir":"ltr","language":"ko"},{"iso":"ms","dir":"ltr","language":"ms_MY"},{"iso":"pl","dir":"ltr","language":"pl"},{"iso":"ru","dir":"ltr","language":"ru"},{"iso":"sv","dir":"ltr","language":"sv"},{"iso":"th","dir":"ltr","language":"th"},{"iso":"tr","dir":"ltr","language":"tr"},{"iso":"vi","dir":"ltr","language":"vi"},{"iso":"zh-Hans","dir":"ltr","language":"zh"},{"iso":"zh-Hant","dir":"ltr","language":"zh_TW"},{"iso":"el","dir":"ltr","language":"el"},{"iso":"nl","dir":"ltr","language":"nl_NL"},{"iso":"ro","dir":"ltr","language":"ro"}]');let o=!1;function s(){return"CL v25.002 (internal id ea00b60e @ 2023-07-12T14:51:16.080Z)"}const r=class{constructor(t){var i,s;if(this._id=`tradingview_${(1048576*(1+Math.random())|0).toString(16).substring(1)}`,this._ready=!1,this._readyHandlers=[],this._onWindowResize=this._autoResizeChart.bind(this),!t.datafeed)throw new Error("Datafeed is not defined");(null===(i=t.overrides)||void 0===i?void 0:i["mainSeriesProperties.priceAxisProperties.lockScale"])&&(console.warn("mainSeriesProperties.priceAxisProperties.lockScale can not be set to true within the widget constructor"),delete t.overrides["mainSeriesProperties.priceAxisProperties.lockScale"]),this._options=e(n,t);"dark"===(null!==(s=this._options.theme)&&void 0!==s?s:"light").toLowerCase()&&void 0===this._options.loading_screen&&(this._options.loading_screen={backgroundColor:"#131722"}),this._options.debug&&(o||(o=!0,console.log("Using CL v25.002 (internal id ea00b60e @ 2023-07-12T14:51:16.080Z)"))),this._create()}setDebugMode(t){this._innerAPI().setDebugMode(t)}onChartReady(t){this._ready?t.call(this):this._readyHandlers.push(t)}headerReady(){return this._innerWindowLoaded.then((()=>this._innerWindow().headerReady()))}onGrayedObjectClicked(t){this._doWhenInnerApiLoaded((e=>{e.onGrayedObjectClicked(t)}))}onShortcut(t,e){this._doWhenInnerWindowLoaded((n=>{n.createShortcutAction(t,e)}))}subscribe(t,e){this._doWhenInnerApiLoaded((n=>{n.subscribe(t,e)}))}unsubscribe(t,e){this._doWhenInnerApiLoaded((n=>{n.unsubscribe(t,e)}))}chart(t){return this._innerAPI().chart(t)}getLanguage(){return this._options.locale}setSymbol(t,e,n){this._innerAPI().changeSymbol(t,e,n)}remove(){window.removeEventListener("resize",this._onWindowResize),this._readyHandlers.splice(0,this._readyHandlers.length),delete window[this._id],this._iFrame.parentNode&&this._iFrame.parentNode.removeChild(this._iFrame)}closePopupsAndDialogs(){this._doWhenInnerApiLoaded((t=>{t.closePopupsAndDialogs()}))}selectLineTool(t,e){this._innerAPI().selectLineTool(t,e)}selectedLineTool(){return this._innerAPI().selectedLineTool()}save(t){this._innerAPI().saveChart(t)}load(t,e){this._innerAPI().loadChart({json:t,extendedData:e})}getSavedCharts(t){this._innerAPI().getSavedCharts(t)}loadChartFromServer(t){this._innerAPI().loadChartFromServer(t)}saveChartToServer(t,e,n){this._innerAPI().saveChartToServer(t,e,n)}removeChartFromServer(t,e){this._innerAPI().removeChartFromServer(t,e)}onContextMenu(t){this._doWhenInnerApiLoaded((e=>{e.onContextMenu(t)}))}createButton(t){return this._innerWindow().createButton(t)}createDropdown(t){return this._innerWindow().createDropdown(t)}showNoticeDialog(t){this._doWhenInnerApiLoaded((e=>{e.showNoticeDialog(t)}))}showConfirmDialog(t){this._doWhenInnerApiLoaded((e=>{e.showConfirmDialog(t)}))}showLoadChartDialog(){this._innerAPI().showLoadChartDialog()}showSaveAsChartDialog(){this._innerAPI().showSaveAsChartDialog()}symbolInterval(){return this._innerAPI().getSymbolInterval()}mainSeriesPriceFormatter(){return this._innerAPI().mainSeriesPriceFormatter()}getIntervals(){return this._innerAPI().getIntervals()}getStudiesList(){return this._innerAPI().getStudiesList()}getStudyInputs(t){return this._innerAPI().getStudyInputs(t)}getStudyStyles(t){return this._innerAPI().getStudyStyles(t)}addCustomCSSFile(t){this._innerWindow().addCustomCSSFile(t)}applyOverrides(t){this._options=e(this._options,{overrides:t}),this._doWhenInnerWindowLoaded((e=>{e.applyOverrides(t)}))}applyStudiesOverrides(t){this._doWhenInnerWindowLoaded((e=>{e.applyStudiesOverrides(t)}))}watchList(){return this._innerAPI().watchlist()}news(){return this._innerAPI().news()}widgetbar(){return this._innerAPI().widgetbar()}activeChart(){return this._innerAPI().activeChart()}activeChartIndex(){return this._innerAPI().activeChartIndex()}setActiveChart(t){return this._innerAPI().setActiveChart(t)}chartsCount(){return this._innerAPI().chartsCount()}layout(){return this._innerAPI().layout()}setLayout(t){this._innerAPI().setLayout(t)}layoutName(){return this._innerAPI().layoutName()}changeTheme(t,e){return this._innerWindow().changeTheme(t,e)}getTheme(){return this._innerWindow().getTheme()}takeScreenshot(){this._doWhenInnerApiLoaded((t=>{t.takeScreenshot()}))}lockAllDrawingTools(){return this._innerAPI().lockAllDrawingTools()}hideAllDrawingTools(){return this._innerAPI().hideAllDrawingTools()}drawOnAllCharts(t){this._innerAPI().drawOnAllCharts(t)}magnetEnabled(){return this._innerAPI().magnetEnabled()}magnetMode(){return this._innerAPI().magnetMode()}undoRedoState(){return this._innerAPI().undoRedoState()}setIntervalLinkingEnabled(t){this._innerAPI().setIntervalLinkingEnabled(t)}setTimeFrame(t){this._innerAPI().setTimeFrame(t)}symbolSync(){return this._innerAPI().symbolSync()}intervalSync(){return this._innerAPI().intervalSync()}crosshairSync(){return this._innerAPI().crosshairSync()}timeSync(){return this._innerAPI().timeSync()}dateRangeSync(){return this._innerAPI().dateRangeSync()}setFeatureEnabled(t,e){this._innerAPI().setFeatureEnabled(t,e)}getAllFeatures(){return this._innerWindow().getAllFeatures()}clearUndoHistory(){return this._innerAPI().clearUndoHistory()}undo(){return this._innerAPI().undo()}redo(){return this._innerAPI().redo()}startFullscreen(){this._innerAPI().startFullscreen()}exitFullscreen(){this._innerAPI().exitFullscreen()}takeClientScreenshot(t){return this._innerAPI().takeClientScreenshot(t)}navigationButtonsVisibility(){return this._innerWindow().getNavigationButtonsVisibility()}paneButtonsVisibility(){return this._innerWindow().getPaneButtonsVisibility()}dateFormat(){return this._innerWindow().getDateFormat()}timeHoursFormat(){return this._innerWindow().getTimeHoursFormat()}currencyAndUnitVisibility(){return this._innerWindow().getCurrencyAndUnitVisibility()}supportedChartTypes(){return this._innerAPI().supportedChartTypes()}watermark(){return this._innerAPI().watermark()}customSymbolStatus(){return this._innerWindow().customSymbolStatus()}linking(){return this._innerAPI().linking}_innerAPI(){return this._innerWindow().tradingViewApi}_innerWindow(){return this._iFrame.contentWindow}_doWhenInnerWindowLoaded(t){this._ready?t(this._innerWindow()):this._innerWindowLoaded.then((()=>{t(this._innerWindow())}))}_doWhenInnerApiLoaded(t){this._doWhenInnerWindowLoaded((e=>{e.doWhenApiIsReady((()=>t(this._innerAPI())))}))}_autoResizeChart(){this._options.fullscreen&&(this._iFrame.style.height=window.innerHeight+"px",a&&setTimeout((()=>{this._iFrame.style.height=window.innerHeight+"px"}),30))}_create(){var t,e;const n=null!==(e=null===(t=this._options.enabled_features)||void 0===t?void 0:t.includes("iframe_loading_compatibility_mode"))&&void 0!==e&&e,[i,o]=this._render(!n);this._options.container_id&&console.warn("`container_id` is now deprecated. Please use `container` instead to either still pass a string or an `HTMLElement`.");const s=this._options.container_id||this._options.container,r="string"==typeof s?document.getElementById(s):s;if(null===r)throw new Error(`There is no such element - #${this._options.container}`);r.innerHTML=i,this._iFrame=r.querySelector(`#${this._id}`);const a=this._iFrame;n&&(a.contentWindow?(a.contentWindow.document.open(),a.contentWindow.document.write(o),a.contentWindow.document.close()):console.warn("Unable to locate contentWindow for the created iframe. Please try disabling the `iframe_loading_compatibility_mode` featureset.")),(this._options.autosize||this._options.fullscreen)&&(a.style.width="100%",this._options.fullscreen||(a.style.height="100%")),window.addEventListener("resize",this._onWindowResize),this._onWindowResize(),this._innerWindowLoaded=new Promise((t=>{const e=()=>{a.removeEventListener("load",e,!1),t()};a.addEventListener("load",e,!1)})),this._innerWindowLoaded.then((()=>{try{this._innerWindow().widgetReady((()=>{this._ready=!0;for(const t of this._readyHandlers)try{t.call(this)}catch(t){console.error(t)}this._innerWindow().initializationFinished()}))}catch(t){if(t instanceof Error&&/widgetReady is not a function/.test(t.message))throw new Error(`There was an error when loading the library. Usually this error means the library failed to load its static files. Check that the library files are available at ${window.location.host}/${this._options.library_path||""} or correct the library_path option.`)}}))}_render(t){const e=window;if(e[this._id]={datafeed:this._options.datafeed,customFormatters:this._options.custom_formatters||this._options.customFormatters,brokerFactory:this._options.broker_factory||this._options.brokerFactory,overrides:this._options.overrides,studiesOverrides:this._options.studies_overrides,tradingCustomization:this._options.trading_customization,disabledFeatures:this._options.disabled_features,enabledFeatures:this._options.enabled_features,brokerConfig:this._options.broker_config||this._options.brokerConfig,restConfig:this._options.restConfig,favorites:this._options.favorites,logo:this._options.logo,numeric_formatting:this._options.numeric_formatting,rss_news_feed:this._options.rss_news_feed,newsProvider:this._options.news_provider,loadLastChart:this._options.load_last_chart,saveLoadAdapter:this._options.save_load_adapter,loading_screen:this._options.loading_screen,settingsAdapter:this._options.settings_adapter,getCustomIndicators:this._options.custom_indicators_getter,additionalSymbolInfoFields:this._options.additional_symbol_info_fields,headerWidgetButtonsMode:this._options.header_widget_buttons_mode,customTranslateFunction:this._options.custom_translate_function,symbolSearchComplete:this._options.symbol_search_complete,contextMenu:this._options.context_menu,settingsOverrides:this._options.settings_overrides,timeframe:this._options.timeframe,customTimezones:this._options.custom_timezones},this._options.saved_data)e[this._id].chartContent={json:this._options.saved_data},this._options.saved_data_meta_info&&(e[this._id].chartContentExtendedData=this._options.saved_data_meta_info);else if(!this._options.load_last_chart&&!this._options.symbol)throw new Error("Symbol is not defined: either 'symbol' or 'load_last_chart' option must be set");if(this._options.library_path&&!this._options.library_path.endsWith("/")&&console.warn("library_path option should contain a trailing forward slash"),this._options.locale){const t=encodeURIComponent(this._options.locale);i.findIndex((e=>e.language===t))>=0||(console.warn("locale isn't supported. Using default of `en`."),this._options.locale="en")}const n=function(t,e){var n;const o=new URL(`${t||""}`,location.href).href,s=JSON.parse('["bundles/runtime.2d7205dfd0e311e18ff9.js","bundles/__LANG__.505.978e053ffa4899c28da8.js","bundles/6783.6a1bfc6cd105f6a266ca.css","bundles/6783.6a1bfc6cd105f6a266ca.rtl.css","bundles/6151.b1a247016649e9fadde0.js","bundles/library.f735e5630512a49de4f4.js"]'),r=encodeURIComponent(e),a=null!==(n=i.find((t=>t.language===r)))&&void 0!==n?n:{iso:"en",dir:"ltr"},d=`lang="${a.iso}" dir="${a.dir}"`,l=`\n${function(t,e,n){if(void 0===t)return"";const i=[],o=[];for(const s of t)s.endsWith(".js")?i.push(`<script defer crossorigin="anonymous" src="${s.replace("__LANG__",n)}"><\/script>`):s.endsWith(".css")&&o.push(`<link type="text/css" href="${e?s.replace(/\.css$/i,".rtl.css"):s}" rel="stylesheet"/>`);return[...i,...o].join("\n")}(s,"rtl"===a.dir,r)}\n`;return`<!DOCTYPE html><html ${(h={bundles:l,localeLanguage:r,htmlAttrs:d,libraryPath:o}).htmlAttrs}><head><base href="${h.libraryPath}"><meta charset="utf-8"><script>window===window.parent&&(location.href="about:blank")<\/script> ${h.bundles} </head><body class="chart-page unselectable on-widget"><div class="loading-indicator" id="loading-indicator"></div><script>var JSServer={},__initialEnabledFeaturesets=["charting_library"]<\/script><script>(function() {\n\t\twindow.urlParams = (function () {\n\t\t\tvar match,\n\t\t\t\tpl\t = /\\+/g,  // Regex for replacing addition symbol with a space\n\t\t\t\tsearch = /([^&=]+)=?([^&]*)/g,\n\t\t\t\tdecode = function (s) { return decodeURIComponent(s.replace(pl, ' ')).replace(/<\\/?[^>]+(>|$)/g, ''); },\n\t\t\t\tquery = function() {\n\t\t\t\t\t// We don't use hash on the url because: safari 13 throws an error if you attempt this\n\t\t\t\t\t// on a blob, and safari 14 will strip hash from blob urls.\n\t\t\t\t\tif (frameElement && frameElement.dataset.widgetOptions) {\n\t\t\t\t\t\treturn frameElement.dataset.widgetOptions;\n\t\t\t\t\t} else {\n\t\t\t\t\t\tthrow "Unexpected use of this page";\n\t\t\t\t\t}\n\t\t\t\t}(),\n\t\t\t\tresult = {};\n\n\t\t\twhile (match = search.exec(query)) {\n\t\t\t\tresult[decode(match[1])] = decode(match[2]);\n\t\t\t}\n\n\t\t\tvar additionalSettingsObject = window.parent[result.uid];\n\n\t\t\tvar customObjectNames = ['datafeed', 'customFormatters', 'brokerFactory', 'save_load_adapter', 'customTranslateFunction', 'contextMenu'];\n\n\t\t\tfor (var p in additionalSettingsObject) {\n\t\t\t\tif (customObjectNames.indexOf(p) === -1) {\n\t\t\t\t\tresult[p] = JSON.stringify(additionalSettingsObject[p]);\n\t\t\t\t}\n\t\t\t}\n\n\t\t\treturn result;\n\t\t})();\n\n\t\twindow.locale = urlParams.locale;\n\t\twindow.language = urlParams.locale; // a very big attention needed here\n\t\twindow.customTranslateFunction = window.parent[urlParams.uid].customTranslateFunction;\n\n\t\twindow.addCustomCSSFile = function(href) {\n\t\t\tvar link = document.createElement('link');\n\t\t\tlink.setAttribute('type', 'text/css');\n\t\t\tlink.setAttribute('rel', 'stylesheet');\n\t\t\tlink.setAttribute('href', href);\n\t\t\tlink.setAttribute('cross-origin', 'anonymous');\n\n\t\t\twindow.loadedCustomCss = new Promise((resolve) => {\n\t\t\t\tlink.onload = resolve;\n\t\t\t\tlink.onerror = resolve;\n\t\t\t});\n\t\t\tdocument.body.appendChild(link);\n\t\t};\n\n\t\twindow.loadedCustomCss = Promise.resolve();\n\t\tif (!!urlParams.customCSS) {\n\t\t\twindow.addCustomCSSFile(urlParams.customCSS);\n\t\t}\n\n\t\tvar loadingScreenParams = {};\n\n\t\tif (typeof urlParams.loading_screen === 'string') {\n\t\t\ttry {\n\t\t\t\tloadingScreenParams = JSON.parse(urlParams.loading_screen);\n\t\t\t} catch(e) {}\n\t\t}\n\n\t\tvar loadingIndicatorElement = document.getElementById('loading-indicator');\n\n\t\tif (loadingScreenParams.backgroundColor) {\n\t\t\tloadingIndicatorElement.style = 'background-color: ' + loadingScreenParams.backgroundColor;\n\t\t}\n\n\t\t!function(){"use strict";var t,e=new WeakMap;!function(t){t[t.Element=1]="Element",t[t.Document=9]="Document"}(t||(t={}));var n={mini:"xsmall",xsmall:"xsmall",small:"small",medium:"medium",large:"large"};var i,s,o,r,l,c=(void 0===l&&(l=""),i='<div class="tv-spinner '.concat(l,'" role="progressbar"></div>'),o=function(n,i){var s,o;return s=null==i?document.documentElement:i.nodeType===t.Document?i.documentElement:i,e&&(o=e.get(s)),o||((o=s.ownerDocument.createRange()).selectNodeContents(s),e&&e.set(s,o)),o.createContextualFragment(n)}(i,s),null!==(r=o.firstElementChild)&&o.removeChild(r),r),a=function(){function t(t){this._shown=!1,this._el=c.cloneNode(!0),this.setSize(n[t||"large"])}return t.prototype.spin=function(t){return this._el.classList.add("tv-spinner--shown"),void 0===this._container&&(this._container=t,void 0!==t&&t.appendChild(this._el)),this._shown=!0,this},t.prototype.stop=function(t){return t&&void 0!==this._container&&this._container.removeChild(this._el),this._el&&this._el.classList.remove("tv-spinner--shown"),this._shown=!1,this},t.prototype.setStyle=function(t){var e=this;return Object.keys(t).forEach((function(n){var i=t[n];void 0!==i&&e._el.style.setProperty(n,i)})),this},t.prototype.style=function(){return this._el.style},t.prototype.setSize=function(t){var e=void 0!==t?"tv-spinner--size_".concat(t):"";return this._el.className="tv-spinner ".concat(e," ").concat(this._shown?"tv-spinner--shown":""),this},t.prototype.getEl=function(){return this._el},t.prototype.destroy=function(){this.stop(),delete this._el,delete this._container},t}();window.Spinner=a}();\n\n\n\t\tvar spinnerColor = (loadingScreenParams.foregroundColor) ? loadingScreenParams.foregroundColor : undefined;\n\n\t\tvar loadingSpinner = new Spinner('large').setStyle({\n\t\t\t'--tv-spinner-color': spinnerColor,\n\t\t\tzIndex: String(2e9),\n\t\t});\n\t\tloadingSpinner.getEl().classList.add('spinner');\n\t\tloadingSpinner.spin(loadingIndicatorElement);\n\t})();<\/script></body></html>`;var h}(this._options.library_path||"",this._options.locale);let o=new URL("about:blank");if(t){const t=new Blob([n],{type:"text/html"}),e=URL.createObjectURL(t);o=new URL(e)}const s="symbol="+encodeURIComponent(this._options.symbol||"")+"&interval="+encodeURIComponent(this._options.interval)+(this._options.toolbar_bg?"&toolbarbg="+encodeURIComponent(this._options.toolbar_bg.replace("#","")):"")+(this._options.studies_access?"&studiesAccess="+encodeURIComponent(JSON.stringify(this._options.studies_access)):"")+"&widgetbar="+encodeURIComponent(JSON.stringify(this._options.widgetbar))+(this._options.drawings_access?"&drawingsAccess="+encodeURIComponent(JSON.stringify(this._options.drawings_access)):"")+"&timeFrames="+encodeURIComponent(JSON.stringify(this._options.time_frames))+"&locale="+encodeURIComponent(this._options.locale)+"&uid="+encodeURIComponent(this._id)+"&clientId="+encodeURIComponent(String(this._options.client_id))+"&userId="+encodeURIComponent(String(this._options.user_id))+(this._options.charts_storage_url?"&chartsStorageUrl="+encodeURIComponent(this._options.charts_storage_url):"")+(this._options.charts_storage_api_version?"&chartsStorageVer="+encodeURIComponent(this._options.charts_storage_api_version):"")+(this._options.custom_css_url?"&customCSS="+encodeURIComponent(this._options.custom_css_url):"")+(this._options.custom_font_family?"&customFontFamily="+encodeURIComponent(this._options.custom_font_family):"")+(this._options.auto_save_delay?"&autoSaveDelay="+encodeURIComponent(String(this._options.auto_save_delay)):"")+"&debug="+encodeURIComponent(String(this._options.debug))+(this._options.snapshot_url?"&snapshotUrl="+encodeURIComponent(this._options.snapshot_url):"")+(this._options.timezone?"&timezone="+encodeURIComponent(this._options.timezone):"")+(this._options.study_count_limit?"&studyCountLimit="+encodeURIComponent(String(this._options.study_count_limit)):"")+(this._options.symbol_search_request_delay?"&ssreqdelay="+encodeURIComponent(String(this._options.symbol_search_request_delay)):"")+(this._options.compare_symbols?"&compareSymbols="+encodeURIComponent(JSON.stringify(this._options.compare_symbols)):"")+(this._options.theme?"&theme="+encodeURIComponent(String(this._options.theme)):"")+(this._options.header_widget_buttons_mode?"&header_widget_buttons_mode="+encodeURIComponent(String(this._options.header_widget_buttons_mode)):"")+(this._options.time_scale?"&time_scale="+encodeURIComponent(JSON.stringify(this._options.time_scale)):"");return[`<iframe\n\t\tid="${this._id}" name="${this._id}" src="${o.href}" data-widget-options="${s}"\n\t\t${this._options.autosize||this._options.fullscreen?"":`width="${this._options.width}" height="${this._options.height}"`} title="Financial Chart" frameborder="0" allowTransparency="true" scrolling="no" allowfullscreen style="display:block;">\n\t</iframe>`,n]}};"undefined"!=typeof window&&(window.TradingView=window.TradingView||{},window.TradingView.version=s);const a=!("undefined"==typeof window||!window.navigator||!window.navigator.userAgent)&&window.navigator.userAgent.includes("CriOS");t.version=s,t.widget=r,Object.defineProperty(t,"__esModule",{value:!0})}));
+
+
+================================================
+File: resources/js/Pages/Launchpads/TradingView/charting_library/charting_library.standalone.js
+================================================
+var TradingView=function(t){"use strict";function e(t,n){const i={...t};for(const o in n)"object"!=typeof t[o]||null===t[o]||Array.isArray(t[o])?void 0!==n[o]&&(i[o]=n[o]):i[o]=e(t[o],n[o]);return i}const n={width:800,height:500,interval:"1D",timezone:"Etc/UTC",container:"",library_path:"",locale:"en",widgetbar:{details:!1,watchlist:!1,news:!1,datawindow:!1,watchlist_settings:{default_symbols:[]}},overrides:{"mainSeriesProperties.showCountdown":!1},studies_overrides:{},trading_customization:{position:{},order:{}},brokerConfig:{configFlags:{}},fullscreen:!1,autosize:!1,disabled_features:[],enabled_features:[],debug:!1,logo:{},time_frames:[{text:"5y",resolution:"1W"},{text:"1y",resolution:"1W"},{text:"6m",resolution:"120"},{text:"3m",resolution:"60"},{text:"1m",resolution:"30"},{text:"5d",resolution:"5"},{text:"1d",resolution:"1"}],client_id:"0",user_id:"0",charts_storage_api_version:"1.0",favorites:{intervals:[],chartTypes:[],indicators:[],drawingTools:[]}},i=JSON.parse('[{"iso":"ar","dir":"rtl","language":"ar"},{"iso":"pt","dir":"ltr","language":"pt"},{"iso":"ca","dir":"ltr","language":"ca_ES"},{"iso":"cs","dir":"ltr","language":"cs"},{"iso":"de","dir":"ltr","language":"de"},{"iso":"en","dir":"ltr","language":"en"},{"iso":"es","dir":"ltr","language":"es"},{"iso":"fa","dir":"rtl","language":"fa"},{"iso":"fr","dir":"ltr","language":"fr"},{"iso":"he","dir":"rtl","language":"he_IL"},{"iso":"hu","dir":"ltr","language":"hu_HU"},{"iso":"id","dir":"ltr","language":"id_ID"},{"iso":"en","dir":"ltr","language":"en"},{"iso":"it","dir":"ltr","language":"it"},{"iso":"ja","dir":"ltr","language":"ja"},{"iso":"ko","dir":"ltr","language":"ko"},{"iso":"ms","dir":"ltr","language":"ms_MY"},{"iso":"pl","dir":"ltr","language":"pl"},{"iso":"ru","dir":"ltr","language":"ru"},{"iso":"sv","dir":"ltr","language":"sv"},{"iso":"th","dir":"ltr","language":"th"},{"iso":"tr","dir":"ltr","language":"tr"},{"iso":"vi","dir":"ltr","language":"vi"},{"iso":"zh-Hans","dir":"ltr","language":"zh"},{"iso":"zh-Hant","dir":"ltr","language":"zh_TW"},{"iso":"el","dir":"ltr","language":"el"},{"iso":"nl","dir":"ltr","language":"nl_NL"},{"iso":"ro","dir":"ltr","language":"ro"}]');let o=!1;function s(){return"CL v25.002 (internal id ea00b60e @ 2023-07-12T14:51:16.080Z)"}const r=class{constructor(t){var i,s;if(this._id=`tradingview_${(1048576*(1+Math.random())|0).toString(16).substring(1)}`,this._ready=!1,this._readyHandlers=[],this._onWindowResize=this._autoResizeChart.bind(this),!t.datafeed)throw new Error("Datafeed is not defined");(null===(i=t.overrides)||void 0===i?void 0:i["mainSeriesProperties.priceAxisProperties.lockScale"])&&(console.warn("mainSeriesProperties.priceAxisProperties.lockScale can not be set to true within the widget constructor"),delete t.overrides["mainSeriesProperties.priceAxisProperties.lockScale"]),this._options=e(n,t);"dark"===(null!==(s=this._options.theme)&&void 0!==s?s:"light").toLowerCase()&&void 0===this._options.loading_screen&&(this._options.loading_screen={backgroundColor:"#131722"}),this._options.debug&&(o||(o=!0,console.log("Using CL v25.002 (internal id ea00b60e @ 2023-07-12T14:51:16.080Z)"))),this._create()}setDebugMode(t){this._innerAPI().setDebugMode(t)}onChartReady(t){this._ready?t.call(this):this._readyHandlers.push(t)}headerReady(){return this._innerWindowLoaded.then((()=>this._innerWindow().headerReady()))}onGrayedObjectClicked(t){this._doWhenInnerApiLoaded((e=>{e.onGrayedObjectClicked(t)}))}onShortcut(t,e){this._doWhenInnerWindowLoaded((n=>{n.createShortcutAction(t,e)}))}subscribe(t,e){this._doWhenInnerApiLoaded((n=>{n.subscribe(t,e)}))}unsubscribe(t,e){this._doWhenInnerApiLoaded((n=>{n.unsubscribe(t,e)}))}chart(t){return this._innerAPI().chart(t)}getLanguage(){return this._options.locale}setSymbol(t,e,n){this._innerAPI().changeSymbol(t,e,n)}remove(){window.removeEventListener("resize",this._onWindowResize),this._readyHandlers.splice(0,this._readyHandlers.length),delete window[this._id],this._iFrame.parentNode&&this._iFrame.parentNode.removeChild(this._iFrame)}closePopupsAndDialogs(){this._doWhenInnerApiLoaded((t=>{t.closePopupsAndDialogs()}))}selectLineTool(t,e){this._innerAPI().selectLineTool(t,e)}selectedLineTool(){return this._innerAPI().selectedLineTool()}save(t){this._innerAPI().saveChart(t)}load(t,e){this._innerAPI().loadChart({json:t,extendedData:e})}getSavedCharts(t){this._innerAPI().getSavedCharts(t)}loadChartFromServer(t){this._innerAPI().loadChartFromServer(t)}saveChartToServer(t,e,n){this._innerAPI().saveChartToServer(t,e,n)}removeChartFromServer(t,e){this._innerAPI().removeChartFromServer(t,e)}onContextMenu(t){this._doWhenInnerApiLoaded((e=>{e.onContextMenu(t)}))}createButton(t){return this._innerWindow().createButton(t)}createDropdown(t){return this._innerWindow().createDropdown(t)}showNoticeDialog(t){this._doWhenInnerApiLoaded((e=>{e.showNoticeDialog(t)}))}showConfirmDialog(t){this._doWhenInnerApiLoaded((e=>{e.showConfirmDialog(t)}))}showLoadChartDialog(){this._innerAPI().showLoadChartDialog()}showSaveAsChartDialog(){this._innerAPI().showSaveAsChartDialog()}symbolInterval(){return this._innerAPI().getSymbolInterval()}mainSeriesPriceFormatter(){return this._innerAPI().mainSeriesPriceFormatter()}getIntervals(){return this._innerAPI().getIntervals()}getStudiesList(){return this._innerAPI().getStudiesList()}getStudyInputs(t){return this._innerAPI().getStudyInputs(t)}getStudyStyles(t){return this._innerAPI().getStudyStyles(t)}addCustomCSSFile(t){this._innerWindow().addCustomCSSFile(t)}applyOverrides(t){this._options=e(this._options,{overrides:t}),this._doWhenInnerWindowLoaded((e=>{e.applyOverrides(t)}))}applyStudiesOverrides(t){this._doWhenInnerWindowLoaded((e=>{e.applyStudiesOverrides(t)}))}watchList(){return this._innerAPI().watchlist()}news(){return this._innerAPI().news()}widgetbar(){return this._innerAPI().widgetbar()}activeChart(){return this._innerAPI().activeChart()}activeChartIndex(){return this._innerAPI().activeChartIndex()}setActiveChart(t){return this._innerAPI().setActiveChart(t)}chartsCount(){return this._innerAPI().chartsCount()}layout(){return this._innerAPI().layout()}setLayout(t){this._innerAPI().setLayout(t)}layoutName(){return this._innerAPI().layoutName()}changeTheme(t,e){return this._innerWindow().changeTheme(t,e)}getTheme(){return this._innerWindow().getTheme()}takeScreenshot(){this._doWhenInnerApiLoaded((t=>{t.takeScreenshot()}))}lockAllDrawingTools(){return this._innerAPI().lockAllDrawingTools()}hideAllDrawingTools(){return this._innerAPI().hideAllDrawingTools()}drawOnAllCharts(t){this._innerAPI().drawOnAllCharts(t)}magnetEnabled(){return this._innerAPI().magnetEnabled()}magnetMode(){return this._innerAPI().magnetMode()}undoRedoState(){return this._innerAPI().undoRedoState()}setIntervalLinkingEnabled(t){this._innerAPI().setIntervalLinkingEnabled(t)}setTimeFrame(t){this._innerAPI().setTimeFrame(t)}symbolSync(){return this._innerAPI().symbolSync()}intervalSync(){return this._innerAPI().intervalSync()}crosshairSync(){return this._innerAPI().crosshairSync()}timeSync(){return this._innerAPI().timeSync()}dateRangeSync(){return this._innerAPI().dateRangeSync()}setFeatureEnabled(t,e){this._innerAPI().setFeatureEnabled(t,e)}getAllFeatures(){return this._innerWindow().getAllFeatures()}clearUndoHistory(){return this._innerAPI().clearUndoHistory()}undo(){return this._innerAPI().undo()}redo(){return this._innerAPI().redo()}startFullscreen(){this._innerAPI().startFullscreen()}exitFullscreen(){this._innerAPI().exitFullscreen()}takeClientScreenshot(t){return this._innerAPI().takeClientScreenshot(t)}navigationButtonsVisibility(){return this._innerWindow().getNavigationButtonsVisibility()}paneButtonsVisibility(){return this._innerWindow().getPaneButtonsVisibility()}dateFormat(){return this._innerWindow().getDateFormat()}timeHoursFormat(){return this._innerWindow().getTimeHoursFormat()}currencyAndUnitVisibility(){return this._innerWindow().getCurrencyAndUnitVisibility()}supportedChartTypes(){return this._innerAPI().supportedChartTypes()}watermark(){return this._innerAPI().watermark()}customSymbolStatus(){return this._innerWindow().customSymbolStatus()}linking(){return this._innerAPI().linking}_innerAPI(){return this._innerWindow().tradingViewApi}_innerWindow(){return this._iFrame.contentWindow}_doWhenInnerWindowLoaded(t){this._ready?t(this._innerWindow()):this._innerWindowLoaded.then((()=>{t(this._innerWindow())}))}_doWhenInnerApiLoaded(t){this._doWhenInnerWindowLoaded((e=>{e.doWhenApiIsReady((()=>t(this._innerAPI())))}))}_autoResizeChart(){this._options.fullscreen&&(this._iFrame.style.height=window.innerHeight+"px",a&&setTimeout((()=>{this._iFrame.style.height=window.innerHeight+"px"}),30))}_create(){var t,e;const n=null!==(e=null===(t=this._options.enabled_features)||void 0===t?void 0:t.includes("iframe_loading_compatibility_mode"))&&void 0!==e&&e,[i,o]=this._render(!n);this._options.container_id&&console.warn("`container_id` is now deprecated. Please use `container` instead to either still pass a string or an `HTMLElement`.");const s=this._options.container_id||this._options.container,r="string"==typeof s?document.getElementById(s):s;if(null===r)throw new Error(`There is no such element - #${this._options.container}`);r.innerHTML=i,this._iFrame=r.querySelector(`#${this._id}`);const a=this._iFrame;n&&(a.contentWindow?(a.contentWindow.document.open(),a.contentWindow.document.write(o),a.contentWindow.document.close()):console.warn("Unable to locate contentWindow for the created iframe. Please try disabling the `iframe_loading_compatibility_mode` featureset.")),(this._options.autosize||this._options.fullscreen)&&(a.style.width="100%",this._options.fullscreen||(a.style.height="100%")),window.addEventListener("resize",this._onWindowResize),this._onWindowResize(),this._innerWindowLoaded=new Promise((t=>{const e=()=>{a.removeEventListener("load",e,!1),t()};a.addEventListener("load",e,!1)})),this._innerWindowLoaded.then((()=>{try{this._innerWindow().widgetReady((()=>{this._ready=!0;for(const t of this._readyHandlers)try{t.call(this)}catch(t){console.error(t)}this._innerWindow().initializationFinished()}))}catch(t){if(t instanceof Error&&/widgetReady is not a function/.test(t.message))throw new Error(`There was an error when loading the library. Usually this error means the library failed to load its static files. Check that the library files are available at ${window.location.host}/${this._options.library_path||""} or correct the library_path option.`)}}))}_render(t){const e=window;if(e[this._id]={datafeed:this._options.datafeed,customFormatters:this._options.custom_formatters||this._options.customFormatters,brokerFactory:this._options.broker_factory||this._options.brokerFactory,overrides:this._options.overrides,studiesOverrides:this._options.studies_overrides,tradingCustomization:this._options.trading_customization,disabledFeatures:this._options.disabled_features,enabledFeatures:this._options.enabled_features,brokerConfig:this._options.broker_config||this._options.brokerConfig,restConfig:this._options.restConfig,favorites:this._options.favorites,logo:this._options.logo,numeric_formatting:this._options.numeric_formatting,rss_news_feed:this._options.rss_news_feed,newsProvider:this._options.news_provider,loadLastChart:this._options.load_last_chart,saveLoadAdapter:this._options.save_load_adapter,loading_screen:this._options.loading_screen,settingsAdapter:this._options.settings_adapter,getCustomIndicators:this._options.custom_indicators_getter,additionalSymbolInfoFields:this._options.additional_symbol_info_fields,headerWidgetButtonsMode:this._options.header_widget_buttons_mode,customTranslateFunction:this._options.custom_translate_function,symbolSearchComplete:this._options.symbol_search_complete,contextMenu:this._options.context_menu,settingsOverrides:this._options.settings_overrides,timeframe:this._options.timeframe,customTimezones:this._options.custom_timezones},this._options.saved_data)e[this._id].chartContent={json:this._options.saved_data},this._options.saved_data_meta_info&&(e[this._id].chartContentExtendedData=this._options.saved_data_meta_info);else if(!this._options.load_last_chart&&!this._options.symbol)throw new Error("Symbol is not defined: either 'symbol' or 'load_last_chart' option must be set");if(this._options.library_path&&!this._options.library_path.endsWith("/")&&console.warn("library_path option should contain a trailing forward slash"),this._options.locale){const t=encodeURIComponent(this._options.locale);i.findIndex((e=>e.language===t))>=0||(console.warn("locale isn't supported. Using default of `en`."),this._options.locale="en")}const n=function(t,e){var n;const o=new URL(`${t||""}`,location.href).href,s=JSON.parse('["bundles/runtime.2d7205dfd0e311e18ff9.js","bundles/__LANG__.505.978e053ffa4899c28da8.js","bundles/6783.6a1bfc6cd105f6a266ca.css","bundles/6783.6a1bfc6cd105f6a266ca.rtl.css","bundles/6151.b1a247016649e9fadde0.js","bundles/library.f735e5630512a49de4f4.js"]'),r=encodeURIComponent(e),a=null!==(n=i.find((t=>t.language===r)))&&void 0!==n?n:{iso:"en",dir:"ltr"},d=`lang="${a.iso}" dir="${a.dir}"`,l=`\n${function(t,e,n){if(void 0===t)return"";const i=[],o=[];for(const s of t)s.endsWith(".js")?i.push(`<script defer crossorigin="anonymous" src="${s.replace("__LANG__",n)}"><\/script>`):s.endsWith(".css")&&o.push(`<link type="text/css" href="${e?s.replace(/\.css$/i,".rtl.css"):s}" rel="stylesheet"/>`);return[...i,...o].join("\n")}(s,"rtl"===a.dir,r)}\n`;return`<!DOCTYPE html><html ${(h={bundles:l,localeLanguage:r,htmlAttrs:d,libraryPath:o}).htmlAttrs}><head><base href="${h.libraryPath}"><meta charset="utf-8"><script>window===window.parent&&(location.href="about:blank")<\/script> ${h.bundles} </head><body class="chart-page unselectable on-widget"><div class="loading-indicator" id="loading-indicator"></div><script>var JSServer={},__initialEnabledFeaturesets=["charting_library"]<\/script><script>(function() {\n\t\twindow.urlParams = (function () {\n\t\t\tvar match,\n\t\t\t\tpl\t = /\\+/g,  // Regex for replacing addition symbol with a space\n\t\t\t\tsearch = /([^&=]+)=?([^&]*)/g,\n\t\t\t\tdecode = function (s) { return decodeURIComponent(s.replace(pl, ' ')).replace(/<\\/?[^>]+(>|$)/g, ''); },\n\t\t\t\tquery = function() {\n\t\t\t\t\t// We don't use hash on the url because: safari 13 throws an error if you attempt this\n\t\t\t\t\t// on a blob, and safari 14 will strip hash from blob urls.\n\t\t\t\t\tif (frameElement && frameElement.dataset.widgetOptions) {\n\t\t\t\t\t\treturn frameElement.dataset.widgetOptions;\n\t\t\t\t\t} else {\n\t\t\t\t\t\tthrow "Unexpected use of this page";\n\t\t\t\t\t}\n\t\t\t\t}(),\n\t\t\t\tresult = {};\n\n\t\t\twhile (match = search.exec(query)) {\n\t\t\t\tresult[decode(match[1])] = decode(match[2]);\n\t\t\t}\n\n\t\t\tvar additionalSettingsObject = window.parent[result.uid];\n\n\t\t\tvar customObjectNames = ['datafeed', 'customFormatters', 'brokerFactory', 'save_load_adapter', 'customTranslateFunction', 'contextMenu'];\n\n\t\t\tfor (var p in additionalSettingsObject) {\n\t\t\t\tif (customObjectNames.indexOf(p) === -1) {\n\t\t\t\t\tresult[p] = JSON.stringify(additionalSettingsObject[p]);\n\t\t\t\t}\n\t\t\t}\n\n\t\t\treturn result;\n\t\t})();\n\n\t\twindow.locale = urlParams.locale;\n\t\twindow.language = urlParams.locale; // a very big attention needed here\n\t\twindow.customTranslateFunction = window.parent[urlParams.uid].customTranslateFunction;\n\n\t\twindow.addCustomCSSFile = function(href) {\n\t\t\tvar link = document.createElement('link');\n\t\t\tlink.setAttribute('type', 'text/css');\n\t\t\tlink.setAttribute('rel', 'stylesheet');\n\t\t\tlink.setAttribute('href', href);\n\t\t\tlink.setAttribute('cross-origin', 'anonymous');\n\n\t\t\twindow.loadedCustomCss = new Promise((resolve) => {\n\t\t\t\tlink.onload = resolve;\n\t\t\t\tlink.onerror = resolve;\n\t\t\t});\n\t\t\tdocument.body.appendChild(link);\n\t\t};\n\n\t\twindow.loadedCustomCss = Promise.resolve();\n\t\tif (!!urlParams.customCSS) {\n\t\t\twindow.addCustomCSSFile(urlParams.customCSS);\n\t\t}\n\n\t\tvar loadingScreenParams = {};\n\n\t\tif (typeof urlParams.loading_screen === 'string') {\n\t\t\ttry {\n\t\t\t\tloadingScreenParams = JSON.parse(urlParams.loading_screen);\n\t\t\t} catch(e) {}\n\t\t}\n\n\t\tvar loadingIndicatorElement = document.getElementById('loading-indicator');\n\n\t\tif (loadingScreenParams.backgroundColor) {\n\t\t\tloadingIndicatorElement.style = 'background-color: ' + loadingScreenParams.backgroundColor;\n\t\t}\n\n\t\t!function(){"use strict";var t,e=new WeakMap;!function(t){t[t.Element=1]="Element",t[t.Document=9]="Document"}(t||(t={}));var n={mini:"xsmall",xsmall:"xsmall",small:"small",medium:"medium",large:"large"};var i,s,o,r,l,c=(void 0===l&&(l=""),i='<div class="tv-spinner '.concat(l,'" role="progressbar"></div>'),o=function(n,i){var s,o;return s=null==i?document.documentElement:i.nodeType===t.Document?i.documentElement:i,e&&(o=e.get(s)),o||((o=s.ownerDocument.createRange()).selectNodeContents(s),e&&e.set(s,o)),o.createContextualFragment(n)}(i,s),null!==(r=o.firstElementChild)&&o.removeChild(r),r),a=function(){function t(t){this._shown=!1,this._el=c.cloneNode(!0),this.setSize(n[t||"large"])}return t.prototype.spin=function(t){return this._el.classList.add("tv-spinner--shown"),void 0===this._container&&(this._container=t,void 0!==t&&t.appendChild(this._el)),this._shown=!0,this},t.prototype.stop=function(t){return t&&void 0!==this._container&&this._container.removeChild(this._el),this._el&&this._el.classList.remove("tv-spinner--shown"),this._shown=!1,this},t.prototype.setStyle=function(t){var e=this;return Object.keys(t).forEach((function(n){var i=t[n];void 0!==i&&e._el.style.setProperty(n,i)})),this},t.prototype.style=function(){return this._el.style},t.prototype.setSize=function(t){var e=void 0!==t?"tv-spinner--size_".concat(t):"";return this._el.className="tv-spinner ".concat(e," ").concat(this._shown?"tv-spinner--shown":""),this},t.prototype.getEl=function(){return this._el},t.prototype.destroy=function(){this.stop(),delete this._el,delete this._container},t}();window.Spinner=a}();\n\n\n\t\tvar spinnerColor = (loadingScreenParams.foregroundColor) ? loadingScreenParams.foregroundColor : undefined;\n\n\t\tvar loadingSpinner = new Spinner('large').setStyle({\n\t\t\t'--tv-spinner-color': spinnerColor,\n\t\t\tzIndex: String(2e9),\n\t\t});\n\t\tloadingSpinner.getEl().classList.add('spinner');\n\t\tloadingSpinner.spin(loadingIndicatorElement);\n\t})();<\/script></body></html>`;var h}(this._options.library_path||"",this._options.locale);let o=new URL("about:blank");if(t){const t=new Blob([n],{type:"text/html"}),e=URL.createObjectURL(t);o=new URL(e)}const s="symbol="+encodeURIComponent(this._options.symbol||"")+"&interval="+encodeURIComponent(this._options.interval)+(this._options.toolbar_bg?"&toolbarbg="+encodeURIComponent(this._options.toolbar_bg.replace("#","")):"")+(this._options.studies_access?"&studiesAccess="+encodeURIComponent(JSON.stringify(this._options.studies_access)):"")+"&widgetbar="+encodeURIComponent(JSON.stringify(this._options.widgetbar))+(this._options.drawings_access?"&drawingsAccess="+encodeURIComponent(JSON.stringify(this._options.drawings_access)):"")+"&timeFrames="+encodeURIComponent(JSON.stringify(this._options.time_frames))+"&locale="+encodeURIComponent(this._options.locale)+"&uid="+encodeURIComponent(this._id)+"&clientId="+encodeURIComponent(String(this._options.client_id))+"&userId="+encodeURIComponent(String(this._options.user_id))+(this._options.charts_storage_url?"&chartsStorageUrl="+encodeURIComponent(this._options.charts_storage_url):"")+(this._options.charts_storage_api_version?"&chartsStorageVer="+encodeURIComponent(this._options.charts_storage_api_version):"")+(this._options.custom_css_url?"&customCSS="+encodeURIComponent(this._options.custom_css_url):"")+(this._options.custom_font_family?"&customFontFamily="+encodeURIComponent(this._options.custom_font_family):"")+(this._options.auto_save_delay?"&autoSaveDelay="+encodeURIComponent(String(this._options.auto_save_delay)):"")+"&debug="+encodeURIComponent(String(this._options.debug))+(this._options.snapshot_url?"&snapshotUrl="+encodeURIComponent(this._options.snapshot_url):"")+(this._options.timezone?"&timezone="+encodeURIComponent(this._options.timezone):"")+(this._options.study_count_limit?"&studyCountLimit="+encodeURIComponent(String(this._options.study_count_limit)):"")+(this._options.symbol_search_request_delay?"&ssreqdelay="+encodeURIComponent(String(this._options.symbol_search_request_delay)):"")+(this._options.compare_symbols?"&compareSymbols="+encodeURIComponent(JSON.stringify(this._options.compare_symbols)):"")+(this._options.theme?"&theme="+encodeURIComponent(String(this._options.theme)):"")+(this._options.header_widget_buttons_mode?"&header_widget_buttons_mode="+encodeURIComponent(String(this._options.header_widget_buttons_mode)):"")+(this._options.time_scale?"&time_scale="+encodeURIComponent(JSON.stringify(this._options.time_scale)):"");return[`<iframe\n\t\tid="${this._id}" name="${this._id}" src="${o.href}" data-widget-options="${s}"\n\t\t${this._options.autosize||this._options.fullscreen?"":`width="${this._options.width}" height="${this._options.height}"`} title="Financial Chart" frameborder="0" allowTransparency="true" scrolling="no" allowfullscreen style="display:block;">\n\t</iframe>`,n]}};"undefined"!=typeof window&&(window.TradingView=window.TradingView||{},window.TradingView.version=s);const a=!("undefined"==typeof window||!window.navigator||!window.navigator.userAgent)&&window.navigator.userAgent.includes("CriOS");return t.version=s,t.widget=r,t}({});
+
+
+================================================
+File: resources/js/Pages/Launchpads/TradingView/charting_library/datafeed-api.d.ts
+================================================
+/**
+ * Datafeed JS API for TradingView Advanced Charts
+ * @packageDocumentation
+ * @module Datafeed
+ */
+// Generated by dts-bundle-generator v7.0.0
+
+/**
+ * This is the generic type useful for declaring a nominal type,
+ * which does not structurally matches with the base type and
+ * the other types declared over the same base type
+ *
+ * Usage:
+ * @example
+ * type Index = Nominal<number, 'Index'>;
+ * // let i: Index = 42; // this fails to compile
+ * let i: Index = 42 as Index; // OK
+ * @example
+ * type TagName = Nominal<string, 'TagName'>;
+ */
+export declare type Nominal<T, Name extends string> = T & { /* eslint-disable-next-line jsdoc/require-jsdoc */
+	[Symbol.species]: Name;
+};
+/**
+ * Bar data point
+ */
+export interface Bar {
+	/** Bar time.
+	 * Amount of **milliseconds** since Unix epoch start in **UTC** timezone.
+	 * `time` for daily, weekly, and monthly bars is expected to be a trading day (not session start day) at 00:00 UTC.
+	 * The library adjusts time according to `session` from {@link LibrarySymbolInfo}.
+	 */
+	time: number;
+	/** Opening price */
+	open: number;
+	/** High price */
+	high: number;
+	/** Low price */
+	low: number;
+	/** Closing price */
+	close: number;
+	/** Trading Volume */
+	volume?: number;
+}
+export interface CurrencyItem {
+	/** Unique ID */
+	id: string;
+	/** Currency code. @example `USD` */
+	code: string;
+	/** URL to an image of the currency. SVG logos are preferable, but please make sure that the provided image fits nicely in the currency select control (for raster images the expected size is 24x24px). */
+	logoUrl?: string;
+	/** Description for the currency */
+	description?: string;
+}
+/**
+ * Depth of Market (Order Book) Data
+ */
+export interface DOMData {
+	/**
+	 * Whether the Depth of Market data is a snapshot (has the full set of depth data).
+	 * - If `true` then the data contains the full set of depth data.
+	 * - If `false` then data only contains updated levels.
+	 */
+	snapshot: boolean;
+	/** Ask order levels (must be sorted by `price` in ascending order) */
+	asks: DOMLevel[];
+	/** Bid order levels (must be sorted by `price` in ascending order) */
+	bids: DOMLevel[];
+}
+/**
+ * Depth of Market Level
+ */
+export interface DOMLevel {
+	/** Price for DOM level */
+	price: number;
+	/** Volume for DOM level */
+	volume: number;
+}
+export interface DatafeedConfiguration {
+	/**
+	 * List of exchange descriptors.
+	 * An empty array leads to an absence of the exchanges filter in the Symbol Search list.
+	 * Use `value=''` if you wish to include all exchanges.
+	 */
+	exchanges?: Exchange[];
+	/**
+	 * List of supported resolutions. Resolution string format is described here: {@link ResolutionString}
+	 * Setting this property to `undefined` or an empty array will result in the resolution widget
+	 * displaying the content.
+	 *
+	 * @example
+	 * `["1", "15", "240", "D", "6M"]` will give you "1 minute, 15 minutes, 4 hours, 1 day, 6 months" in resolution widget.
+	 */
+	supported_resolutions?: ResolutionString[];
+	/**
+	 * Supported unit groups. Each group can have several unit objects.
+	 *
+	 * @example
+	 * ```javascript
+	 * {
+	 *     weight: [
+	 *         { id: 'kg', name: 'kg', description: 'Kilograms' },
+	 *         { id: 'lb', name: 'lb', description: 'Pounds'},
+	 *     ]
+	 * }
+	 * ```
+	 */
+	units?: Record<string, Unit[]>;
+	/**
+	 * Supported currencies for currency conversion.
+	 *
+	 * When a currency code is supplied as a string then the library will automatically convert it to `{ id: value, code: value }` object.
+	 *
+	 * @example `["USD", "EUR", "GBP"]`
+	 * @example `[{ id: "USD", code: "USD", description: "$" }, { id: "EUR", code: "EUR", description: "€" }]`
+	 */
+	currency_codes?: (string | CurrencyItem)[];
+	/** Does the datafeed supports marks on bars (`true`), or not (`false | undefined`). */
+	supports_marks?: boolean;
+	/** Set this one to `true` if your datafeed provides server time (unix time). It is used to adjust Countdown on the Price scale. */
+	supports_time?: boolean;
+	/** Does the datafeed supports marks on the timescale (`true`), or not (`false | undefined`). */
+	supports_timescale_marks?: boolean;
+	/**
+	 * List of filter descriptors.
+	 *
+	 * Setting this property to `undefined` or an empty array leads to the absence of filter types in Symbol Search list. Use `value = ''` if you wish to include all filter types.
+	 * `value` within the descriptor will be passed as `symbolType` argument to {@link IDatafeedChartApi.searchSymbols}
+	 */
+	symbols_types?: DatafeedSymbolType[];
+	/**
+	 * Set it if you want to group symbols in the symbol search.
+	 * Represents an object where keys are symbol types {@link SymbolType} and values are regular expressions (each regular expression should divide an instrument name into 2 parts: a root and an expiration).
+	 *
+	 * Sample:
+	 * ```
+	 * {
+	 *   "futures": `/^(.+)([12]!|[FGHJKMNQUVXZ]\d{1,2})$/`,
+	 *   "stock": `/^(.+)([12]!|[FGHJKMNQUVXZ]\d{1,2})$/`,
+	 * }
+	 * ```
+	 * It will be applied to the instruments with futures and stock as a type.
+	 */
+	symbols_grouping?: Record<string, string>;
+}
+/** Symbol Quote Data Value */
+export interface DatafeedQuoteValues {
+	/** Price change (usually counts as an open price on a particular day) */
+	ch?: number;
+	/** Price change percentage */
+	chp?: number;
+	/** Short name for the symbol */
+	short_name?: string;
+	/** The name of the exchange */
+	exchange?: string;
+	/** A short description of the symbol */
+	description?: string;
+	/** Last traded price */
+	lp?: number;
+	/** Ask price */
+	ask?: number;
+	/** Bid price */
+	bid?: number;
+	/** Spread (difference between the ask and bid prices) */
+	spread?: number;
+	/** Today's opening price */
+	open_price?: number;
+	/** Today's high price */
+	high_price?: number;
+	/** Today's low price */
+	low_price?: number;
+	/** Yesterday's closing price */
+	prev_close_price?: number;
+	/** Today's trading volume */
+	volume?: number;
+	/** Original name */
+	original_name?: string;
+	[valueName: string]: string | number | undefined;
+}
+export interface DatafeedSymbolType {
+	/** Name of the symbol type */
+	name: string;
+	/** Value to be passed as the `symbolType` argument to `searchSymbols` */
+	value: string;
+}
+/** Exchange Description */
+export interface Exchange {
+	/** Value to be passed as the `exchange` argument to `searchSymbols` */
+	value: string;
+	/** Name of the exchange */
+	name: string;
+	/** Description of the exchange */
+	desc: string;
+}
+/**
+ * Information passed to `onHistoryCallback` for getBars.
+ */
+export interface HistoryMetadata {
+	/**
+	 * Optional value indicating to the library that there is no more data on the server.
+	 */
+	noData?: boolean;
+	/**
+	 * Time of the next bar if there is no data in the requested period.
+	 * It should be set if the requested period represents a gap in the data. Hence there is available data prior to the requested period.
+	 */
+	nextTime?: number | null;
+}
+export interface IDatafeedChartApi {
+	/**
+	 * The library calls this function to get marks for visible bars range.
+	 * The library assumes that you will call `onDataCallback` only once per `getMarks` call.
+	 *
+	 * A few marks per bar are allowed (for now, the maximum is 10). The time of each mark must match the time of a bar. For example, if the bar times are `2023-01-01`, `2023-01-08`, and `2023-01-15`, then a mark cannot have the time `2023-01-05`.
+	 *
+	 * **Remark:** This function will be called only if you confirmed that your back-end is supporting marks ({@link DatafeedConfiguration.supports_marks}).
+	 *
+	 * @param symbolInfo A SymbolInfo object
+	 * @param from Unix timestamp (leftmost visible bar)
+	 * @param to Unix timestamp (rightmost visible bar)
+	 * @param onDataCallback Callback function containing an array of marks
+	 * @param resolution Resolution of the symbol
+	 */
+	getMarks?(symbolInfo: LibrarySymbolInfo, from: number, to: number, onDataCallback: GetMarksCallback<Mark>, resolution: ResolutionString): void;
+	/**
+	 * The library calls this function to get timescale marks for visible bars range.
+	 * The library assumes that you will call `onDataCallback` only once per `getTimescaleMarks` call.
+	 *
+	 * **Remark:** This function will be called only if you confirmed that your back-end is supporting marks ({@link DatafeedConfiguration.supports_timescale_marks}).
+	 *
+	 * @param symbolInfo A SymbolInfo object
+	 * @param from Unix timestamp (leftmost visible bar)
